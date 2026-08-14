@@ -1,0 +1,6 @@
+instagrapi>=2.18
+python-dotenv>=1.0
+facebook-scraper>=0.2.59
+lxml_html_clean>=0.1
+# Optional, only needed if you use FB_COOKIES=from_browser in .env:
+# browser_cookie3>=0.19

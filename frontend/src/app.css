@@ -1,0 +1,73 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap");
+
+:root {
+  /* --- Identity: official electoral report (CNE-style) - warm paper
+     ground, institutional navy ink and blue accent, single-hue sequential
+     scale for the map instead of a multi-hue alert scheme. Serif headline
+     face for the authoritative "informe oficial" register. --- */
+  --paper: #f6f4ee;
+  --card: #ffffff;
+  --card-alt: #fbfaf6;
+  --hairline: #dee1e2;
+  --hairline-strong: #c3c9cc;
+
+  --ink: #1c2b3a;
+  --ink-mid: #55677a;
+  --ink-dim: #8b98a6;
+
+  --brand: #1e4c8a;
+  --brand-soft: #eaf1fa;
+
+  /* Cold-to-warm risk scale: bajo/moderado stay in the blue family, then
+     break to amber/brick-red for alto/crítico so severity reads by color
+     alone, not just darkness. Keep in sync with alertLevel.js LEVEL_HEX. */
+  --tier-bajo: #c7d6e8;
+  --tier-moderado: #7fa8d4;
+  --tier-alto: #e8a33d;
+  --tier-critico: #b23a2e;
+
+  --no-data: #e4e7eb;
+
+  /* Compatibility aliases for the earlier dark "situation room" pass -
+     components still reference these names; only their values changed. */
+  --panel: var(--card);
+  --panel-raised: var(--card-alt);
+  --hairline-bright: var(--hairline-strong);
+  --text-hi: var(--ink);
+  --text-mid: var(--ink-mid);
+  --text-dim: var(--ink-dim);
+  --alert-verde: var(--tier-bajo);
+  --alert-amarillo: var(--tier-moderado);
+  --alert-naranja: var(--tier-alto);
+  --alert-rojo: var(--tier-critico);
+
+  --display: "Source Serif 4", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+}
+
+#app {
+  width: 100%;
+  min-height: 100svh;
+}
+
+::selection {
+  background: var(--brand-soft);
+  color: var(--brand);
+}

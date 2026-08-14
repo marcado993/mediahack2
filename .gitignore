@@ -1,0 +1,23 @@
+# secrets
+.env
+**/.env
+*cookies*.txt
+backend/app/data/facebook_cookies.txt
+scraper/facebook_cookies.txt
+scraper/session.json
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# node / svelte
+node_modules/
+dist/
+.svelte-kit/
+
+# logs / scratch
+*.log
+backend_log.txt
+server.log

@@ -1,0 +1,99 @@
+{
+  "IVD por provincia": {
+    "columns": [
+      "Provincia",
+      "IVD (0-100)",
+      "Ranking",
+      "Nivel de vulnerabilidad",
+      "D1. Socioeconómica",
+      "D2. Educativa",
+      "D3. Desconfianza institucional",
+      "n Latinobarómetro",
+      "Confiabilidad muestra LB"
+    ],
+    "shape": [
+      25,
+      9
+    ]
+  },
+  "Dimensiones": {
+    "columns": [
+      "Provincia",
+      "D1. Vulnerabilidad socioeconómica",
+      "D2. Vulnerabilidad educativa",
+      "D3. Desconfianza institucional"
+    ],
+    "shape": [
+      23,
+      4
+    ]
+  },
+  "Indicadores normalizados": {
+    "columns": [
+      "Provincia",
+      "Pobreza por ingresos",
+      "Pobreza extrema por ingresos",
+      "Pobreza multidimensional",
+      "Pobreza por NBI",
+      "Coeficiente de Gini",
+      "Tasa de analfabetismo",
+      "Años promedio de escolaridad",
+      "Tasa neta asistencia secundaria",
+      "Tasa neta asistencia bachillerato",
+      "Desconfianza institucional (%)"
+    ],
+    "shape": [
+      23,
+      11
+    ]
+  },
+  "Datos brutos 2024": {
+    "columns": [
+      "Provincia",
+      "Pobreza por ingresos",
+      "Pobreza extrema por ingresos",
+      "Pobreza multidimensional",
+      "Pobreza por NBI",
+      "Coeficiente de Gini",
+      "Tasa de analfabetismo",
+      "Años promedio de escolaridad",
+      "Tasa neta asistencia secundaria",
+      "Tasa neta asistencia bachillerato",
+      "Desconfianza institucional (%)"
+    ],
+    "shape": [
+      24,
+      11
+    ]
+  },
+  "Desconfianza por institución": {
+    "columns": [
+      "Provincia",
+      "Fuerzas Armadas",
+      "Policía",
+      "Iglesia",
+      "Congreso",
+      "Gobierno",
+      "Poder Judicial",
+      "Partidos políticos",
+      "Institución electoral",
+      "Presidente",
+      "Desconfianza promedio (bruta)",
+      "Desconfianza suavizada (usada en IVD)",
+      "n"
+    ],
+    "shape": [
+      24,
+      13
+    ]
+  },
+  "Metodología": {
+    "columns": [
+      "Índice de Vulnerabilidad ante la Desinformación (IVD) — Ecuador 2024"
+    ],
+    "shape": [
+      36,
+      1
+    ]
+  }
+}
