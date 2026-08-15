@@ -1,0 +1,23 @@
+MARCA 1B — Observatorio de Vulnerabilidad Electoral (Ecuador)
+Anillos de observacion · aprobada
+
+Colores
+  Azul institucional  #1B3A5C
+  Senal               #B3341E
+  Texto               #131A24
+  Fondo claro         #F4F6F8
+
+Tipografia
+  IBM Plex Sans 600 (nombre) · IBM Plex Mono 400, tracking 0.12em (bajada)
+
+Contenido
+  svg/   vectorial, para imprenta y web (escala libre)
+  png/   fondo transparente: marca 32-1024 px, version blanca, lockups 4x
+  jpg/   fondo plano (blanco o azul), para sistemas que no aceptan transparencia
+
+Uso
+  Tamano minimo de la marca sola: 22 px. Del lockup horizontal: 150 px de ancho.
+  Margen de respeto: el radio del anillo exterior (0,45 del alto de la marca).
+  Sobre fondos oscuros o fotografia, usar la version blanca.
+  El punto rojo no cambia de color en ninguna version, salvo el monocromo negro.
+  No aplicar sombras, degradados, contornos ni rotaciones al signo.

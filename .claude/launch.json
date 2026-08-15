@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "frontend",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend", "run", "dev", "--", "--host"],
-      "port": 5173
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-c", "import http.server,os; os.chdir('frontend'); port=int(os.environ.get('PORT',5173)); http.server.ThreadingHTTPServer(('0.0.0.0',port),http.server.SimpleHTTPRequestHandler).serve_forever()"],
+      "port": 5173,
+      "autoPort": true
     }
   ]
 }
