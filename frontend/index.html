@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Observatorio de Vulnerabilidad Electoral · Ecuador</title>
+<title>Observatorio de Vulnerabilidades Ante la Desinformación Electoral</title>
 <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
 <link rel="stylesheet" href="/assets/app.css">
 </head>
@@ -11,7 +11,7 @@
 <header><div class="wrap">
 <div class="brand-row">
 <img src="/public/marca-blanco.svg" alt="" class="brand-mark" width="40" height="40" aria-hidden="true">
-<h1>Observatorio de Vulnerabilidad Electoral · Ecuador</h1>
+<h1>Observatorio de Vulnerabilidades Ante la Desinformación Electoral</h1>
 </div>
 <p class="sub">IVEI 2024 · 24 provincias + Galápagos · Censo 2022, ENEMDU 2024 y Latinobarómetro 2024</p>
 <nav>
@@ -107,16 +107,20 @@
 <section class="view" id="v-asistente">
  <div class="card">
   <h2>Temas más hablados por provincia</h2>
-  <p class="note" style="margin:0 0 10px">Selecciona una provincia en el mapa para ver los temas y actores más mencionados en X y medios</p>
-  <div class="tend-map-canvas">
-   <svg id="tend-map" viewBox="0 0 560 640" preserveAspectRatio="xMidYMid meet"></svg>
-   <div class="tend-inset-gal">
-    <span class="inset-gal-label">GALÁPAGOS</span>
-    <svg id="tend-map-gal" viewBox="0 0 110 110"></svg>
+  <p class="note" style="margin:0 0 14px">Selecciona una provincia en el mapa para ver los temas y actores más mencionados en X y medios</p>
+  <div class="tend-layout">
+   <div class="tend-map-canvas">
+    <svg id="tend-map" viewBox="0 0 560 640" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tend-inset-gal">
+     <span class="inset-gal-label">GALÁPAGOS</span>
+     <svg id="tend-map-gal" viewBox="0 0 110 110"></svg>
+    </div>
+   </div>
+   <div class="tend-panel">
+    <div id="tendProvLabel" class="tend-prov-label"></div>
+    <div id="tendResult"></div>
    </div>
   </div>
-  <div id="tendProvLabel" class="tend-prov-label"></div>
-  <div id="tendResult"></div>
  </div>
 </section>
 

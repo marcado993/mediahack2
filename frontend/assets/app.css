@@ -873,7 +873,18 @@ textarea {
 }
 
 /* ---------- Trends map in Assistant ---------- */
+/* Side-by-side, not stacked: a full-width map pushed the actual results
+   (the whole point of this tab) below the fold, forcing a scroll before a
+   journalist saw a single topic. Capping the map's own column keeps both
+   visible together on a normal screen. */
+.tend-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
 .tend-map-canvas {
+  max-width: 260px;
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
@@ -886,16 +897,33 @@ textarea {
   height: auto;
   overflow: visible;
 }
+.tend-panel {
+  min-width: 0;
+  max-height: 560px;
+  overflow-y: auto;
+}
+@media (max-width: 760px) {
+  .tend-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tend-map-canvas {
+    max-width: 320px;
+    margin: 0 auto;
+  }
+}
 .tend-inset-gal {
   position: absolute;
-  top: 6px;
-  left: 6px;
-  width: 72px;
+  top: 5px;
+  left: 5px;
+  width: 42px;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: 4px;
   box-shadow: var(--sh);
-  padding: 4px;
+  padding: 3px;
+}
+.tend-inset-gal .inset-gal-label {
+  font-size: 5.5px;
 }
 .tend-inset-gal svg {
   width: 100%;
