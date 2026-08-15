@@ -8,10 +8,9 @@
 const API_BASE = (() => {
   if (window.MEDIAHACK_API_BASE) return window.MEDIAHACK_API_BASE;
   if (location.hostname === "localhost" || location.hostname === "127.0.0.1") return "http://localhost:8000";
-  // TODO: set the production backend URL (Cloudflare Tunnel hostname) here,
-  // or define window.MEDIAHACK_API_BASE in a small inline <script> before
-  // this file loads.
-  return "";
+  // Backend is a systemd service on the Oracle Cloud box, reachable through
+  // a Cloudflare Tunnel hostname - not the Vercel deploy's own domain.
+  return "https://mediahack-api.apiprueba.online";
 })();
 
 async function api(path, opts) {
