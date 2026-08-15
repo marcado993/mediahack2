@@ -12,8 +12,11 @@
   import Headline from "./lib/organisms/Headline.svelte";
   import SourceBar from "./lib/molecules/SourceBar.svelte";
   import TrendsPanel from "./lib/molecules/TrendsPanel.svelte";
+  import Observatory from "./lib/organisms/observatory/Observatory.svelte";
   import { listProvinces, getProvince } from "./lib/utils/api";
   import { provinceKey } from "./lib/utils/geo";
+
+  let mode = "panel"; // "panel" (default dashboard) | "observatorio" (segmentadores IVEI)
 
   let provinces = [];
   let indexByProvince = {};
@@ -94,18 +97,29 @@
       loading = false;
     }
   });
+
+  $: if (typeof document !== "undefined") {
+    document.documentElement.classList.toggle("scroll-ok", mode === "observatorio");
+    document.body.classList.toggle("scroll-ok", mode === "observatorio");
+  }
 </script>
 
-<div class="app">
+<div class="app" class:scrolling={mode === "observatorio"}>
   <header class="topbar">
     <div class="brand">
       <span class="eyebrow">INFORME · REPÚBLICA DEL ECUADOR</span>
       <h1>Vulnerabilidad a la Desinformación</h1>
     </div>
+    <div class="mode-toggle" role="tablist">
+      <button role="tab" aria-selected={mode === "panel"} class:active={mode === "panel"} on:click={() => (mode = "panel")}>Panel</button>
+      <button role="tab" aria-selected={mode === "observatorio"} class:active={mode === "observatorio"} on:click={() => (mode = "observatorio")}>Observatorio</button>
+    </div>
     <SourceBar />
   </header>
 
-  {#if loading}
+  {#if mode === "observatorio"}
+    <Observatory />
+  {:else if loading}
     <div class="status">Cargando datos…</div>
   {:else if error}
     <div class="status error">{error}</div>
@@ -226,6 +240,21 @@
     flex-direction: column;
     overflow: hidden;
   }
+  /* Observatorio is a much longer, multi-section page (like the reference
+     it's modeled on) - it's meant to scroll, unlike the single-screen panel
+     dashboard the "no scroll" constraint above is for. */
+  .app.scrolling {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+  /* html/body's own overflow:hidden (above) is toggled via JS instead of
+     :has() - :has()-based layout toggles have misbehaved elsewhere in this
+     app, so this sidesteps that rather than risk it here too. */
+  :global(html.scroll-ok, body.scroll-ok) {
+    height: auto;
+    overflow: visible;
+  }
 
   .topbar {
     flex: 0 0 auto;
@@ -260,6 +289,30 @@
     color: var(--ink);
     letter-spacing: -0.01em;
     white-space: nowrap;
+  }
+  .mode-toggle {
+    display: flex;
+    border: 1px solid var(--hairline-strong);
+    border-radius: 8px;
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+  .mode-toggle button {
+    font-family: var(--body);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    background: var(--card);
+    border: none;
+    color: var(--ink-mid);
+    cursor: pointer;
+  }
+  .mode-toggle button + button {
+    border-left: 1px solid var(--hairline-strong);
+  }
+  .mode-toggle button.active {
+    background: var(--brand);
+    color: #fff;
   }
   .status {
     flex: 1;

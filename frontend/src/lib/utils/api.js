@@ -72,3 +72,29 @@ export async function deleteMedia(id) {
   const res = await fetch(`${BASE_URL}/api/media/${id}`, { method: "DELETE" });
   if (!res.ok && res.status !== 204) throw new Error(`DELETE /api/media/${id} -> ${res.status}`);
 }
+
+// --- Observatorio (IVEI - segmentadores) ---
+
+export function getSegmentadoresMapa() {
+  return getJSON("/api/segmentadores/mapa");
+}
+
+export function getSegmentadoresPerfil(province) {
+  return getJSON(`/api/segmentadores/perfil/${encodeURIComponent(province)}`);
+}
+
+export function getSegmentadoresComparar(a, b) {
+  return getJSON(`/api/segmentadores/comparar?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`);
+}
+
+export function getSegmentadoresTabla() {
+  return getJSON("/api/segmentadores/tabla");
+}
+
+export function getSegmentadoresMetodologia() {
+  return getJSON("/api/segmentadores/metodologia");
+}
+
+export function getSegmentadoresProvincias() {
+  return getJSON("/api/segmentadores/provincias");
+}

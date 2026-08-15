@@ -109,6 +109,16 @@
     background: var(--brand-soft);
   }
 
+  /* The badge + two nowrap buttons add up to ~427px, wider than a phone
+     screen on their own - wrap onto a second line instead of forcing the
+     whole page to scroll horizontally. */
+  @media (max-width: 480px) {
+    .source-bar {
+      flex-wrap: wrap;
+      flex-shrink: 1;
+    }
+  }
+
   .backdrop {
     position: fixed;
     inset: 0;
