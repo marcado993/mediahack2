@@ -233,11 +233,31 @@ function drawMapSVG(svgEl, pathsMap, scaleX = 1, scaleY = 1) {
   }
 }
 
+// Only the provinces with enough on-map room to fit a label without
+// crowding a small neighbor - same set as the reference observatory.
+const LABEL_PROVINCES = ["pichincha", "guayas", "manabi", "esmeraldas", "orellana", "sucumbios", "morona santiago", "loja"];
+
+function drawLabels(svgEl) {
+  const idx = byKey();
+  for (const key of LABEL_PROVINCES) {
+    const c = PATHS.centroids[key];
+    const p = idx[key];
+    if (!c || !p) continue;
+    const t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    t.setAttribute("x", c[0]);
+    t.setAttribute("y", c[1] + 3);
+    t.setAttribute("class", "lbl");
+    t.textContent = p.provincia;
+    svgEl.appendChild(t);
+  }
+}
+
 async function initMapas() {
   [MAPA, PATHS] = await Promise.all([getJSON("/api/segmentadores/mapa"), fetch("/assets/ecuador_paths.json").then((r) => r.json())]);
   renderCapas();
   drawMapSVG(document.getElementById("map"), PATHS.mainland);
   drawMapSVG(document.getElementById("map-gal"), PATHS.galapagos);
+  drawLabels(document.getElementById("map"));
   paintMap();
   renderScatter();
 }

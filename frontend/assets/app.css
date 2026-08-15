@@ -223,6 +223,18 @@ svg {
   stroke: #131a24;
   stroke-width: 2.2;
 }
+.lbl {
+  font-size: 9px;
+  fill: #131a24;
+  font-family: var(--body);
+  text-anchor: middle;
+  pointer-events: none;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 2.6px;
+  stroke-linejoin: round;
+}
 .legend {
   display: flex;
   align-items: center;
