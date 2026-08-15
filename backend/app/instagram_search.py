@@ -1,10 +1,20 @@
 """
 Instagram posts from Ecuadorian news / fact-checking accounts, via instagrapi.
 
-THE MOST IMPORTANT THING IN THIS FILE: it does NOT log into Instagram per
-request. Instagram bans accounts that authenticate repeatedly from a
-datacenter IP, and an API endpoint that logs in on every call would do
-exactly that within minutes of going live. Instead:
+HOW THIS ACTUALLY RUNS IN PRODUCTION: the server does NOT log in at all.
+Instagram blocks datacenter IP ranges - from Oracle Cloud the login endpoint
+returns 429 before authentication is even attempted, so no credentials are
+set in the server's .env and _maybe_refresh() below short-circuits. The
+cache is produced on a residential connection by scraper/ig_sync.py and
+copied up; the server only ever reads it. No cache -> no Instagram results,
+which is a degradation, not a failure.
+
+The refresh machinery below still matters wherever credentials ARE present
+(a laptop, or the server behind a residential proxy), and the reason it's
+cache-backed rather than per-request is the same one that motivates all of
+this: Instagram bans accounts that authenticate repeatedly, and an API
+endpoint that logs in on every call would do exactly that within minutes of
+going live. So:
 
   - Posts are scraped at most once per CACHE_TTL (default 45 min) and
     written to a JSON cache. A request arriving while the cache is warm

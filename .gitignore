@@ -11,6 +11,8 @@ scraper/session.json
 backend/app/data/instagram_session.json
 backend/app/data/instagram_cache.json
 backend/app/data/facebook_cache.json
+scraper/ig_session.json
+scraper/instagram_cache.json
 
 # python
 __pycache__/
