@@ -362,4 +362,43 @@
       animation: none;
     }
   }
+
+  /* Mobile: the "no scroll" desktop constraint only works because a 3-column
+     grid can show the map, indicators, and province detail side by side.
+     On a phone there's no room for that - stack everything in one column
+     and let the page scroll like any normal mobile page. */
+  @media (max-width: 860px) {
+    :global(html, body) {
+      overflow: visible;
+      height: auto;
+    }
+    .app {
+      height: auto;
+      min-height: 100svh;
+      overflow: visible;
+    }
+    .topbar {
+      flex-wrap: wrap;
+      padding: 10px 14px;
+      gap: 8px;
+    }
+    .brand h1 {
+      font-size: 19px;
+      white-space: normal;
+    }
+    .body {
+      grid-template-columns: 1fr;
+      grid-auto-rows: auto;
+    }
+    .map-card {
+      height: 340px;
+    }
+    .graph-card {
+      height: 380px;
+    }
+    .rail-panel {
+      height: auto;
+      min-height: 420px;
+    }
+  }
 </style>

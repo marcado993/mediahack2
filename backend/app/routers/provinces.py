@@ -55,8 +55,12 @@ def get_province(province: str):
         d1_socioeconomica=record["d1_socioeconomica"],
         d2_educativa=record["d2_educativa"],
         d3_desconfianza_institucional=record["d3_desconfianza_institucional"],
+        d3_desconfianza_bruta_pct=record.get("d3_desconfianza_bruta_pct"),
+        d3_desconfianza_suavizada_pct=record.get("d3_desconfianza_suavizada_pct"),
         d1_subindicadores=record.get("d1_subindicadores", {}),
         d2_subindicadores=record.get("d2_subindicadores", {}),
+        d1_subindicadores_bruto=record.get("d1_subindicadores_bruto", {}),
+        d2_subindicadores_bruto=record.get("d2_subindicadores_bruto", {}),
         desconfianza_por_institucion=record.get("desconfianza_por_institucion", {}),
         media_layer=idx["media_layer"],
     )

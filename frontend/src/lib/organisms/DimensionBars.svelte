@@ -22,9 +22,9 @@
   };
 
   const DIM_DEFS = [
-    { key: "d1_socioeconomica", label: "D1 · Socioeconómica", raw: "d1_subindicadores" },
-    { key: "d2_educativa", label: "D2 · Educativa", raw: "d2_subindicadores" },
-    { key: "d3_desconfianza_institucional", label: "D3 · Desconfianza institucional", raw: "desconfianza_por_institucion" },
+    { key: "d1_socioeconomica", label: "D1 · Socioeconómica", raw: "d1_subindicadores", bruto: "d1_subindicadores_bruto" },
+    { key: "d2_educativa", label: "D2 · Educativa", raw: "d2_subindicadores", bruto: "d2_subindicadores_bruto" },
+    { key: "d3_desconfianza_institucional", label: "D3 · Desconfianza institucional", raw: "desconfianza_por_institucion", bruto: null },
   ];
 
   $: groups = detail
@@ -32,7 +32,11 @@
         ...def,
         value: detail[def.key],
         items: Object.entries(detail[def.raw] ?? {})
-          .map(([label, value]) => ({ label: SHORT_LABEL[label] ?? label, value }))
+          .map(([label, value]) => ({
+            label: SHORT_LABEL[label] ?? label,
+            value,
+            bruto: def.bruto ? detail[def.bruto]?.[label] : null,
+          }))
           .filter((i) => i.value != null)
           .sort((a, b) => b.value - a.value),
       }))
@@ -58,7 +62,10 @@
               <div class="row-track">
                 <div class="row-fill" style="--w:{item.value}%; background:{alertLevelHex(item.value)}"></div>
               </div>
-              <span class="row-value">{item.value}%</span>
+              <span class="row-value"
+                >{item.value}%{#if item.bruto}<span class="row-bruto">· {item.bruto.valor}{item.bruto.unidad === "índice" ? "" : item.bruto.unidad}</span
+                  >{/if}</span
+              >
             </div>
           {/each}
         </div>
@@ -117,7 +124,7 @@
   }
   .row {
     display: grid;
-    grid-template-columns: 108px 1fr 34px;
+    grid-template-columns: 108px 1fr 78px;
     align-items: center;
     gap: 6px;
     padding: 2.5px 0;
@@ -154,6 +161,11 @@
     font-size: 10px;
     color: var(--ink-mid);
     text-align: right;
+    white-space: nowrap;
+  }
+  .row-bruto {
+    color: var(--ink-dim);
+    margin-left: 3px;
   }
   @media (prefers-reduced-motion: reduce) {
     .row-fill {

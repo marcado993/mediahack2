@@ -56,7 +56,13 @@
     <div class="grid">
       {#each DIMENSIONS as d, i}
         <div class="card-slot" style="animation-delay: {i * 70}ms">
-          <StatCard label={d.label} value={detail[d.key]} />
+          <StatCard
+            label={d.label}
+            value={detail[d.key]}
+            sub={d.key === "d3_desconfianza_institucional" && detail.d3_desconfianza_bruta_pct != null
+              ? `encuesta: ${detail.d3_desconfianza_bruta_pct}% · ajustada: ${detail.d3_desconfianza_suavizada_pct}%`
+              : null}
+          />
         </div>
       {/each}
     </div>

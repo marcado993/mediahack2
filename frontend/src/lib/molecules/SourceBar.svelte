@@ -123,6 +123,7 @@
     border-radius: 10px;
     padding: 20px 24px;
     width: 480px;
+    max-width: calc(100vw - 32px);
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 12px 32px rgba(28, 43, 58, 0.25);

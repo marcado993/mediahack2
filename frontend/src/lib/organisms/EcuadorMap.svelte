@@ -59,6 +59,24 @@
 
   $: activeKey = hovered || selected;
 
+  // First-time guidance (Nielsen "help and documentation" / recognition over
+  // recall): a reader landing here has no reason to know the map is
+  // clickable. Shown once as an inline banner - never a popover over the
+  // data itself (a floating callout can sit on top of a real province
+  // value, which reads as obscuring data on a fact-checking tool) - then
+  // remembered so returning visitors aren't nagged.
+  const HINT_KEY = "mediahack_map_hint_seen";
+  let showHint = typeof localStorage !== "undefined" && !localStorage.getItem(HINT_KEY);
+  function dismissHint() {
+    if (!showHint) return;
+    showHint = false;
+    try {
+      localStorage.setItem(HINT_KEY, "1");
+    } catch (e) {
+      // localStorage unavailable (private mode, etc.) - hint just won't persist across reloads
+    }
+  }
+
   // Direct on-map callouts for the extremes, like a press map annotates the
   // headline number instead of making the reader hunt for it in a legend.
   $: withData = mainlandFeatures.filter((f) => indexByProvince[provinceKey(f.properties.province)]?.vulnerability_index != null);
@@ -91,6 +109,13 @@
     <ScaleLegend />
   </PanelHeader>
 
+  {#if showHint}
+    <div class="hint-banner">
+      <span>Haz clic en una provincia del mapa para ver sus indicadores.</span>
+      <button class="hint-dismiss" on:click={dismissHint} aria-label="Cerrar sugerencia">×</button>
+    </div>
+  {/if}
+
   <div class="canvas">
     <svg
       viewBox="0 0 {WIDTH} {HEIGHT}"
@@ -119,7 +144,7 @@
       {/each}
 
       <g>
-        {#each mainlandFeatures as feature}
+        {#each mainlandFeatures as feature, i}
           {@const key = provinceKey(feature.properties.province)}
           <path
             d={mainPath(feature)}
@@ -128,10 +153,11 @@
             stroke-width={selected === key ? 2.6 : 1}
             class="province"
             class:hovered={hovered === key}
+            style="animation-delay: {i * 22}ms"
             role="button"
             tabindex="0"
-            on:click={() => onSelect(key, feature.properties.province)}
-            on:keydown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), onSelect(key, feature.properties.province))}
+            on:click={() => (dismissHint(), onSelect(key, feature.properties.province))}
+            on:keydown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), dismissHint(), onSelect(key, feature.properties.province))}
             on:mouseenter={() => (hovered = key)}
             on:mouseleave={() => (hovered = null)}
             on:focus={() => (hovered = key)}
@@ -187,7 +213,7 @@
             stroke={selected === key ? "var(--brand)" : "#ffffff"}
             stroke-width={selected === key ? 1.8 : 0.8}
             class="province"
-            on:click={() => onSelect(key, feature.properties.province)}
+            on:click={() => (dismissHint(), onSelect(key, feature.properties.province))}
             on:mouseenter={() => (hovered = key)}
             on:mouseleave={() => (hovered = null)}
           />
@@ -214,6 +240,7 @@
         {/if}
       </div>
     {/if}
+
   </div>
 </div>
 
@@ -240,9 +267,50 @@
   .province {
     cursor: pointer;
     transition: filter 0.12s ease;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: province-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
   .province.hovered {
     filter: brightness(0.93);
+  }
+  @keyframes province-in {
+    from {
+      opacity: 0;
+      transform: scale(0.85) translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  .hint-banner {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--brand-soft);
+    border: 1px solid color-mix(in srgb, var(--brand) 25%, var(--hairline));
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+    font-size: 11.5px;
+    color: var(--brand);
+  }
+  .hint-dismiss {
+    border: none;
+    background: none;
+    color: inherit;
+    opacity: 0.7;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0 0 4px;
+    flex-shrink: 0;
+  }
+  .hint-dismiss:hover {
+    opacity: 1;
   }
   .ping {
     animation: pulse 1.8s ease-out infinite;
@@ -291,7 +359,8 @@
     font-size: 10.5px;
   }
   @media (prefers-reduced-motion: reduce) {
-    .ping {
+    .ping,
+    .province {
       animation: none;
     }
   }

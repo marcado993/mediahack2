@@ -5,6 +5,7 @@
 
   export let label;
   export let value;
+  export let sub = null; // optional small caption line under the value, e.g. raw-vs-adjusted figures
 </script>
 
 <div class="card" style="--c: {alertLevel(value).color}">
@@ -13,6 +14,9 @@
     <MonoValue {value} unit="%" size={19} color="var(--ink)" />
     <AlertBadge {value} pill />
   </div>
+  {#if sub}
+    <div class="sub">{sub}</div>
+  {/if}
 </div>
 
 <style>
@@ -36,5 +40,10 @@
     display: flex;
     align-items: baseline;
     gap: 8px;
+  }
+  .sub {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--ink-dim);
   }
 </style>

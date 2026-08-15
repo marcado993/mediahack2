@@ -23,9 +23,9 @@
   const R2 = 78;
 
   const DIM_DEFS = [
-    { key: "d1_socioeconomica", label: "D1 · Socioeconómica", raw: "d1_subindicadores", expandRaws: true },
-    { key: "d2_educativa", label: "D2 · Educativa", raw: "d2_subindicadores", expandRaws: true },
-    { key: "d3_desconfianza_institucional", label: "D3 · Desconfianza institucional", raw: "desconfianza_por_institucion", expandRaws: false },
+    { key: "d1_socioeconomica", label: "D1 · Socioeconómica", raw: "d1_subindicadores", bruto: "d1_subindicadores_bruto", expandRaws: true },
+    { key: "d2_educativa", label: "D2 · Educativa", raw: "d2_subindicadores", bruto: "d2_subindicadores_bruto", expandRaws: true },
+    { key: "d3_desconfianza_institucional", label: "D3 · Desconfianza institucional", raw: "desconfianza_por_institucion", bruto: null, expandRaws: false },
   ];
 
   const SHORT_LABEL = {
@@ -88,7 +88,8 @@
         raws = rawEntries.map(([label, v], j, arr) => {
           const rAngle = angle - spread / 2 + (arr.length > 1 ? (spread / (arr.length - 1)) * j : 0);
           const [rx, ry] = polar(x, y, R2, rAngle);
-          return { label: SHORT_LABEL[label] ?? label, value: v, x: rx, y: ry };
+          const bruto = def.bruto ? detail[def.bruto]?.[label] : null;
+          return { label: SHORT_LABEL[label] ?? label, value: v, bruto, x: rx, y: ry };
         });
       }
       const list = !def.expandRaws ? rawEntries.map(([label, v]) => ({ label: SHORT_LABEL[label] ?? label, value: v })) : null;
@@ -193,7 +194,7 @@
               class:dimmed={hoverBranch !== null && hoverBranch !== i}
               style="animation-delay: {120 + i * 90 + j * 45}ms"
               on:mouseenter={() => {
-                hoverNode = { label: r.label, value: r.value, x: r.x, y: r.y };
+                hoverNode = { label: r.label, value: r.value, bruto: r.bruto, x: r.x, y: r.y };
                 hoverBranch = i;
               }}
               on:mouseleave={() => {
@@ -275,6 +276,9 @@
             {/each}
           {:else}
             <span style="color:{alertLevelHex(hoverNode.value)}">{hoverNode.value ?? "—"}% · {alertLevel(hoverNode.value).tag}</span>
+            {#if hoverNode.bruto}
+              <span class="tooltip-bruto">valor real: {hoverNode.bruto.valor}{hoverNode.bruto.unidad === "índice" ? "" : hoverNode.bruto.unidad}</span>
+            {/if}
           {/if}
         </div>
       {/if}
@@ -463,5 +467,10 @@
   .tooltip-row-value {
     font-family: var(--mono);
     font-weight: 600;
+  }
+  .tooltip-bruto {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--ink-dim);
   }
 </style>

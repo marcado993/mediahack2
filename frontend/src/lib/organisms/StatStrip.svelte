@@ -48,6 +48,11 @@
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
   }
+  @media (max-width: 860px) {
+    .strip {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
   .chip {
     background: var(--card);
     border: 1px solid var(--hairline);

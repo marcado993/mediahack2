@@ -21,8 +21,12 @@ class ProvinceDetail(ProvinceSummary):
     d1_socioeconomica: Optional[float]
     d2_educativa: Optional[float]
     d3_desconfianza_institucional: Optional[float]
+    d3_desconfianza_bruta_pct: Optional[float] = None
+    d3_desconfianza_suavizada_pct: Optional[float] = None
     d1_subindicadores: dict = {}
     d2_subindicadores: dict = {}
+    d1_subindicadores_bruto: dict = {}
+    d2_subindicadores_bruto: dict = {}
     desconfianza_por_institucion: dict = {}
     media_layer: dict
 
