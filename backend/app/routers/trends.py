@@ -64,6 +64,10 @@ STOPWORDS = {
     "noticias", "noticia", "informacion", "entrevista", "programa", "radio",
     "sera", "seran", "sido", "estar", "tambien", "entonces", "mientras", "aunque",
     "amigo", "gracias", "favor", "sobre", "segun", "durante", "luego", "antes",
+    "enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+    "septiembre", "octubre", "noviembre", "diciembre",
+    "nacional", "provincial", "urgente", "atencion", "importante", "detalles",
+    "conoce", "informa", "mediante", "marco",
 }
 
 _HASHTAG_RE = re.compile(r"#(\w{3,30})", re.UNICODE)

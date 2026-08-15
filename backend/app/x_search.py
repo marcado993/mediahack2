@@ -200,6 +200,9 @@ def search_x_posts(query: str, limit: int = 6) -> dict:
     if not COOKIES_PATH.exists():
         return {"query": query, "articles": [], "note": "sin cookies de X configuradas"}
 
+    if "ecuador" not in _normalize(query):
+        query = f"{query} Ecuador"
+
     key = _normalize(query).strip()
     with _lock:
         cache = _load_cache()

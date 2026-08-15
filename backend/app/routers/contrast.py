@@ -22,6 +22,8 @@ El veredicto lo pone el periodista, con las fuentes en la mano.
 """
 from __future__ import annotations
 
+import re
+
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
@@ -80,7 +82,9 @@ def contrast(req: ContrastRequest):
     # interpretación nuestra.
     for item in evidence:
         text = (item.get("title") or "").lower()
-        item["menciona_costo"] = any(t in text for t in COST_TERMS) or any(c.isdigit() for c in text)
+        has_cost_term = any(t in text for t in COST_TERMS)
+        has_monetary_figure = bool(re.search(r"\$\s*[\d.,]+|[\d.,]+\s*(?:millones|mil|dólares|dolares|usd)", text))
+        item["menciona_costo"] = has_cost_term or has_monetary_figure
         item["menciona_marco_legal"] = any(t.lower() in text for t in LEGAL_TERMS)
 
     con_costo = [e for e in evidence if e["menciona_costo"]]

@@ -82,14 +82,29 @@ def _fetch_feed(source: str, url: str) -> list[dict]:
     return articles
 
 
+_GENERIC_TERMS = {
+    "ecuador", "quito", "guayaquil", "cuenca", "politica", "gobierno",
+    "pais", "nacional", "estado",
+}
+
+
 def _match(articles: list[dict], terms: list[str], exclude_sports: bool) -> list[dict]:
     out = []
     for article in articles:
         if exclude_sports and any(_normalize(c) in EXCLUDED_CATEGORIES for c in article.get("categories", [])):
             continue
         haystack = _normalize(article.get("title", ""))
-        if not terms or any(term in haystack for term in terms):
+        if not terms:
             out.append(article)
+        elif len(terms) == 1:
+            if terms[0] in haystack:
+                out.append(article)
+        else:
+            matched = [t for t in terms if t in haystack]
+            if len(matched) >= 2:
+                out.append(article)
+            elif len(matched) == 1 and matched[0] not in _GENERIC_TERMS:
+                out.append(article)
     return out
 
 
