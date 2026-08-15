@@ -22,6 +22,8 @@ El veredicto lo pone el periodista, con las fuentes en la mano.
 """
 from __future__ import annotations
 
+from typing import Optional
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -36,7 +38,10 @@ COST_TERMS = ["presupuesto", "costo", "financiamiento", "inversión", "millones"
 
 class ContrastRequest(BaseModel):
     proposal: str
-    province: str | None = None
+    # Optional[str], not `str | None`: the server runs Python 3.9, where
+    # FastAPI/pydantic can't evaluate PEP-604 unions at route-registration
+    # time. Same trap that took media.py down earlier.
+    province: Optional[str] = None
 
 
 @router.post("/contrast")
