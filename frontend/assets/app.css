@@ -204,6 +204,31 @@ p.note {
   background: #eaf0f6;
   position: relative;
 }
+.inset-gal {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 92px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: var(--sh);
+  padding: 5px;
+}
+.inset-gal-label {
+  display: block;
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--mut);
+  margin-bottom: 2px;
+}
+.inset-gal svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
 svg {
   display: block;
   width: 100%;
