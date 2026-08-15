@@ -35,6 +35,16 @@ export async function askAssistant(question, context = {}) {
   return res.json();
 }
 
+export async function getContrast(proposal, province = null) {
+  const res = await fetch(`${BASE_URL}/api/contrast`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ proposal, province }),
+  });
+  if (!res.ok) throw new Error(`POST /api/contrast -> ${res.status}`);
+  return res.json();
+}
+
 export function getOrigin(claim) {
   return getJSON(`/api/origin?claim=${encodeURIComponent(claim)}`);
 }

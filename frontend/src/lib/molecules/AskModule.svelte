@@ -4,7 +4,7 @@
   // accounts) and brings back the actual publications, grouped by origin.
   // DeepSeek is the brain that picks the search terms and summarizes - it
   // never invents the citations, those come from app/news_search.py.
-  import { askAssistant, searchNews, getOrigin } from "../utils/api";
+  import { askAssistant, searchNews, getOrigin, getContrast } from "../utils/api";
   import { renderMarkdown } from "../utils/markdown";
   import ListeningAnimation from "./ListeningAnimation.svelte";
   import OriginGraph from "./OriginGraph.svelte";
@@ -19,16 +19,34 @@
   let answer = null;
   let bySource = null;
   let origin = null;
+  let contrastResult = null;
   let loading = false;
   let error = null;
+
+  // Three explicit modes instead of one input that behaves differently
+  // depending on which button you press - a journalist should be able to
+  // tell what a screen will do before pressing anything.
+  const MODES = [
+    { id: "escucha", label: "Escucha", hint: "qué se publica sobre esto" },
+    { id: "origen", label: "Origen", hint: "en qué orden se propagó" },
+    { id: "contraste", label: "Contraste", hint: "qué se sabe de su costo" },
+  ];
+  let mode = "escucha";
+
+  $: placeholder =
+    mode === "origen"
+      ? "Pega la noticia o el titular a rastrear"
+      : mode === "contraste"
+        ? "Escribe la propuesta (ej: metro para Guayaquil)"
+        : province
+          ? `Ej: ¿qué se está diciendo de ${province}?`
+          : "Ej: ¿qué desinformación circula sobre las elecciones?";
 
   function open() {
     modalOpen = true;
     question = "";
-    answer = null;
-    bySource = null;
-    origin = null;
-    error = null;
+    mode = "escucha";
+    reset();
   }
 
   function reset() {
@@ -36,6 +54,29 @@
     answer = null;
     bySource = null;
     origin = null;
+    contrastResult = null;
+  }
+
+  function run() {
+    const q = question.trim();
+    if (!q || loading) return;
+    if (mode === "origen") return trace();
+    if (mode === "contraste") return contrast();
+    return ask(q);
+  }
+
+  async function contrast() {
+    const proposal = question.trim();
+    if (!proposal || loading) return;
+    loading = true;
+    reset();
+    try {
+      contrastResult = await getContrast(proposal, province);
+    } catch (e) {
+      error = "No se pudo reunir la evidencia. Intenta de nuevo.";
+    } finally {
+      loading = false;
+    }
   }
 
   // Sequence of publication for a claim the journalist is holding - who
@@ -87,9 +128,6 @@
     }
   }
 
-  function submit() {
-    ask(question.trim());
-  }
 </script>
 
 <button class="trigger" on:click={open}>
@@ -116,28 +154,40 @@
         <button class="close" on:click={() => (modalOpen = false)} aria-label="Cerrar">×</button>
       </div>
 
-      <form on:submit|preventDefault={submit}>
-        <input
-          type="text"
-          bind:value={question}
-          autofocus
-          placeholder={province ? `Ej: ¿qué se está diciendo de ${province}?` : "Ej: ¿qué desinformación circula sobre las elecciones?"}
-        />
+      <div class="modes" role="tablist">
+        {#each MODES as m}
+          <button
+            role="tab"
+            aria-selected={mode === m.id}
+            class="mode"
+            class:active={mode === m.id}
+            on:click={() => {
+              mode = m.id;
+              reset();
+            }}
+          >
+            <strong>{m.label}</strong>
+            <small>{m.hint}</small>
+          </button>
+        {/each}
+      </div>
+
+      <form on:submit|preventDefault={run}>
+        <input type="text" bind:value={question} autofocus {placeholder} />
         <button type="submit" class="submit-btn" disabled={loading || !question.trim()}>
           {loading ? "…" : "Buscar"}
         </button>
       </form>
 
-      <div class="shortcuts">
-        <button class="chip primary" on:click={trace} disabled={loading || !question.trim()}>
-          Rastrear propagación
-        </button>
-        <button class="chip" on:click={() => sweep(province || "Ecuador")} disabled={loading}>
-          Publicaciones{province ? ` sobre ${province}` : ""}
-        </button>
-        <button class="chip" on:click={() => sweep("desinformación")} disabled={loading}>Desinformación</button>
-        <button class="chip" on:click={() => sweep("elecciones")} disabled={loading}>Elecciones</button>
-      </div>
+      {#if mode === "escucha"}
+        <div class="shortcuts">
+          <button class="chip" on:click={() => sweep(province || "Ecuador")} disabled={loading}>
+            Publicaciones{province ? ` sobre ${province}` : ""}
+          </button>
+          <button class="chip" on:click={() => sweep("desinformación")} disabled={loading}>Desinformación</button>
+          <button class="chip" on:click={() => sweep("elecciones")} disabled={loading}>Elecciones</button>
+        </div>
+      {/if}
 
       <div class="status" aria-live="polite">
         {#if loading}
@@ -146,6 +196,27 @@
           <p class="error">{error}</p>
         {:else if origin}
           <OriginGraph {origin} />
+        {:else if contrastResult}
+          <div class="result">
+            <div class="finding">
+              <span class="eyebrow">CONTRASTE DE EVIDENCIA</span>
+              <p>{contrastResult.hallazgo}</p>
+            </div>
+            {#if contrastResult.evidencia?.length}
+              <ul class="ev">
+                {#each contrastResult.evidencia as e}
+                  <li>
+                    <a href={e.link} target="_blank" rel="noopener noreferrer">
+                      {#if e.menciona_costo}<span class="tag">CIFRAS</span>{/if}
+                      <span class="ev-src">{e.source}</span>
+                      <span class="ev-txt">{e.title}</span>
+                    </a>
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+            <span class="disclaimer">{contrastResult.advertencia}</span>
+          </div>
         {:else if answer || bySource}
           <div class="result">
             {#if answer}
@@ -161,10 +232,16 @@
           </div>
         {:else}
           <p class="hint">
-            Escribe una noticia y usa <strong>Rastrear propagación</strong> para ver en qué orden la
-            publicaron las distintas fuentes. Los demás atajos traen publicaciones de verificadores
-            (Lupa Media, Ecuador Chequea), medios y redes, con su enlace original. Todo filtrado a
-            política y elecciones.
+            {#if mode === "origen"}
+              Pega un titular y verás <strong>en qué orden lo publicó cada fuente</strong>. Muestra la
+              secuencia, no prueba quién copió a quién.
+            {:else if mode === "contraste"}
+              Escribe una propuesta y reúne <strong>lo publicado sobre su costo y financiamiento</strong>.
+              No dictamina si es viable: eso lo concluye el periodista con las fuentes en la mano.
+            {:else}
+              Busca en verificadores (Lupa Media, Ecuador Chequea), medios y redes en una sola pasada.
+              Devuelve las publicaciones con su enlace original, filtradas a política y elecciones.
+            {/if}
           </p>
         {/if}
       </div>
@@ -300,6 +377,109 @@
   .submit-btn:disabled {
     opacity: 0.5;
     cursor: default;
+  }
+  .modes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    margin-bottom: 10px;
+  }
+  .mode {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    text-align: left;
+    background: var(--card-alt);
+    border: 1px solid var(--hairline-strong);
+    border-radius: 7px;
+    padding: 7px 9px;
+    cursor: pointer;
+    color: var(--ink-mid);
+    transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+  }
+  .mode strong {
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .mode small {
+    font-family: var(--mono);
+    font-size: 8.5px;
+    line-height: 1.25;
+    color: var(--ink-dim);
+  }
+  .mode:hover {
+    border-color: var(--brand);
+  }
+  .mode.active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
+  }
+  .mode.active small {
+    color: rgba(255, 255, 255, 0.82);
+  }
+  .finding {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--brand-soft);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+  .finding .eyebrow {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--brand);
+  }
+  .finding p {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .ev {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .ev a {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    background: var(--card-alt);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 7px 9px;
+    text-decoration: none;
+  }
+  .ev a:hover {
+    border-color: var(--brand);
+  }
+  .tag {
+    align-self: flex-start;
+    font-family: var(--mono);
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: #fff;
+    background: var(--tier-alto);
+    border-radius: 3px;
+    padding: 1px 4px;
+  }
+  .ev-src {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--brand);
+  }
+  .ev-txt {
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: var(--ink);
   }
   .shortcuts {
     display: flex;
