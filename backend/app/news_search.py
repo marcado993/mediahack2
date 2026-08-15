@@ -33,7 +33,9 @@ import requests
 
 from app.facebook_search import search_facebook_posts
 from app.instagram_search import search_instagram_posts
+from app.politics import is_political
 from app.tiktok_search import search_tiktok_posts
+from app.x_search import search_x_posts
 
 # Fact-checkers first - order matters for the merged `articles` list.
 FEEDS = {
@@ -96,6 +98,7 @@ def search_news_articles(
     limit: int = 12,
     exclude_sports: bool = True,
     include_social: bool = True,
+    political_only: bool = True,
 ) -> dict:
     """Searches every source and returns both a merged list and a per-source breakdown."""
     terms = [_normalize(t) for t in query.split() if len(t) > 2]
@@ -144,6 +147,19 @@ def search_news_articles(
                     bucket.append(post)
         except Exception:
             pass
+
+        try:
+            xs = search_x_posts(query, limit=PER_SOURCE_LIMIT)
+            by_source.setdefault("X (Twitter)", [])
+            by_source["X (Twitter)"].extend(xs.get("articles", [])[:PER_SOURCE_LIMIT])
+        except Exception:
+            pass
+
+    # "Solo política, cosas relevantes para las elecciones" - applied last so
+    # it covers every source uniformly. Social sources already self-filter,
+    # but RSS feeds carry plenty of non-political items.
+    if political_only:
+        by_source = {name: [a for a in items if is_political(a.get("title", ""))] for name, items in by_source.items()}
 
     # Merged list keeps FEEDS order (fact-checkers first), then social.
     ordered_names = [n for n in FEEDS if n in by_source] + [n for n in by_source if n not in FEEDS]

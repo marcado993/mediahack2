@@ -11,6 +11,11 @@ scraper/session.json
 backend/app/data/instagram_session.json
 backend/app/data/instagram_cache.json
 backend/app/data/facebook_cache.json
+backend/app/data/tiktok_cache.json
+# x_cache.json holds scraped public posts INCLUDING the account names of
+# private citizens. Publishing that to a public repo would be exactly the
+# profiling/retention the ethics framework prohibits - see GOBERNANZA_ETICA.md.
+backend/app/data/x_cache.json
 scraper/ig_session.json
 scraper/instagram_cache.json
 

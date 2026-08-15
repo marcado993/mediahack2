@@ -119,6 +119,19 @@ def _load_cookies() -> list[dict] | None:
 # because TikTok truncates.
 _CAPTION_RE = re.compile(r':\s*["“”](.*)$', re.DOTALL)
 
+# ...and it names the author as "(@ecuadorchequea)". Checking this at the
+# video itself is the only reliable attribution: TikTok renders profile grid
+# links using the account's NUMERIC id (@7594224890586399766/video/...), not
+# its handle, so filtering hrefs by handle silently matched nothing.
+_AUTHOR_RE = re.compile(r"\(@([A-Za-z0-9._]+)\)")
+
+
+def _author_from_description(desc: str | None) -> str | None:
+    if not desc:
+        return None
+    match = _AUTHOR_RE.search(desc)
+    return match.group(1).lower() if match else None
+
 
 def _caption_from_description(desc: str | None) -> str:
     if not desc:
@@ -142,21 +155,30 @@ def _fetch_account(account: str, context) -> list[dict]:
         page.mouse.wheel(0, 1500)
         page.wait_for_timeout(3000)
 
+        # Scope to the profile's own post grid. Querying the whole document
+        # picked up the *logged-in user's* "Cuentas que sigues" sidebar -
+        # TikTok injects personalised content once authenticated - and filed
+        # a cat video and a Walmart clip under the fact-checker's name.
         links = page.evaluate(
-            """(account) => Array.from(document.querySelectorAll('a[href*="/video/"]'))
+            """() => Array.from(document.querySelectorAll('[data-e2e="user-post-item"] a[href*="/video/"]'))
                 .map(a => a.href)
-                .filter(h => h.includes('@' + account + '/video/'))
-                .filter((v, i, arr) => arr.indexOf(v) === i)""",
-            account,
+                .filter((v, i, arr) => arr.indexOf(v) === i)"""
         )
         if not links:
             return []
 
-        for href in links[:POSTS_PER_ACCOUNT]:
+        for href in links[: POSTS_PER_ACCOUNT * 2]:
+            if len(posts) >= POSTS_PER_ACCOUNT:
+                break
             try:
                 page.goto(href, wait_until="domcontentloaded", timeout=30000)
                 page.wait_for_timeout(2000)
                 desc = page.get_attribute('meta[property="og:description"]', "content")
+
+                author = _author_from_description(desc)
+                if author and author != account.lower():
+                    continue
+
                 caption = _caption_from_description(desc)
                 if caption:
                     posts.append(

@@ -4,10 +4,11 @@
   // accounts) and brings back the actual publications, grouped by origin.
   // DeepSeek is the brain that picks the search terms and summarizes - it
   // never invents the citations, those come from app/news_search.py.
-  import { askAssistant, searchNews } from "../utils/api";
+  import { askAssistant, searchNews, getTrends } from "../utils/api";
   import { renderMarkdown } from "../utils/markdown";
   import ListeningAnimation from "./ListeningAnimation.svelte";
   import SourceGroups from "./SourceGroups.svelte";
+  import TrendsPanel from "./TrendsPanel.svelte";
 
   export let province = null;
   export let ivd = null;
@@ -17,6 +18,7 @@
   let question = "";
   let answer = null;
   let bySource = null;
+  let trends = null;
   let loading = false;
   let error = null;
 
@@ -25,6 +27,7 @@
     question = "";
     answer = null;
     bySource = null;
+    trends = null;
     error = null;
   }
 
@@ -32,6 +35,22 @@
     error = null;
     answer = null;
     bySource = null;
+    trends = null;
+  }
+
+  // Listening on the conversation itself, not on what outlets published -
+  // the starting point of an investigation rather than its summary.
+  async function listen() {
+    if (loading || !province) return;
+    loading = true;
+    reset();
+    try {
+      trends = await getTrends(province);
+    } catch (e) {
+      error = "No se pudo leer la conversación en X. Intenta de nuevo.";
+    } finally {
+      loading = false;
+    }
   }
 
   async function ask(q) {
@@ -109,8 +128,13 @@
       </form>
 
       <div class="shortcuts">
+        {#if province}
+          <button class="chip primary" on:click={listen} disabled={loading}>
+            ¿Quién habla de {province}?
+          </button>
+        {/if}
         <button class="chip" on:click={() => sweep(province || "Ecuador")} disabled={loading}>
-          Todo lo reciente{province ? ` sobre ${province}` : ""}
+          Publicaciones{province ? ` sobre ${province}` : ""}
         </button>
         <button class="chip" on:click={() => sweep("desinformación")} disabled={loading}>Desinformación</button>
         <button class="chip" on:click={() => sweep("elecciones")} disabled={loading}>Elecciones</button>
@@ -121,6 +145,8 @@
           <ListeningAnimation />
         {:else if error}
           <p class="error">{error}</p>
+        {:else if trends}
+          <TrendsPanel {trends} />
         {:else if answer || bySource}
           <div class="result">
             {#if answer}
@@ -136,9 +162,10 @@
           </div>
         {:else}
           <p class="hint">
-            Escribe una pregunta o usa un atajo. Se consultan verificadores (Lupa Media, Ecuador
-            Chequea), medios y redes en una sola pasada, y se devuelven las publicaciones con su
-            enlace.
+            Para reportería: <strong>¿Quién habla de…?</strong> lee la conversación en X y te devuelve
+            actores y temas recurrentes — pistas para rastrear. Los demás atajos traen publicaciones
+            de verificadores (Lupa Media, Ecuador Chequea), medios y redes, siempre con su enlace
+            original. Todo filtrado a política y elecciones.
           </p>
         {/if}
       </div>
@@ -298,6 +325,15 @@
   .chip:disabled {
     opacity: 0.5;
     cursor: default;
+  }
+  .chip.primary {
+    background: var(--brand);
+    color: #fff;
+    border-color: var(--brand);
+    font-weight: 600;
+  }
+  .chip.primary:hover {
+    filter: brightness(1.08);
   }
   .status {
     margin-top: 14px;

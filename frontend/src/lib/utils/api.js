@@ -35,6 +35,10 @@ export async function askAssistant(question, context = {}) {
   return res.json();
 }
 
+export function getTrends(province) {
+  return getJSON(`/api/trends?province=${encodeURIComponent(province)}`);
+}
+
 export function listMedia(province) {
   const qs = province ? `?province=${encodeURIComponent(province)}` : "";
   return getJSON(`/api/media${qs}`);
