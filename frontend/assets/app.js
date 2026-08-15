@@ -749,6 +749,7 @@ async function runAsistente() {
   }
 }
 
+let tendSel = null;
 let tendOpenTerm = null;
 async function runTendencias(province) {
   const box = document.getElementById("tendResult");
@@ -786,12 +787,45 @@ async function runTendencias(province) {
   }
 }
 
+function drawTendMapSVG(svgEl, pathsMap) {
+  svgEl.innerHTML = "";
+  for (const [key, d] of Object.entries(pathsMap)) {
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("class", "tend-pv");
+    path.dataset.k = key;
+    path.setAttribute("role", "button");
+    path.setAttribute("tabindex", "0");
+    const displayName = PROVINCIAS.find((p) => provinceKey(p) === key) || key;
+    path.addEventListener("mouseenter", (e) => {
+      tipShow(e.clientX, e.clientY, `<b>${displayName}</b>`);
+    });
+    path.addEventListener("mousemove", (e) => tipMove(e.clientX, e.clientY));
+    path.addEventListener("mouseleave", tipHide);
+    path.addEventListener("click", () => {
+      tendSel = key;
+      paintTendMap();
+      document.getElementById("tendProvLabel").textContent = displayName;
+      runTendencias(displayName);
+    });
+    svgEl.appendChild(path);
+  }
+}
+
+function paintTendMap() {
+  document.querySelectorAll(".tend-pv").forEach((el) => {
+    el.classList.toggle("sel", el.dataset.k === tendSel);
+  });
+}
+
 function initAsistente() {
   renderAsisModos();
   document.getElementById("asisRun").onclick = runAsistente;
   document.getElementById("asisProv").innerHTML += PROVINCIAS.map((p) => `<option value="${p}">${p}</option>`).join("");
-  document.getElementById("tendProv").innerHTML += PROVINCIAS.map((p) => `<option value="${p}">${p}</option>`).join("");
-  document.getElementById("tendProv").onchange = (e) => runTendencias(e.target.value);
+  if (PATHS) {
+    drawTendMapSVG(document.getElementById("tend-map"), PATHS.mainland);
+    drawTendMapSVG(document.getElementById("tend-map-gal"), PATHS.galapagos);
+  }
 }
 
 // ---------------------------------------------------------------------

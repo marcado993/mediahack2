@@ -845,6 +845,59 @@ textarea {
   margin-top: 8px;
 }
 
+/* ---------- Trends map in Assistant ---------- */
+.tend-map-canvas {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #eaf0f6;
+  position: relative;
+}
+.tend-map-canvas svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.tend-inset-gal {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 72px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  box-shadow: var(--sh);
+  padding: 4px;
+}
+.tend-inset-gal svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.tend-pv {
+  fill: #b9c8d8;
+  stroke: #fff;
+  stroke-width: 0.9;
+  cursor: pointer;
+  transition: fill 0.15s, filter 0.12s;
+}
+.tend-pv:hover {
+  fill: #8facc4;
+}
+.tend-pv.sel {
+  fill: var(--acc);
+  stroke: #fff;
+  stroke-width: 1.5;
+}
+.tend-prov-label {
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--acc);
+  margin-top: 8px;
+  min-height: 20px;
+}
+
 @media print {
   header,
   nav,
