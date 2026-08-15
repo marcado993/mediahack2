@@ -701,9 +701,10 @@ async function runAsistente() {
   try {
     if (asisMode === "escucha") {
       const res = await postJSON("/api/ask", { question: q, province });
+      const answerClass = res.refused ? "asis-answer asis-refused" : "asis-answer";
       const groups = Object.entries(res.by_source || {}).filter(([, v]) => v.length);
       result.innerHTML = `
-      <div class="asis-answer">${res.answer}</div>
+      <div class="${answerClass}">${res.answer}</div>
       ${groups
         .map(
           ([name, items]) => `<h4 style="font-size:12px;margin:14px 0 6px;color:var(--acc)">${name}</h4>
@@ -757,7 +758,7 @@ async function runTendencias(province) {
     box.innerHTML = "";
     return;
   }
-  box.innerHTML = `<div class="asis-loading">Leyendo X y medios sobre ${province}. Puede tardar unos segundos…</div>`;
+  box.innerHTML = `<div class="asis-loading"><span class="tend-spinner"></span> Leyendo X y medios sobre ${province}…</div>`;
   try {
     const res = await getJSON(`/api/trends?province=${encodeURIComponent(province)}`);
     if (res.note) {
