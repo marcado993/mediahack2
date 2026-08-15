@@ -1,35 +1,86 @@
 """
-Facebook posts via Playwright (real browser rendering) + exported session
-cookies - not kevinzg/facebook-scraper, which we proved dead: even with
-valid cookies (confirmed logged in via /settings), both m.facebook.com and
-mbasic.facebook.com now redirect straight to the modern React site with no
-server-rendered <article> tags for that library to find. Facebook posts
+Facebook page posts via Playwright (real browser rendering) + exported
+session cookies - not kevinzg/facebook-scraper, which we proved dead: even
+with valid cookies (confirmed logged in via /settings), both m.facebook.com
+and mbasic.facebook.com now redirect straight to the modern React site with
+no server-rendered <article> tags for that library to find. Facebook posts
 only exist in the DOM after JS runs, so this renders the page for real and
 reads the DOM afterward. [data-ad-preview="message"] reliably isolates just
 the post text - confirmed against a real post, cleanly, no surrounding UI
 chrome.
 
+Like app/instagram_search.py, this is CACHED and never scrapes per request.
+Two reasons, both real: launching Chromium and rendering N pages takes 10s+,
+which would make every /api/news call feel broken; and hammering Facebook
+from a datacenter IP on every request is how the session cookie gets
+invalidated. A request arriving while the cache is warm reads the JSON file
+and never opens a browser.
+
 Needs backend/app/data/facebook_cookies.txt (Netscape format, exported
-while logged into facebook.com - see scraper/README.md for how). Missing
-or expired cookies -> empty results, not a crash.
+while logged into facebook.com - see scraper/README.md for how). Missing or
+expired cookies -> empty results, not a crash.
 """
 from __future__ import annotations
 
+import json
+import threading
+import time
 import unicodedata
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-COOKIES_PATH = Path(__file__).parent / "data" / "facebook_cookies.txt"
+DATA_DIR = Path(__file__).parent / "data"
+COOKIES_PATH = DATA_DIR / "facebook_cookies.txt"
+CACHE_PATH = DATA_DIR / "facebook_cache.json"
 
-# Public news-page timelines to check. Confirmed working against the first
-# entry during testing; add more real outlet Facebook pages as needed.
+# Public news-page timelines to check. Fact-checkers first, same reasoning as
+# news_search.FEEDS.
 PAGES = {
+    "Lupa Media": "https://www.facebook.com/lupamediaec/",
+    "Ecuador Chequea": "https://www.facebook.com/ecuadorchequea/",
     "Noticias Al Día Ecuador": "https://www.facebook.com/FarandulaNoticiasYMas/",
 }
 
+CACHE_TTL = timedelta(minutes=30)
+PAGE_PAUSE_MS = 2500  # deliberate gap between page loads, not a burst
+
+_refresh_lock = threading.Lock()
+_refreshing = False
+
 
 def _normalize(text: str) -> str:
-    text = unicodedata.normalize("NFD", text.lower())
+    text = unicodedata.normalize("NFD", (text or "").lower())
     return "".join(c for c in text if unicodedata.category(c) != "Mn")
+
+
+def _load_cache() -> dict:
+    if not CACHE_PATH.exists():
+        return {"fetched_at": None, "posts": []}
+    try:
+        return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
+    except Exception:
+        return {"fetched_at": None, "posts": []}
+
+
+def _save_cache(cache: dict) -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    CACHE_PATH.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _parse_dt(value: str | None):
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def _is_stale(cache: dict) -> bool:
+    fetched = _parse_dt(cache.get("fetched_at"))
+    if fetched is None:
+        return True
+    return datetime.now(timezone.utc) - fetched > CACHE_TTL
 
 
 def _load_cookies() -> list[dict] | None:
@@ -94,7 +145,7 @@ def _fetch_page_posts(page_name: str, url: str, browser) -> list[dict]:
             posts.append(
                 {
                     "source": f"Facebook · {page_name}",
-                    "title": text,
+                    "title": text[:280],
                     "link": permalink or url,
                     "published": None,
                 }
@@ -106,27 +157,68 @@ def _fetch_page_posts(page_name: str, url: str, browser) -> list[dict]:
         context.close()
 
 
+def _scrape_all() -> list[dict]:
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError:
+        return []
+
+    posts: list[dict] = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        try:
+            for i, (page_name, url) in enumerate(PAGES.items()):
+                posts.extend(_fetch_page_posts(page_name, url, browser))
+                if i < len(PAGES) - 1:
+                    time.sleep(PAGE_PAUSE_MS / 1000)
+        finally:
+            browser.close()
+    return posts
+
+
+def _refresh_in_background() -> None:
+    global _refreshing
+    try:
+        posts = _scrape_all()
+        if posts:
+            _save_cache({"fetched_at": datetime.now(timezone.utc).isoformat(), "posts": posts})
+    finally:
+        with _refresh_lock:
+            _refreshing = False
+
+
+def _maybe_refresh(cache: dict) -> None:
+    global _refreshing
+    if not COOKIES_PATH.exists() or not _is_stale(cache):
+        return
+    with _refresh_lock:
+        if _refreshing:
+            return
+        _refreshing = True
+    threading.Thread(target=_refresh_in_background, daemon=True).start()
+
+
 def search_facebook_posts(query: str, limit: int = 8) -> dict:
     if not COOKIES_PATH.exists():
         return {"query": query, "pages_checked": [], "articles": [], "note": "sin cookies configuradas"}
 
+    cache = _load_cache()
+    _maybe_refresh(cache)
+
     terms = [_normalize(t) for t in query.split() if len(t) > 2]
     matches = []
+    for post in cache.get("posts", []):
+        haystack = _normalize(post.get("title", ""))
+        if not terms or any(term in haystack for term in terms):
+            matches.append(post)
 
-    try:
-        from playwright.sync_api import sync_playwright
-    except ImportError:
-        return {"query": query, "pages_checked": [], "articles": [], "note": "playwright no instalado"}
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        try:
-            for page_name, url in PAGES.items():
-                for post in _fetch_page_posts(page_name, url, browser):
-                    haystack = _normalize(post["title"])
-                    if not terms or any(term in haystack for term in terms):
-                        matches.append(post)
-        finally:
-            browser.close()
-
-    return {"query": query, "pages_checked": list(PAGES.keys()), "articles": matches[:limit]}
+    return {
+        "query": query,
+        "pages_checked": list(PAGES.keys()),
+        "articles": matches[:limit],
+        "cache_age_minutes": (
+            round((datetime.now(timezone.utc) - _parse_dt(cache["fetched_at"])).total_seconds() / 60)
+            if _parse_dt(cache.get("fetched_at"))
+            else None
+        ),
+    }

@@ -1,25 +1,26 @@
 """
 Research assistant for journalists, backed by DeepSeek's chat API
-(OpenAI-compatible), now with real tool-calling: the model can call
-search_news() - our RSS-backed search over Ecuadorian news outlets
-(app/news_search.py) - instead of only answering from training data.
+(OpenAI-compatible), with real tool-calling: DeepSeek is the *brain* that
+decides what to search for, but every publication it shows comes from
+app/news_search.py - the centralizer over Lupa Media, Ecuador Chequea, El
+Comercio, Facebook pages and Instagram accounts. Nothing in the citations is
+model-generated, which is the whole point on a disinformation project.
 
-This replaces the earlier "Facebook API" plan: Facebook access is still
-blocked on cookie extraction (kevinzg/facebook-scraper needs a logged-in
-session we don't have working yet), and GDELT's servers are unreachable
-from this network. The RSS search is real and already proven working, so
-that's the tool DeepSeek actually gets - swap in a Facebook-backed search
-function here later if that path unblocks, the tool-calling wiring won't
-need to change, just what search_news() calls internally.
+Two rules the prompt enforces hard, both from direct user feedback:
+  - Always search. "No tengo idea" / "no tengo acceso a internet" as a
+    first answer is a failure mode here, not honesty - the tool exists.
+  - Show the publications, not a profile of the outlet. The user wants the
+    posts themselves, not a description of who Lupa Media is.
 
 The model still has no *general* internet access - only this one search
-tool, over one outlet's recent headlines. The system prompt and the
+tool, over the sources listed in news_search.py. The system prompt and the
 frontend disclaimer both say so; don't drop one without the other.
 """
 from __future__ import annotations
 
 import json
 import os
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -34,21 +35,34 @@ MODEL = "deepseek-chat"
 SYSTEM_PROMPT = (
     "Eres un asistente de investigación para periodistas ecuatorianos, dentro de un proyecto "
     "sobre vulnerabilidad territorial a la desinformación POLÍTICA - no deportes, no "
-    "entretenimiento. Respondes en español, de forma concisa y verificable. "
-    "Tienes UNA herramienta: search_news, que busca en los titulares políticos más recientes de "
-    "medios ecuatorianos y páginas de Facebook (deportes ya viene excluido) - no es un archivo "
-    "histórico, solo lo publicado recientemente. "
-    "LLAMA search_news de inmediato en casi cualquier pregunta sobre Ecuador, política, "
-    "funcionarios, candidatos, provincias o eventos actuales - incluso si la pregunta es amplia o "
-    "ambigua (ej. solo 'Ecuador'). No pidas que el usuario aclare primero; usa el término tal cual "
-    "como query y muestra lo que encuentres. Solo evita la herramienta para preguntas claramente "
-    "atemporales (definiciones, historia antigua, geografía general). "
-    "Si la herramienta no devuelve resultados, dilo explícitamente - no inventes una noticia que no "
-    "encontraste. Cuando SÍ haya resultados, cita cada uno en tu respuesta como un enlace en "
-    "markdown usando su título y URL exactos, ej. [Título del artículo](url) - el usuario quiere "
-    "poder hacer clic directo desde tu respuesta, no solo ver las tarjetas separadas. Para todo lo "
-    "demás, respondes desde tu conocimiento entrenado y dejas claro que no tienes acceso a "
-    "internet en general, solo a esa única búsqueda de noticias."
+    "entretenimiento. Respondes en español, conciso y verificable.\n\n"
+    "TIENES UNA HERRAMIENTA: search_news. Centraliza publicaciones REALES y recientes de "
+    "verificadores ecuatorianos (Lupa Media, Ecuador Chequea), medios (El Comercio), páginas de "
+    "Facebook y cuentas de Instagram. No es un archivo histórico: solo lo publicado hace poco.\n\n"
+    "REGLA 1 - SIEMPRE BUSCA PRIMERO. Llama search_news de inmediato en cualquier pregunta sobre "
+    "Ecuador, política, provincias, funcionarios, candidatos, desinformación o eventos actuales, "
+    "incluso si la pregunta es amplia o ambigua (ej. solo 'Ecuador' o solo el nombre de una "
+    "provincia). NUNCA respondas 'no tengo idea', 'no tengo acceso a internet' o 'necesito que "
+    "aclares' antes de haber llamado la herramienta. Si el primer intento no devuelve nada, vuelve "
+    "a llamarla con un término más amplio (ej. la provincia sola, o 'Ecuador') antes de rendirte.\n\n"
+    "REGLA 2 - MUESTRA LAS PUBLICACIONES, NO DESCRIPCIONES. El usuario quiere las publicaciones en "
+    "sí. No expliques qué es Lupa Media ni quién es Ecuador Chequea, no describas las cuentas ni su "
+    "línea editorial. Lista lo que encontraste y ya.\n\n"
+    "FORMATO: agrupa por fuente y cita cada publicación como enlace markdown con su título y URL "
+    "exactos, ej. [Título](url). El usuario debe poder hacer clic directo desde tu respuesta.\n\n"
+    "Si de verdad no hubo resultados tras buscar, dilo en una línea - nunca inventes una "
+    "publicación, un titular ni un enlace que la herramienta no devolvió."
+)
+
+# When the dashboard has a province selected, that context is prepended to
+# the user's question so a bare "¿qué se dice aquí?" still resolves to
+# something searchable. Per user instruction the search stays on the
+# province name itself and does not silently swap in the capital city.
+PROVINCE_CONTEXT = (
+    "CONTEXTO: el periodista está viendo la provincia de {province} en el mapa de vulnerabilidad "
+    "a la desinformación (IVD {ivd}, nivel {nivel}). Enfoca la búsqueda en '{province}' como "
+    "término. No sustituyas la provincia por su capital ni hables de la capital como si fuera la "
+    "provincia.\n\nPREGUNTA: "
 )
 
 TOOLS = [
@@ -57,9 +71,10 @@ TOOLS = [
         "function": {
             "name": "search_news",
             "description": (
-                "Busca en los titulares políticos recientes de medios de noticias ecuatorianos "
-                "(deportes excluido automáticamente). Solo cubre lo publicado en los últimos "
-                "días, no es un archivo buscable."
+                "Busca publicaciones políticas recientes en verificadores ecuatorianos (Lupa "
+                "Media, Ecuador Chequea), medios (El Comercio), páginas de Facebook y cuentas de "
+                "Instagram. Deportes excluido automáticamente. Solo cubre lo publicado en los "
+                "últimos días, no es un archivo buscable."
             ),
             "parameters": {
                 "type": "object",
@@ -75,12 +90,16 @@ TOOLS = [
 
 class AskRequest(BaseModel):
     question: str
+    province: Optional[str] = None
+    ivd: Optional[float] = None
+    nivel: Optional[str] = None
 
 
 class AskResponse(BaseModel):
     answer: str
     model: str
     articles_used: list[dict] = []
+    by_source: dict = {}
 
 
 def _client():
@@ -101,10 +120,21 @@ def ask(req: AskRequest):
     if not question:
         raise HTTPException(status_code=422, detail="La pregunta no puede estar vacía.")
 
+    user_content = question
+    if req.province:
+        user_content = (
+            PROVINCE_CONTEXT.format(
+                province=req.province,
+                ivd=req.ivd if req.ivd is not None else "s/d",
+                nivel=req.nivel or "s/d",
+            )
+            + question
+        )
+
     client = _client()
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": question},
+        {"role": "user", "content": user_content},
     ]
 
     try:
@@ -114,6 +144,7 @@ def ask(req: AskRequest):
 
     reply = first.choices[0].message
     articles_used: list[dict] = []
+    by_source: dict = {}
 
     if reply.tool_calls:
         messages.append(reply.model_dump(exclude_none=True))
@@ -122,8 +153,10 @@ def ask(req: AskRequest):
                 args = json.loads(call.function.arguments)
             except json.JSONDecodeError:
                 args = {}
-            result = search_news_articles(args.get("query", question), limit=6)
+            result = search_news_articles(args.get("query", question), limit=12)
             articles_used.extend(result["articles"])
+            for name, items in result.get("by_source", {}).items():
+                by_source.setdefault(name, []).extend(items)
             messages.append(
                 {
                     "role": "tool",
@@ -138,6 +171,22 @@ def ask(req: AskRequest):
             raise HTTPException(status_code=502, detail=f"Error consultando DeepSeek: {e}")
         answer = second.choices[0].message.content
     else:
+        # DeepSeek answered without searching, which this prompt tells it never
+        # to do for these questions. Rather than pass through a "no tengo idea"
+        # answer, run the search ourselves so the user still gets publications.
+        result = search_news_articles(req.province or question, limit=12)
+        articles_used = result["articles"]
+        by_source = result.get("by_source", {})
         answer = reply.content
 
-    return AskResponse(answer=answer, model=MODEL, articles_used=articles_used)
+    # De-duplicate by link: the same post can arrive from two tool calls.
+    seen = set()
+    deduped = []
+    for a in articles_used:
+        key = a.get("link")
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(a)
+
+    return AskResponse(answer=answer, model=MODEL, articles_used=deduped, by_source=by_source)

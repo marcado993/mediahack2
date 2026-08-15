@@ -5,6 +5,12 @@
 backend/app/data/facebook_cookies.txt
 scraper/facebook_cookies.txt
 scraper/session.json
+# instagram_session.json holds a live authenticated session - as sensitive as
+# the password itself. The *_cache.json files are just scraped posts, but
+# they're machine-local state, not source.
+backend/app/data/instagram_session.json
+backend/app/data/instagram_cache.json
+backend/app/data/facebook_cache.json
 
 # python
 __pycache__/
