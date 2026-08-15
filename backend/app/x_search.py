@@ -44,7 +44,22 @@ CACHE_TTL = timedelta(minutes=30)
 MAX_CACHED_QUERIES = 40
 SCROLLS = 2
 
+# Hard floor between live searches, independent of what the caller asks for.
+# The frontend debounces province switching, but a debounce can be defeated
+# by two people using the dashboard at once, or by a reload loop. This is the
+# backstop: X sees at most one search per interval from this process, and
+# everything else is served from cache (even stale, even empty) rather than
+# queued into a burst that looks like automation.
+MIN_SCRAPE_INTERVAL = timedelta(seconds=25)
+
 _lock = threading.Lock()
+_last_scrape_at: datetime | None = None
+
+
+def _throttled() -> bool:
+    if _last_scrape_at is None:
+        return False
+    return datetime.now(timezone.utc) - _last_scrape_at < MIN_SCRAPE_INTERVAL
 
 
 def _normalize(text: str) -> str:
@@ -190,7 +205,12 @@ def search_x_posts(query: str, limit: int = 6) -> dict:
         cache = _load_cache()
         entry = cache.get(key)
 
-    if not _fresh(entry):
+    if not _fresh(entry) and not _throttled():
+        global _last_scrape_at
+        with _lock:
+            if _throttled():  # another thread got there first
+                return {"query": query, "articles": (entry.get("posts") if entry else []) or []}
+            _last_scrape_at = datetime.now(timezone.utc)
         posts = _scrape(query)
         if posts:
             with _lock:

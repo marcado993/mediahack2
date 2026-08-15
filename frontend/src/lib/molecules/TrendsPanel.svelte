@@ -44,7 +44,24 @@
     }
   }
 
-  $: load(province);
+  // Debounced, and this is a rate-limiting measure rather than a polish one:
+  // clicking across ten provinces used to fire ten live X searches in a few
+  // seconds, which is precisely the burst pattern that gets a scraping
+  // session flagged. Waiting for the selection to settle collapses that into
+  // one request for the province the journalist actually stopped on.
+  const SETTLE_MS = 800;
+  let settleTimer;
+
+  function schedule(p) {
+    clearTimeout(settleTimer);
+    if (!p) return;
+    loading = true; // show the loader immediately, so the wait isn't dead air
+    trends = null;
+    failed = false;
+    settleTimer = setTimeout(() => load(p), SETTLE_MS);
+  }
+
+  $: schedule(province);
 </script>
 
 {#if loading}
@@ -59,13 +76,17 @@
     <div class="bar" role="progressbar" aria-label="Buscando temas"><span></span></div>
     <p class="note">Leyendo X y medios sobre {province}. Puede tardar unos segundos.</p>
     <div class="skeleton-chips">
-      {#each Array(4) as _}<span class="skel"></span>{/each}
+      {#each Array(7) as _, i}<span class="skel" style="animation-delay: {i * 90}ms"></span>{/each}
     </div>
   </div>
 {:else if failed}
   <div class="trends compact">
     <span class="eyebrow">TEMAS MÁS HABLADOS</span>
     <p class="note">No se pudo leer la conversación.</p>
+    <!-- Retry matters here: a live search can fail transiently (backend
+         restart, X slow) and without this the only way back is switching
+         province and returning. -->
+    <button class="retry" on:click={() => load(province)}>Reintentar</button>
   </div>
 {:else if trends}
   <div class="trends">
@@ -162,11 +183,40 @@
     border: 1px solid var(--hairline);
     animation: shimmer 1.3s ease-in-out infinite;
   }
+  /* Varied widths so the placeholder reads as a row of chips loading,
+     rather than a generic grey block. */
   .skel:nth-child(2) {
-    width: 84px;
+    width: 88px;
   }
   .skel:nth-child(3) {
     width: 52px;
+  }
+  .skel:nth-child(4) {
+    width: 74px;
+  }
+  .skel:nth-child(5) {
+    width: 58px;
+  }
+  .skel:nth-child(6) {
+    width: 96px;
+  }
+  .skel:nth-child(7) {
+    width: 46px;
+  }
+  .retry {
+    align-self: flex-start;
+    font-family: var(--body);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--brand);
+    background: var(--brand-soft);
+    border: 1px solid color-mix(in srgb, var(--brand) 25%, var(--hairline));
+    border-radius: 20px;
+    padding: 4px 12px;
+    cursor: pointer;
+  }
+  .retry:hover {
+    background: color-mix(in srgb, var(--brand) 12%, var(--brand-soft));
   }
   @keyframes shimmer {
     0%,
