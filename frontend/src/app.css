@@ -54,10 +54,13 @@ html,
 body {
   margin: 0;
   padding: 0;
+  /* Both, not just body: with the background only on body, any moment the
+     document is shorter or offset than the viewport let the browser's own
+     canvas show through as a dark band at the edges. */
+  background: var(--paper);
 }
 
 body {
-  background: var(--paper);
   color: var(--ink);
   font-family: var(--body);
 }
