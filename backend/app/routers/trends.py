@@ -34,6 +34,8 @@ from collections import Counter
 
 from fastapi import APIRouter, HTTPException
 
+from app.news_search import search_news_articles
+from app.politics import QUERY_EXPANSION
 from app.x_search import search_x_posts
 
 router = APIRouter(prefix="/api", tags=["trends"])
@@ -60,6 +62,8 @@ STOPWORDS = {
     "https", "http", "com", "www", "amp", "via", "the", "and", "for", "you", "are",
     "detalles", "aqui", "ahora", "hoy", "ayer", "nota", "leer", "mira", "video",
     "noticias", "noticia", "informacion", "entrevista", "programa", "radio",
+    "sera", "seran", "sido", "estar", "tambien", "entonces", "mientras", "aunque",
+    "amigo", "gracias", "favor", "sobre", "segun", "durante", "luego", "antes",
 }
 
 _HASHTAG_RE = re.compile(r"#(\w{3,30})", re.UNICODE)
@@ -82,8 +86,37 @@ def province_trends(province: str, limit: int = 6):
     if not province:
         raise HTTPException(status_code=422, detail="province no puede estar vacío.")
 
-    result = search_x_posts(f"{province} política", limit=40)
-    posts = result.get("articles", [])
+    # Escalating recall. "Orellana política" demands both words and a small
+    # province almost never satisfies it - the real conversation says
+    # "prefecto de Orellana", never the literal word "política". So: try the
+    # electoral vocabulary with OR, then the bare province name (still
+    # politically filtered downstream), and stop as soon as something lands.
+    posts: list[dict] = []
+    seen_links: set[str] = set()
+
+    def absorb(items):
+        for item in items:
+            link = item.get("link")
+            if link and link not in seen_links:
+                seen_links.add(link)
+                posts.append(item)
+
+    for expansion in QUERY_EXPANSION:
+        absorb(search_x_posts(f"{province} ({expansion})", limit=40).get("articles", []))
+        if len(posts) >= 8:
+            break
+    if len(posts) < 4:
+        absorb(search_x_posts(province, limit=40).get("articles", []))
+
+    # Beyond X: the same province is covered by the fact-checkers and outlets
+    # this project already aggregates, and for provinces with little social
+    # conversation that's where the entire signal lives. Without this, every
+    # province except Pichincha came back empty.
+    try:
+        media = search_news_articles(province, limit=20)
+        absorb([a for group in media.get("by_source", {}).values() for a in group])
+    except Exception:
+        pass
 
     if not posts:
         return {
@@ -93,7 +126,8 @@ def province_trends(province: str, limit: int = 6):
             "posts": [],
             "total_analizados": 0,
             "note": (
-                "Sin conversación política reciente sobre esta provincia en X, "
+                "Sin conversación ni cobertura política reciente sobre esta provincia "
+                "en las fuentes consultadas, "
                 "o las cookies de X expiraron."
             ),
         }

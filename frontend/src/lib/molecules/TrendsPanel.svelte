@@ -57,13 +57,13 @@
 {:else if failed}
   <div class="trends compact">
     <span class="eyebrow">TEMAS MÁS HABLADOS</span>
-    <p class="note">No se pudo leer la conversación en X.</p>
+    <p class="note">No se pudo leer la conversación.</p>
   </div>
 {:else if trends}
   <div class="trends">
     <div class="head">
       <span class="eyebrow">TEMAS MÁS HABLADOS</span>
-      <span class="meta">{trends.total_analizados} posts políticos · X</span>
+      <span class="meta">{trends.total_analizados} publicaciones · X y medios</span>
     </div>
 
     {#if trends.note}

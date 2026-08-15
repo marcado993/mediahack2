@@ -48,6 +48,22 @@ POLITICAL_TERMS = {
 }
 
 
+# Diccionario de expansión para BÚSQUEDA (distinto del filtro de arriba).
+#
+# Buscar "Orellana política" exige que ambas palabras aparezcan, y en una
+# provincia pequeña eso casi nunca ocurre: la conversación real dice
+# "prefecto de Orellana" o "Orellana elecciones", nunca la palabra
+# "política" literal. Estos términos se combinan con OR para ampliar el
+# alcance sin salirse de lo electoral.
+#
+# Ordenados de más a menos productivo, porque se usan por tandas.
+QUERY_EXPANSION = [
+    "elecciones OR candidato OR CNE OR votación",
+    "alcalde OR prefecto OR asamblea OR concejal",
+    "gobierno OR corrupción OR protesta OR seguridad",
+]
+
+
 def _normalize(text: str) -> str:
     text = unicodedata.normalize("NFD", (text or "").lower())
     return "".join(c for c in text if unicodedata.category(c) != "Mn")
