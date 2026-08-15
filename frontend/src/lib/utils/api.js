@@ -35,6 +35,10 @@ export async function askAssistant(question, context = {}) {
   return res.json();
 }
 
+export function getOrigin(claim) {
+  return getJSON(`/api/origin?claim=${encodeURIComponent(claim)}`);
+}
+
 export function getTrends(province) {
   return getJSON(`/api/trends?province=${encodeURIComponent(province)}`);
 }

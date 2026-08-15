@@ -4,9 +4,10 @@
   // accounts) and brings back the actual publications, grouped by origin.
   // DeepSeek is the brain that picks the search terms and summarizes - it
   // never invents the citations, those come from app/news_search.py.
-  import { askAssistant, searchNews } from "../utils/api";
+  import { askAssistant, searchNews, getOrigin } from "../utils/api";
   import { renderMarkdown } from "../utils/markdown";
   import ListeningAnimation from "./ListeningAnimation.svelte";
+  import OriginGraph from "./OriginGraph.svelte";
   import SourceGroups from "./SourceGroups.svelte";
 
   export let province = null;
@@ -17,6 +18,7 @@
   let question = "";
   let answer = null;
   let bySource = null;
+  let origin = null;
   let loading = false;
   let error = null;
 
@@ -25,6 +27,7 @@
     question = "";
     answer = null;
     bySource = null;
+    origin = null;
     error = null;
   }
 
@@ -32,6 +35,23 @@
     error = null;
     answer = null;
     bySource = null;
+    origin = null;
+  }
+
+  // Sequence of publication for a claim the journalist is holding - who
+  // published it and in what order.
+  async function trace() {
+    const claim = question.trim();
+    if (!claim || loading) return;
+    loading = true;
+    reset();
+    try {
+      origin = await getOrigin(claim);
+    } catch (e) {
+      error = "No se pudo rastrear la propagación. Intenta de nuevo.";
+    } finally {
+      loading = false;
+    }
   }
 
   async function ask(q) {
@@ -109,6 +129,9 @@
       </form>
 
       <div class="shortcuts">
+        <button class="chip primary" on:click={trace} disabled={loading || !question.trim()}>
+          Rastrear propagación
+        </button>
         <button class="chip" on:click={() => sweep(province || "Ecuador")} disabled={loading}>
           Publicaciones{province ? ` sobre ${province}` : ""}
         </button>
@@ -121,6 +144,8 @@
           <ListeningAnimation />
         {:else if error}
           <p class="error">{error}</p>
+        {:else if origin}
+          <OriginGraph {origin} />
         {:else if answer || bySource}
           <div class="result">
             {#if answer}
@@ -136,9 +161,10 @@
           </div>
         {:else}
           <p class="hint">
-            Escribe una pregunta o usa un atajo. Se consultan verificadores (Lupa Media, Ecuador
-            Chequea), medios y redes en una sola pasada, y se devuelven las publicaciones con su
-            enlace original. Todo filtrado a política y elecciones.
+            Escribe una noticia y usa <strong>Rastrear propagación</strong> para ver en qué orden la
+            publicaron las distintas fuentes. Los demás atajos traen publicaciones de verificadores
+            (Lupa Media, Ecuador Chequea), medios y redes, con su enlace original. Todo filtrado a
+            política y elecciones.
           </p>
         {/if}
       </div>
