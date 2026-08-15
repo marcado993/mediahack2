@@ -304,6 +304,7 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+    position: relative; /* containing block for the overlapping .graph-fill swap */
   }
   .view-toggle {
     display: flex;
@@ -333,7 +334,8 @@
     cursor: not-allowed;
   }
   .graph-fill {
-    height: 100%;
+    position: absolute;
+    inset: 0;
     min-height: 0;
   }
   .panel-message {
@@ -378,11 +380,16 @@
     overflow: hidden;
     position: relative;
   }
+  /* Absolutely positioned so the outgoing and incoming panels overlap during
+     the swap instead of stacking in normal flow. Stacked, they each got half
+     the rail's height and the content visibly squeezed mid-transition - which
+     is exactly the "carga bruscamente" the user was seeing. */
   .rail-fill {
+    position: absolute;
+    inset: 0;
     display: flex;
     flex-direction: column;
     min-height: 0;
-    height: 100%;
   }
   .back {
     flex: 0 0 auto;

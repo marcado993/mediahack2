@@ -1,15 +1,22 @@
 <script>
+  // "Escucha de medios": one button that fans out to every source the
+  // backend can reach (fact-checkers, outlets, Facebook pages, Instagram
+  // accounts) and brings back the actual publications, grouped by origin.
+  // DeepSeek is the brain that picks the search terms and summarizes - it
+  // never invents the citations, those come from app/news_search.py.
   import { askAssistant, searchNews } from "../utils/api";
   import { renderMarkdown } from "../utils/markdown";
-  import NewsCards from "./NewsCards.svelte";
+  import ListeningAnimation from "./ListeningAnimation.svelte";
+  import SourceGroups from "./SourceGroups.svelte";
 
-  export let province = null; // used to seed the placeholder + quick-ask shortcut
+  export let province = null;
+  export let ivd = null;
+  export let nivel = null;
 
   let modalOpen = false;
   let question = "";
   let answer = null;
-  let answerArticles = []; // real articles DeepSeek's search_news tool call actually found, if any
-  let news = null; // { query, sourcesChecked, articles }
+  let bySource = null;
   let loading = false;
   let error = null;
 
@@ -17,22 +24,24 @@
     modalOpen = true;
     question = "";
     answer = null;
-    answerArticles = [];
-    news = null;
+    bySource = null;
     error = null;
+  }
+
+  function reset() {
+    error = null;
+    answer = null;
+    bySource = null;
   }
 
   async function ask(q) {
     if (!q || loading) return;
     loading = true;
-    error = null;
-    answer = null;
-    answerArticles = [];
-    news = null;
+    reset();
     try {
-      const res = await askAssistant(q);
+      const res = await askAssistant(q, { province, ivd, nivel });
       answer = res.answer;
-      answerArticles = res.articles_used ?? [];
+      bySource = res.by_source ?? null;
     } catch (e) {
       error = e.message.includes("503")
         ? "El asistente no está configurado todavía (falta la clave de API en el backend)."
@@ -42,18 +51,17 @@
     }
   }
 
-  async function askNewsAboutCandidates() {
+  // Straight source sweep, no LLM in the loop - fastest path to "just show
+  // me the publications".
+  async function sweep(q) {
     if (loading) return;
-    const q = `candidatos ${province}`;
     loading = true;
-    error = null;
-    answer = null;
-    news = null;
+    reset();
     try {
       const res = await searchNews(q);
-      news = { query: res.query, sourcesChecked: res.sources_checked, articles: res.articles };
+      bySource = res.by_source ?? {};
     } catch (e) {
-      error = "No se pudo buscar noticias. Intenta de nuevo.";
+      error = "No se pudo consultar las fuentes. Intenta de nuevo.";
     } finally {
       loading = false;
     }
@@ -65,19 +73,26 @@
 </script>
 
 <button class="trigger" on:click={open}>
-  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-    <circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.3" />
-    <path d="M6 6.2c0-1.1 0.9-1.9 2-1.9s2 0.7 2 1.7c0 1.5-2 1.3-2 3" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
-    <circle cx="8" cy="11.3" r="0.75" fill="currentColor" />
-  </svg>
-  Preguntar al asistente
+  <span class="trigger-icon" aria-hidden="true">
+    <svg viewBox="0 0 20 20" width="17" height="17">
+      <circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.9" />
+      <line x1="13.5" y1="13.5" x2="18" y2="18" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" />
+    </svg>
+  </span>
+  <span class="trigger-text">
+    <strong>Escuchar medios y redes</strong>
+    <small>Lupa · Ecuador Chequea · Facebook · Instagram</small>
+  </span>
 </button>
 
 {#if modalOpen}
   <div class="backdrop" on:click={() => (modalOpen = false)}>
     <div class="modal" on:click|stopPropagation>
       <div class="modal-head">
-        <h3>Preguntar al asistente</h3>
+        <div>
+          <h3>Escucha de medios</h3>
+          {#if province}<span class="scope">Provincia: {province}</span>{/if}
+        </div>
         <button class="close" on:click={() => (modalOpen = false)} aria-label="Cerrar">×</button>
       </div>
 
@@ -86,50 +101,44 @@
           type="text"
           bind:value={question}
           autofocus
-          placeholder={province ? `Ej: ¿qué propuso el alcalde de ${province}?` : "Ej: ¿qué propuso el alcalde de Quito?"}
+          placeholder={province ? `Ej: ¿qué se está diciendo de ${province}?` : "Ej: ¿qué desinformación circula sobre las elecciones?"}
         />
         <button type="submit" class="submit-btn" disabled={loading || !question.trim()}>
-          {loading ? "Consultando…" : "Preguntar"}
+          {loading ? "…" : "Buscar"}
         </button>
       </form>
 
-      {#if province}
-        <button class="quick-ask" on:click={askNewsAboutCandidates} disabled={loading}>
-          📰 Noticias sobre candidatos en {province}
+      <div class="shortcuts">
+        <button class="chip" on:click={() => sweep(province || "Ecuador")} disabled={loading}>
+          Todo lo reciente{province ? ` sobre ${province}` : ""}
         </button>
-      {/if}
+        <button class="chip" on:click={() => sweep("desinformación")} disabled={loading}>Desinformación</button>
+        <button class="chip" on:click={() => sweep("elecciones")} disabled={loading}>Elecciones</button>
+      </div>
 
       <div class="status" aria-live="polite">
         {#if loading}
-          <div class="loading">
-            <span class="spinner" aria-hidden="true"></span>
-            Consultando…
-          </div>
+          <ListeningAnimation />
         {:else if error}
           <p class="error">{error}</p>
-        {:else if news}
-          <NewsCards query={news.query} sourcesChecked={news.sourcesChecked} articles={news.articles} />
-        {:else if answer}
-          <div class="answer">
-            <div class="answer-text">{@html renderMarkdown(answer)}</div>
-            {#if answerArticles.length}
-              <div class="sources">
-                <span class="sources-label">Fuentes reales consultadas:</span>
-                <NewsCards query="" sourcesChecked={[]} articles={answerArticles} />
-              </div>
-              <span class="disclaimer">
-                Resumen generado por IA a partir de las noticias de arriba, encontradas en vivo. Aun así, verifica antes de publicar.
-              </span>
-            {:else}
-              <span class="disclaimer">
-                Respuesta generada por IA a partir de su conocimiento entrenado — no encontró (o no buscó) noticias en vivo para esto. Verifica antes de publicar.
-              </span>
+        {:else if answer || bySource}
+          <div class="result">
+            {#if answer}
+              <div class="answer-text">{@html renderMarkdown(answer)}</div>
             {/if}
+            {#if bySource && Object.keys(bySource).length}
+              <SourceGroups {bySource} />
+            {/if}
+            <span class="disclaimer">
+              Las publicaciones de arriba son reales y vienen con su enlace original.
+              {#if answer}El resumen lo redacta una IA a partir de ellas — verifica antes de publicar.{/if}
+            </span>
           </div>
         {:else}
           <p class="hint">
-            Escribe una pregunta para el asistente (IA, sin internet en vivo), o usa el botón de
-            noticias arriba para buscar artículos reales y recientes de medios ecuatorianos.
+            Escribe una pregunta o usa un atajo. Se consultan verificadores (Lupa Media, Ecuador
+            Chequea), medios y redes en una sola pasada, y se devuelven las publicaciones con su
+            enlace.
           </p>
         {/if}
       </div>
@@ -138,28 +147,54 @@
 {/if}
 
 <style>
+  /* Deliberately loud: a journalist scanning this dashboard for the first
+     time was missing the old quiet outlined button entirely. */
   .trigger {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
     width: 100%;
-    justify-content: center;
+    text-align: left;
     font-family: var(--body);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--brand);
-    background: var(--brand-soft);
-    border: 1px solid color-mix(in srgb, var(--brand) 25%, var(--hairline));
-    border-radius: 6px;
-    padding: 9px 10px;
+    color: #fff;
+    background: var(--brand);
+    border: none;
+    border-radius: 8px;
+    padding: 11px 13px;
     cursor: pointer;
-    transition: transform 0.12s ease, background 0.12s ease;
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--brand) 35%, transparent);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
   }
   .trigger:hover {
-    background: color-mix(in srgb, var(--brand) 12%, var(--brand-soft));
+    filter: brightness(1.08);
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--brand) 45%, transparent);
+    transform: translateY(-1px);
   }
   .trigger:active {
-    transform: scale(0.98);
+    transform: translateY(0) scale(0.99);
+  }
+  .trigger-icon {
+    display: flex;
+    flex-shrink: 0;
+  }
+  .trigger-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+  .trigger-text strong {
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .trigger-text small {
+    font-family: var(--mono);
+    font-size: 9px;
+    opacity: 0.85;
+    letter-spacing: 0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .backdrop {
@@ -175,16 +210,16 @@
     background: var(--card);
     border-radius: 10px;
     padding: 20px 24px;
-    width: 520px;
-    max-width: 90vw;
-    max-height: 80vh;
+    width: 560px;
+    max-width: 92vw;
+    max-height: 85vh;
     overflow-y: auto;
     box-shadow: 0 12px 32px rgba(28, 43, 58, 0.25);
   }
   .modal-head {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 12px;
   }
   h3 {
@@ -193,12 +228,18 @@
     margin: 0;
     color: var(--ink);
   }
+  .scope {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+  }
   .close {
     background: none;
     border: none;
     font-size: 20px;
     color: var(--ink-dim);
     cursor: pointer;
+    line-height: 1;
   }
   form {
     display: flex;
@@ -225,7 +266,7 @@
     color: #fff;
     background: var(--brand);
     border: none;
-    padding: 8px 16px;
+    padding: 8px 18px;
     border-radius: 6px;
     cursor: pointer;
     flex-shrink: 0;
@@ -234,24 +275,27 @@
     opacity: 0.5;
     cursor: default;
   }
-  .quick-ask {
+  .shortcuts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
     margin-top: 8px;
-    width: 100%;
-    text-align: left;
+  }
+  .chip {
     font-family: var(--body);
-    font-size: 11.5px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 500;
     color: var(--brand);
-    background: none;
-    border: 1px dashed color-mix(in srgb, var(--brand) 35%, var(--hairline));
-    border-radius: 6px;
-    padding: 6px 10px;
+    background: var(--brand-soft);
+    border: 1px solid color-mix(in srgb, var(--brand) 20%, var(--hairline));
+    border-radius: 20px;
+    padding: 5px 11px;
     cursor: pointer;
   }
-  .quick-ask:hover {
-    background: var(--brand-soft);
+  .chip:hover {
+    background: color-mix(in srgb, var(--brand) 12%, var(--brand-soft));
   }
-  .quick-ask:disabled {
+  .chip:disabled {
     opacity: 0.5;
     cursor: default;
   }
@@ -262,42 +306,22 @@
     margin: 0;
     font-size: 11.5px;
     color: var(--ink-dim);
-    line-height: 1.4;
-  }
-  .loading {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: var(--ink-mid);
-  }
-  .spinner {
-    width: 13px;
-    height: 13px;
-    border-radius: 50%;
-    border: 2px solid var(--hairline-strong);
-    border-top-color: var(--brand);
-    animation: spin 0.7s linear infinite;
-  }
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
+    line-height: 1.5;
   }
   .error {
     margin: 0;
     font-size: 12px;
     color: var(--tier-critico);
   }
-  .answer {
+  .result {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .answer-text {
     background: var(--brand-soft);
     border-radius: 6px;
     padding: 12px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .answer-text {
     font-size: 13px;
     line-height: 1.55;
     color: var(--ink);
@@ -321,24 +345,7 @@
   }
   .disclaimer {
     font-size: 10px;
+    line-height: 1.45;
     color: var(--ink-dim);
-  }
-  .sources {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-  .sources-label {
-    font-family: var(--mono);
-    font-size: 9.5px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    color: var(--ink-dim);
-    text-transform: uppercase;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .spinner {
-      animation: none;
-    }
   }
 </style>

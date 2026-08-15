@@ -22,11 +22,14 @@ export function searchNews(query, limit = 8) {
   return getJSON(`/api/news?query=${encodeURIComponent(query)}&limit=${limit}`);
 }
 
-export async function askAssistant(question) {
+// `context` carries the province the dashboard currently has selected, so a
+// bare question ("¿qué se dice aquí?") still resolves to something the
+// backend can search on.
+export async function askAssistant(question, context = {}) {
   const res = await fetch(`${BASE_URL}/api/ask`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
+    body: JSON.stringify({ question, ...context }),
   });
   if (!res.ok) throw new Error(`POST /api/ask -> ${res.status}`);
   return res.json();

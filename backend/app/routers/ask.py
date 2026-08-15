@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
@@ -102,6 +103,114 @@ class AskResponse(BaseModel):
     by_source: dict = {}
 
 
+# DeepSeek intermittently emits its tool call as *literal text* in the
+# content field instead of populating the structured `tool_calls` field:
+#
+#   <||DSML||tool_calls><||DSML||invoke name="search_news">
+#   <||DSML||parameter name="query" string="true">Orellana política</...>
+#
+# Left unhandled that markup leaks straight into the answer a journalist
+# reads, and the search never runs. These recover the intended query and
+# scrub any residue.
+_DSML_QUERY_RE = re.compile(r'name="query"[^>]*>(.*?)<', re.DOTALL)
+_DSML_SCRUB_RE = re.compile(r"<[^<>]*DSML[^<>]*>", re.DOTALL)
+
+
+def _extract_text_tool_query(content: str | None) -> str | None:
+    if not content or "DSML" not in content:
+        return None
+    match = _DSML_QUERY_RE.search(content)
+    return match.group(1).strip() if match else None
+
+
+def _scrub(content: str | None) -> str:
+    if not content:
+        return ""
+    return _DSML_SCRUB_RE.sub("", content).strip()
+
+
+# Used for the recovery path below. A *fresh* conversation with no tools and
+# no tool-call history: re-using the original message list kept priming
+# DeepSeek to emit yet another text-form tool call instead of prose.
+SUMMARY_PROMPT = (
+    "Eres un asistente para periodistas ecuatorianos. Te doy publicaciones REALES ya encontradas. "
+    "NO tienes herramientas y no debes intentar llamar ninguna. Redacta directamente la respuesta "
+    "final en español: agrupa por fuente y cita cada publicación como enlace markdown [Título](url) "
+    "con su título y URL exactos. No inventes publicaciones ni enlaces. No describas qué son los "
+    "medios, solo muestra lo que publicaron. Sé breve."
+)
+
+
+def _summarize(client, question: str, result: dict) -> str | None:
+    try:
+        resp = client.chat.completions.create(
+            model=MODEL,
+            messages=[
+                {"role": "system", "content": SUMMARY_PROMPT},
+                {
+                    "role": "user",
+                    "content": (
+                        f"Pregunta del periodista: {question}\n\n"
+                        f"Publicaciones encontradas (JSON):\n{json.dumps(result, ensure_ascii=False)}"
+                    ),
+                },
+            ],
+        )
+        return _scrub(resp.choices[0].message.content)
+    except Exception:
+        return None
+
+
+BROAD_FALLBACK_QUERY = "Ecuador"
+
+
+def _search_widening(query: str) -> dict:
+    """Search, and if a narrow term finds nothing, widen once to national.
+
+    A small province (Orellana, Napo) legitimately appears in zero recent
+    headlines. Returning an empty result there is technically honest but
+    useless - the journalist asked to see what's circulating. So we widen,
+    and flag that we did so the answer can say it out loud instead of
+    passing national news off as provincial.
+    """
+    result = search_news_articles(query, limit=12)
+    if result["articles"] or _normalize_q(query) == _normalize_q(BROAD_FALLBACK_QUERY):
+        return result
+
+    broad = search_news_articles(BROAD_FALLBACK_QUERY, limit=12)
+    if not broad["articles"]:
+        return result
+    broad["widened_from"] = query
+    broad["note"] = (
+        f"Ninguna fuente publicó algo reciente que mencione '{query}'. "
+        "Se muestran las publicaciones nacionales más recientes."
+    )
+    return broad
+
+
+def _normalize_q(q: str) -> str:
+    return (q or "").strip().lower()
+
+
+def _plain_answer(result: dict) -> str:
+    """Deterministic, no-LLM rendering of the results.
+
+    The whole point of this endpoint is that the journalist gets real
+    publications; if DeepSeek is having a bad day the publications are
+    already in hand, so ship them rather than an apology.
+    """
+    groups = {k: v for k, v in result.get("by_source", {}).items() if v}
+    if not groups:
+        return "No se encontraron publicaciones recientes en las fuentes consultadas."
+    lines = []
+    for name, items in groups.items():
+        lines.append(f"**{name}**")
+        for a in items:
+            lines.append(f"- [{a['title']}]({a['link']})")
+        lines.append("")
+    return "\n".join(lines).strip()
+
+
 def _client():
     from openai import OpenAI
 
@@ -153,7 +262,7 @@ def ask(req: AskRequest):
                 args = json.loads(call.function.arguments)
             except json.JSONDecodeError:
                 args = {}
-            result = search_news_articles(args.get("query", question), limit=12)
+            result = _search_widening(args.get("query", question))
             articles_used.extend(result["articles"])
             for name, items in result.get("by_source", {}).items():
                 by_source.setdefault(name, []).extend(items)
@@ -171,13 +280,21 @@ def ask(req: AskRequest):
             raise HTTPException(status_code=502, detail=f"Error consultando DeepSeek: {e}")
         answer = second.choices[0].message.content
     else:
-        # DeepSeek answered without searching, which this prompt tells it never
-        # to do for these questions. Rather than pass through a "no tengo idea"
-        # answer, run the search ourselves so the user still gets publications.
-        result = search_news_articles(req.province or question, limit=12)
+        # No structured tool call. Either DeepSeek emitted one as plain text
+        # (see _extract_text_tool_query) or it answered from training data,
+        # which this prompt forbids. Either way: run the search ourselves so
+        # the user still gets real publications rather than "no tengo idea".
+        text_query = _extract_text_tool_query(reply.content)
+        result = _search_widening(text_query or req.province or question)
         articles_used = result["articles"]
         by_source = result.get("by_source", {})
-        answer = reply.content
+
+        answer = _summarize(client, question, result) or _scrub(reply.content)
+        # A recovered text-form tool call scrubs down to bare search terms
+        # ("Orellana política"), which is not an answer - prefer the plain
+        # rendering over shipping that.
+        if text_query and (not answer or len(answer) < 40):
+            answer = _plain_answer(result)
 
     # De-duplicate by link: the same post can arrive from two tool calls.
     seen = set()
@@ -189,4 +306,5 @@ def ask(req: AskRequest):
         seen.add(key)
         deduped.append(a)
 
-    return AskResponse(answer=answer, model=MODEL, articles_used=deduped, by_source=by_source)
+    # Last line of defence: no internal tool-call markup ever reaches the UI.
+    return AskResponse(answer=_scrub(answer), model=MODEL, articles_used=deduped, by_source=by_source)

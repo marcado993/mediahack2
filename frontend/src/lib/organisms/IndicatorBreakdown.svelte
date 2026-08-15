@@ -40,6 +40,11 @@
     </div>
   </div>
 
+  <!-- Outside .scroll on purpose: a journalist opening this panel for the
+       first time was never scrolling far enough to discover the media-listening
+       action down at the bottom. -->
+  <AskModule province={detail.province} ivd={detail.ivd} nivel={detail.nivel} />
+
   <div class="scroll">
     <div class="confiabilidad" class:imputed={isImputed}>
       {#if isImputed}
@@ -68,7 +73,6 @@
     </div>
 
     <StoryAngle {detail} />
-    <AskModule province={detail.province} />
   </div>
 
   <div class="footer">
