@@ -1,4 +1,4 @@
 {
-  "buildCommand": "echo 'static site, no build needed'",
-  "outputDirectory": "frontend"
+  "buildCommand": "rm -rf dist && mkdir dist && cp -r frontend/. dist/",
+  "outputDirectory": "dist"
 }
