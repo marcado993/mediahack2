@@ -1,4 +1,4 @@
-from __future__ import annotations
+from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 
@@ -16,7 +16,7 @@ VALID_PROVINCES = {r["province"] for r in ivd.list_provinces()}
 
 
 @router.get("", response_model=list[MediaOutlet])
-def list_media(province: str | None = None):
+def list_media(province: Optional[str] = None):
     return store.list_for_province(province) if province else store.list_all()
 
 
