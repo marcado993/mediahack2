@@ -46,18 +46,44 @@ function fmtInt(v) {
   return Math.round(v).toLocaleString("es-EC");
 }
 
-// Cold-to-warm severity scale - kept in sync with the rest of the project
-// (frontend/src/lib/utils/alertLevel.js): bajo/moderado stay blue, then
-// break to amber/brick-red so severity reads by color, not just darkness.
-const TIERS = [
-  { max: 25, color: "#c7d6e8" },
-  { max: 45, color: "#7fa8d4" },
-  { max: 65, color: "#e8a33d" },
-  { max: Infinity, color: "#b23a2e" },
+// Green-to-red diverging ramp, same stops as the reference observatory -
+// green is good (low vulnerability), red is bad. RES (resilience) reads the
+// opposite direction, so it gets the ramp reversed rather than the value
+// inverted, which keeps the legend gradient itself green-first for RES too.
+const RAMP = [
+  [26, 120, 74],
+  [122, 184, 110],
+  [214, 228, 140],
+  [250, 214, 124],
+  [236, 150, 86],
+  [186, 55, 52],
 ];
-function col(value) {
-  if (value == null) return "#e4e7eb";
-  return TIERS.find((t) => value < t.max).color;
+const GREEN = [...RAMP].reverse();
+
+function rampColor(t, arr = RAMP) {
+  t = Math.max(0, Math.min(1, t)) * (arr.length - 1);
+  const i = Math.min(Math.floor(t), arr.length - 2);
+  const f = t - i;
+  const a = arr[i],
+    b = arr[i + 1];
+  return `rgb(${a.map((c, j) => Math.round(c + (b[j] - c) * f)).join(",")})`;
+}
+function scaleFor(key) {
+  return key === "RES" ? GREEN : RAMP;
+}
+
+// Each indicator is colored against the *observed* range across the 24
+// provinces (min-max), not a fixed 0-100 scale - matches the reference and
+// reads better since most indicators here don't actually span 0-100.
+function indicatorRange(key) {
+  const vals = (MAPA?.provincias ?? []).map((p) => p[key]).filter((v) => v != null);
+  if (!vals.length) return { lo: 0, hi: 100 };
+  return { lo: Math.min(...vals), hi: Math.max(...vals) };
+}
+function col(key, value) {
+  if (value == null) return "#cbd5e1";
+  const { lo, hi } = indicatorRange(key);
+  return rampColor((value - lo) / (hi - lo || 1), scaleFor(key));
 }
 
 // ---------------------------------------------------------------------
@@ -137,12 +163,12 @@ function paintMap() {
     capa === "RES" ? "Mayor valor = mayor capacidad de contraste (más resiliente)." : "Mayor valor = mayor vulnerabilidad.";
   document.getElementById("lgA").textContent = capa === "RES" ? "menor resiliencia" : "menor";
   document.getElementById("lgB").textContent = capa === "RES" ? "mayor resiliencia" : "mayor";
-  document.getElementById("lgBar").style.background = "linear-gradient(90deg," + TIERS.map((t) => t.color).join(",") + ")";
+  document.getElementById("lgBar").style.background = "linear-gradient(90deg," + scaleFor(capa).map(([r, g, b]) => `rgb(${r},${g},${b})`).join(",") + ")";
 
   document.querySelectorAll(".pv").forEach((el) => {
     const key = el.dataset.k;
     const v = valueFor(key);
-    el.setAttribute("fill", col(capa === "RES" ? (v == null ? null : 100 - v) : v));
+    el.setAttribute("fill", col(capa, v));
     el.classList.toggle("sel", key === mapSel);
   });
 
@@ -152,7 +178,7 @@ function paintMap() {
       const key = provinceKey(p.provincia);
       const v = p[capa];
       return `<tr data-k="${key}" class="${key === mapSel ? "sel" : ""}">
-      <td style="width:26px"><span class="rk" style="background:${col(capa === "RES" ? 100 - v : v)}">${i + 1}</span></td>
+      <td style="width:26px"><span class="rk" style="background:${col(capa, v)}">${i + 1}</span></td>
       <td>${p.provincia}${p.n_lb === 0 ? ' <span class="tag">sin muestra LB</span>' : ""}</td>
       <td class="num"><b>${fmt(v)}</b></td></tr>`;
     })
@@ -248,7 +274,7 @@ function renderScatter() {
   });
   for (const p of provincias) {
     const r = 4 + Math.sqrt(p.poblacion) / 450;
-    s += `<circle cx="${X(p.EXCLUSION)}" cy="${Y(p.HIPEREXP)}" r="${r}" fill="${col(p.IVEI)}" stroke="#fff" stroke-width="1.2" data-k="${provinceKey(p.provincia)}" style="cursor:pointer"/>`;
+    s += `<circle cx="${X(p.EXCLUSION)}" cy="${Y(p.HIPEREXP)}" r="${r}" fill="${col("IVEI", p.IVEI)}" stroke="#fff" stroke-width="1.2" data-k="${provinceKey(p.provincia)}" style="cursor:pointer"/>`;
   }
   provincias
     .filter((p) => p.poblacion > 380000 || p.EXCLUSION > 68 || p.HIPEREXP > 74)
@@ -334,8 +360,8 @@ function renderPerfil(data) {
    <div class="card">
     <h3>Vulnerabilidad electoral integrada</h3>
     <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
-     <div class="big" style="color:${col(data.ivei.indice)}">${fmt(data.ivei.indice)}</div>
-     <div><span class="pill" style="background:${col(data.ivei.indice)}">${data.ivei.nivel}</span>
+     <div class="big" style="color:${col("IVEI", data.ivei.indice)}">${fmt(data.ivei.indice)}</div>
+     <div><span class="pill" style="background:${col("IVEI", data.ivei.indice)}">${data.ivei.nivel}</span>
       <div style="font-size:12px;color:var(--mut);margin-top:4px">Puesto ${data.ivei.puesto} de 24 ·
        promedio nacional ${fmt(data.ivei.nacional)}</div></div>
     </div>
@@ -521,8 +547,8 @@ async function renderCmp() {
      .map(
        (p) => `<div class="card"><h3>${p.provincia}</h3>
     <div style="display:flex;align-items:baseline;gap:10px"><div class="big"
-     style="color:${col(p.ivei)};font-size:34px">${fmt(p.ivei)}</div>
-     <span class="pill" style="background:${col(p.ivei)}">${p.nivel}</span></div>
+     style="color:${col("IVEI", p.ivei)};font-size:34px">${fmt(p.ivei)}</div>
+     <span class="pill" style="background:${col("IVEI", p.ivei)}">${p.nivel}</span></div>
     <div style="margin-top:12px">${p.dimensiones.map((d) => dimRow(d.nombre, d.valor, null, d.color)).join("")}</div>
     <p class="note"><b>${p.perfil}.</b> ${p.perfil_desc}</p></div>`
      )
