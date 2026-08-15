@@ -137,16 +137,11 @@ nav button.on {
 .gmap {
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
 }
-.gasis {
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
-  align-items: start;
-}
 @media (max-width: 900px) {
   .g2,
   .g3,
   .g4,
-  .gmap,
-  .gasis {
+  .gmap {
     grid-template-columns: minmax(0, 1fr);
   }
 }
