@@ -60,21 +60,14 @@
 
   $: activeKey = hovered || highlightKey || selected;
 
-  // Press feedback on click: echo the *actual province shape* outward from
-  // itself (not a generic circle) - three staggered copies of its own <path>,
-  // reused via <use>, scaling from their own fill-box so each echo follows
-  // the real coastline instead of a circle. One shot per click, never a
-  // loop, so it reads as "you pressed something real" and gets out of the
-  // way of reading the data.
-  let echoKey = null;
-  let echoSeq = 0;
-  function spawnEcho(key) {
-    const seq = ++echoSeq;
-    echoKey = key;
-    setTimeout(() => {
-      if (echoSeq === seq) echoKey = null;
-    }, 1400);
-  }
+  // Selection marker: echo the *actual province shape* outward from itself
+  // (not a generic circle) - three staggered copies of its own <path>,
+  // reused via <use>, scaling from their own fill-box so each ring follows
+  // the real coastline. Tied to `selected` rather than to the click, so it
+  // keeps breathing for as long as that province is the active one. Slow and
+  // low-contrast on purpose: it should read as a calm sonar marking "you are
+  // here", not a heartbeat competing with the numbers.
+  $: echoKey = selected;
 
   // First-time guidance (Nielsen "help and documentation" / recognition over
   // recall): a reader landing here has no reason to know the map is
@@ -176,7 +169,6 @@
             role="button"
             tabindex="0"
             on:click={() => {
-              spawnEcho(key);
               dismissHint();
               onSelect(key, feature.properties.province);
             }}
@@ -383,21 +375,24 @@
     stroke: var(--echo-color, var(--brand));
     transform-box: fill-box;
     transform-origin: center;
-    animation: echo-out 1.1s cubic-bezier(0.1, 0.5, 0.3, 1) forwards;
+    /* Infinite while the province stays selected, but slow (2.4s) and
+       staggered so the three rings read as one continuous outward wave
+       rather than a repeating thump. */
+    animation: echo-out 2.4s cubic-bezier(0.15, 0.55, 0.35, 1) infinite;
   }
   .echo-1 {
-    stroke-width: 3;
-    --start-op: 0.65;
+    stroke-width: 2.6;
+    --start-op: 0.5;
   }
   .echo-2 {
-    stroke-width: 2;
-    --start-op: 0.45;
-    animation-delay: 180ms;
+    stroke-width: 1.8;
+    --start-op: 0.34;
+    animation-delay: 800ms;
   }
   .echo-3 {
     stroke-width: 1.2;
-    --start-op: 0.3;
-    animation-delay: 360ms;
+    --start-op: 0.22;
+    animation-delay: 1600ms;
   }
   @keyframes echo-out {
     /* A percentage scale grows by very different absolute pixel amounts
