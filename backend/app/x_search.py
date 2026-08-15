@@ -221,4 +221,8 @@ def search_x_posts(query: str, limit: int = 6) -> dict:
         elif entry is None:
             entry = {"fetched_at": None, "posts": []}
 
-    return {"query": query, "articles": (entry.get("posts") or [])[:limit]}
+    # `entry or {}`, not `entry`: when a query is throttled AND has no cached
+    # entry yet, the block above is skipped entirely and entry stays None.
+    # That combination crashed every province visited right after the first
+    # one, which surfaced in the UI as "No se pudo leer la conversación".
+    return {"query": query, "articles": ((entry or {}).get("posts") or [])[:limit]}
