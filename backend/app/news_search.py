@@ -33,6 +33,7 @@ import requests
 
 from app.facebook_search import search_facebook_posts
 from app.instagram_search import search_instagram_posts
+from app.tiktok_search import search_tiktok_posts
 
 # Fact-checkers first - order matters for the merged `articles` list.
 FEEDS = {
@@ -127,6 +128,17 @@ def search_news_articles(
             for account in ig.get("accounts_checked", []):
                 by_source.setdefault(f"Instagram · {account}", [])
             for post in ig.get("articles", []):
+                bucket = by_source.setdefault(post["source"], [])
+                if len(bucket) < PER_SOURCE_LIMIT:
+                    bucket.append(post)
+        except Exception:
+            pass
+
+        try:
+            tt = search_tiktok_posts(query, limit=PER_SOURCE_LIMIT * 2)
+            for account in tt.get("accounts_checked", []):
+                by_source.setdefault(f"TikTok · {account}", [])
+            for post in tt.get("articles", []):
                 bucket = by_source.setdefault(post["source"], [])
                 if len(bucket) < PER_SOURCE_LIMIT:
                     bucket.append(post)

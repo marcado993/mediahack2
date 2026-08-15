@@ -81,7 +81,7 @@
   </span>
   <span class="trigger-text">
     <strong>Escuchar medios y redes</strong>
-    <small>Lupa · Ecuador Chequea · Facebook · Instagram</small>
+    <small>Lupa · Ecuador Chequea · Facebook · Instagram · TikTok</small>
   </span>
 </button>
 

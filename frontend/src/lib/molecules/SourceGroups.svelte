@@ -10,6 +10,7 @@
   const KIND = [
     { match: (n) => n.startsWith("Facebook"), label: "FACEBOOK", tone: "social" },
     { match: (n) => n.startsWith("Instagram"), label: "INSTAGRAM", tone: "social" },
+    { match: (n) => n.startsWith("TikTok"), label: "TIKTOK", tone: "social" },
     { match: (n) => n === "Lupa Media" || n === "Ecuador Chequea", label: "VERIFICADOR", tone: "check" },
   ];
 

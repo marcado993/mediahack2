@@ -15,6 +15,7 @@
     { name: "El Comercio", kind: "RSS", at: 1150 },
     { name: "Facebook", kind: "páginas", at: 1900 },
     { name: "Instagram", kind: "cuentas", at: 2700 },
+    { name: "TikTok", kind: "cuentas", at: 3400 },
   ];
 
   let reached = 0;
