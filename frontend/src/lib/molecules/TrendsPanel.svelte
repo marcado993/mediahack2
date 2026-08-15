@@ -4,58 +4,88 @@
   // I call?"), topics second ("what is this about?"), and every single term
   // expands to the posts behind it - nothing here asks to be taken on
   // faith, which matters doubly on a disinformation tool.
-  export let trends = null; // { province, actores, temas, posts, total_analizados, note }
+  //
+  // Lives in the province panel rather than inside the assistant modal:
+  // "what is being talked about here" is orienting information a journalist
+  // should see while reading the province, not something they have to know
+  // to go looking for behind a dialog (recognition over recall).
+  //
+  // Loads itself in the background on province change. First load per
+  // province costs a live X search (~15s), but it doesn't block anything on
+  // screen and the backend caches for 30 min, so revisits are instant.
+  import { getTrends } from "../utils/api";
 
+  export let province = null;
+
+  let trends = null;
+  let loading = false;
+  let failed = false;
   let openTerm = null;
 
   function toggle(term) {
     openTerm = openTerm === term ? null : term;
   }
+
+  async function load(p) {
+    if (!p) return;
+    loading = true;
+    failed = false;
+    trends = null;
+    openTerm = null;
+    const requested = p;
+    try {
+      const res = await getTrends(p);
+      // Guard against a slow response for a province the user already left.
+      if (requested === province) trends = res;
+    } catch (e) {
+      if (requested === province) failed = true;
+    } finally {
+      if (requested === province) loading = false;
+    }
+  }
+
+  $: load(province);
 </script>
 
-{#if trends}
+{#if loading}
+  <div class="trends compact">
+    <span class="eyebrow">TEMAS MÁS HABLADOS</span>
+    <div class="skeleton-chips">
+      {#each Array(4) as _}<span class="skel"></span>{/each}
+    </div>
+  </div>
+{:else if failed}
+  <div class="trends compact">
+    <span class="eyebrow">TEMAS MÁS HABLADOS</span>
+    <p class="note">No se pudo leer la conversación en X.</p>
+  </div>
+{:else if trends}
   <div class="trends">
     <div class="head">
-      <span class="eyebrow">ESCUCHA DE LA CONVERSACIÓN</span>
-      <span class="meta">{trends.total_analizados} publicaciones políticas en X</span>
+      <span class="eyebrow">TEMAS MÁS HABLADOS</span>
+      <span class="meta">{trends.total_analizados} posts políticos · X</span>
     </div>
 
     {#if trends.note}
       <p class="note">{trends.note}</p>
     {:else}
-      {#if trends.actores?.length}
-        <div class="block">
-          <h4>Actores mencionados <span class="hint">a quién rastrear</span></h4>
-          <div class="chips">
-            {#each trends.actores as t}
-              <button class="chip actor" class:open={openTerm === t.term} on:click={() => toggle(t.term)}>
-                {t.term}<span class="count">{t.count}</span>
-              </button>
-            {/each}
-          </div>
-        </div>
-      {/if}
-
-      {#if trends.temas?.length}
-        <div class="block">
-          <h4>Temas recurrentes <span class="hint">de qué se habla</span></h4>
-          <div class="chips">
-            {#each trends.temas as t}
-              <button class="chip" class:open={openTerm === t.term} on:click={() => toggle(t.term)}>
-                {t.term}<span class="count">{t.count}</span>
-              </button>
-            {/each}
-          </div>
-        </div>
-      {/if}
+      <!-- One flat row of chips rather than two titled sections: this sits
+           inside a fixed-height rail, and the sectioned version was 397px
+           tall - it pushed the indicator list below it to zero height.
+           Institutions are simply rendered bold, no heading needed. -->
+      <div class="chips">
+        {#each [...(trends.actores ?? []), ...(trends.temas ?? [])] as t}
+          <button class="chip" class:actor={trends.actores?.includes(t)} class:open={openTerm === t.term} on:click={() => toggle(t.term)}>
+            {t.term}<span class="count">{t.count}</span>
+          </button>
+        {/each}
+      </div>
 
       {#each [...(trends.actores ?? []), ...(trends.temas ?? [])] as t}
         {#if openTerm === t.term}
           <div class="samples">
-            <span class="samples-label">Publicaciones con "{t.term}"</span>
             {#each t.samples as s}
               <a class="sample" href={s.link} target="_blank" rel="noopener noreferrer">
-                <span class="sample-user">{s.user || "X"}</span>
                 <span class="sample-text">{s.title}</span>
               </a>
             {/each}
@@ -63,23 +93,57 @@
         {/if}
       {/each}
 
-      <p class="caveat">
-        Conteo de menciones en una muestra reciente y pequeña, no una medición de opinión pública.
-        Úsalo como pista para reportear, no como dato citable.
-      </p>
+      <p class="caveat">Conteo en muestra pequeña — pista para reportear, no dato citable.</p>
     {/if}
   </div>
 {/if}
 
 <style>
   .trends {
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 7px;
     background: var(--card-alt);
     border: 1px solid var(--hairline);
     border-radius: 8px;
-    padding: 12px 14px;
+    padding: 9px 11px;
+    /* Hard cap: this panel shares a fixed-height rail with the indicator
+       cards, and must never grow enough to squeeze them out - at 168px it
+       collapsed the indicator list to zero height on the mobile layout. */
+    max-height: 118px;
+    overflow-y: auto;
+  }
+  .trends.compact {
+    gap: 7px;
+  }
+  .skeleton-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .skel {
+    height: 20px;
+    width: 62px;
+    border-radius: 20px;
+    background: var(--card);
+    border: 1px solid var(--hairline);
+    animation: shimmer 1.3s ease-in-out infinite;
+  }
+  .skel:nth-child(2) {
+    width: 84px;
+  }
+  .skel:nth-child(3) {
+    width: 52px;
+  }
+  @keyframes shimmer {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
   }
   .head {
     display: flex;
@@ -98,26 +162,6 @@
   .meta {
     font-family: var(--mono);
     font-size: 9.5px;
-    color: var(--ink-dim);
-  }
-  .block {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  h4 {
-    margin: 0;
-    font-size: 11.5px;
-    font-weight: 700;
-    color: var(--ink);
-    display: flex;
-    align-items: baseline;
-    gap: 6px;
-  }
-  .hint {
-    font-family: var(--mono);
-    font-size: 9px;
-    font-weight: 400;
     color: var(--ink-dim);
   }
   .chips {
@@ -160,12 +204,7 @@
     border-top: 1px dashed var(--hairline);
     padding-top: 8px;
   }
-  .samples-label {
-    font-family: var(--mono);
-    font-size: 9.5px;
-    color: var(--ink-dim);
-  }
-  .sample {
+    .sample {
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -178,12 +217,7 @@
   .sample:hover {
     border-color: var(--brand);
   }
-  .sample-user {
-    font-family: var(--mono);
-    font-size: 9px;
-    color: var(--brand);
-  }
-  .sample-text {
+    .sample-text {
     font-size: 11.5px;
     line-height: 1.4;
     color: var(--ink);
@@ -194,5 +228,10 @@
     font-size: 10.5px;
     line-height: 1.45;
     color: var(--ink-dim);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skel {
+      animation: none;
+    }
   }
 </style>

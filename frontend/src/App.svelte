@@ -537,7 +537,10 @@
     }
     .rail-panel {
       height: auto;
-      min-height: 420px;
+      /* Raised from 420px: the province panel now also carries the
+         media-listening button and the trends strip above the indicator
+         cards, and at the old height those cards got squeezed to nothing. */
+      min-height: 620px;
     }
   }
 </style>
