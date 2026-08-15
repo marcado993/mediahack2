@@ -107,6 +107,8 @@ class AskResponse(BaseModel):
     model: str
     articles_used: list[dict] = []
     by_source: dict = {}
+    refused: bool = False
+    widened: bool = False
 
 
 
@@ -115,6 +117,17 @@ class AskResponse(BaseModel):
 def _vnorm(text: str) -> str:
     text = unicodedata.normalize("NFD", (text or "").lower())
     return "".join(c for c in text if unicodedata.category(c) != "Mn")
+
+_GREETING_WORDS = {
+    "hola", "hi", "hello", "hey", "que", "tal", "buenos", "buenas",
+    "dias", "dia", "tardes", "tarde", "noches", "noche", "saludos",
+    "saludo", "como", "estas", "esta", "estan", "bien", "buen",
+    "estimado", "estimada", "estimados", "estimadas", "cordial", "cordiales", "greetings", "ola",
+}
+
+def _is_only_greeting(normalized: str) -> bool:
+    words = set(normalized.split())
+    return bool(words) and words <= _GREETING_WORDS
 
 _OFF_TOPIC_RE = [
     re.compile(p) for p in [
@@ -125,7 +138,6 @@ _OFF_TOPIC_RE = [
         r"\bcalcula\b",
         r"\b(pelicula|cancion|serie|videojuego|anime|manga)s?\b",
         r"\b(netflix|spotify|fortnite|minecraft)\b",
-        r"^[\s,.!?]*(hola|hi|hello|hey|que\s+tal|buenos?\s+dias?|buenas?\s+(tardes?|noches?)|saludos?)[\s,.!?]*(hola|hi|hello|hey|que\s+tal|buenos?\s+dias?|buenas?\s+(tardes?|noches?)|como\s+estas?|saludos?)?[\s,.!?]*$",
         r"\bcomo\s+te\s+llamas\b",
         r"\b(quien|que)\s+eres\b",
         r"\bcuentame\s+(un|una)\s+(chiste|historia|cuento)\b",
@@ -187,13 +199,16 @@ def _validate_question(question: str) -> str | None:
     if words & _VULGAR_TERMS:
         return _REFUSAL_VULGAR
 
+    if _is_only_greeting(normalized):
+        return _REFUSAL_OFFTOPIC
+
     for pat in _OFF_TOPIC_RE:
         if pat.search(normalized):
             if any(t in normalized for t in _RELEVANT_TERMS):
                 return None
             return _REFUSAL_OFFTOPIC
 
-    if len(normalized) < 25 and not any(t in normalized for t in _RELEVANT_TERMS):
+    if len(normalized) < 40 and not any(t in normalized for t in _RELEVANT_TERMS):
         return _REFUSAL_OFFTOPIC
 
     return None
@@ -326,7 +341,7 @@ def ask(req: AskRequest):
 
     refusal = _validate_question(question)
     if refusal:
-        return AskResponse(answer=refusal, model=MODEL, articles_used=[], by_source={})
+        return AskResponse(answer=refusal, model=MODEL, articles_used=[], by_source={}, refused=True)
 
     user_content = question
     if req.province:
@@ -406,4 +421,23 @@ def ask(req: AskRequest):
         deduped.append(a)
 
     # Last line of defence: no internal tool-call markup ever reaches the UI.
+    was_widened = any(
+        isinstance(a, dict) and a.get("widened_from")
+        for a in [result] if "result" in dir()
+    ) if False else False
+
+    # Check if articles came from a widened search (fallback to generic Ecuador)
+    # by looking at whether by_source has items but none mention the query terms
+    query_terms = set(_vnorm(question).split()) - {"de", "los", "las", "del", "en", "un", "una", "que", "por", "para", "con", "es", "el", "la", "al", "se", "su", "como", "mas", "muy"}
+    if by_source and query_terms:
+        all_titles = " ".join(
+            _vnorm(a.get("title", ""))
+            for items in by_source.values()
+            for a in items
+        )
+        matches = sum(1 for t in query_terms if t in all_titles)
+        relevance = matches / len(query_terms) if query_terms else 0
+        if relevance < 0.15:
+            by_source = {}
+
     return AskResponse(answer=_scrub(answer), model=MODEL, articles_used=deduped, by_source=by_source)

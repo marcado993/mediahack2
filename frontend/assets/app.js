@@ -666,89 +666,8 @@ async function initMeto() {
 }
 
 // ---------------------------------------------------------------------
-// Asistente (Escucha / Origen / Contraste) + Temas más hablados
+// Temas más hablados por provincia
 // ---------------------------------------------------------------------
-const MODES = [
-  { key: "escucha", label: "Escucha", placeholder: "¿De qué habla el alcalde de Quito? / ¿Por qué la gente está brava por…?" },
-  { key: "origen", label: "Origen", placeholder: "Pega la afirmación o el titular a rastrear…" },
-  { key: "contraste", label: "Contraste", placeholder: "Pega la propuesta de un candidato a contrastar…" },
-];
-let asisMode = "escucha";
-
-function renderAsisModos() {
-  const box = document.getElementById("asisModos");
-  box.innerHTML = MODES.map((m) => `<button class="chip${m.key === asisMode ? " on" : ""}" data-m="${m.key}" style="${m.key === asisMode ? "background:var(--acc);border-color:var(--acc);color:#fff" : ""}">${m.label}</button>`).join("");
-  document.getElementById("asisInput").placeholder = MODES.find((m) => m.key === asisMode).placeholder;
-  box.querySelectorAll("button").forEach((b) => {
-    b.onclick = () => {
-      asisMode = b.dataset.m;
-      renderAsisModos();
-    };
-  });
-}
-
-function sourceLine(a) {
-  return `<a class="asis-source" href="${a.link}" target="_blank" rel="noopener noreferrer">${a.title}<div class="src-meta">${a.source || ""}</div></a>`;
-}
-
-async function runAsistente() {
-  const q = document.getElementById("asisInput").value.trim();
-  const result = document.getElementById("asisResult");
-  if (!q) return;
-  const province = document.getElementById("asisProv").value || null;
-  result.innerHTML = `<div class="asis-loading">Buscando en fuentes ecuatorianas…</div>`;
-  document.getElementById("asisRun").disabled = true;
-  try {
-    if (asisMode === "escucha") {
-      const res = await postJSON("/api/ask", { question: q, province });
-      const groups = Object.entries(res.by_source || {}).filter(([, v]) => v.length);
-      result.innerHTML = `
-      <div class="asis-answer">${res.answer}</div>
-      ${groups
-        .map(
-          ([name, items]) => `<h4 style="font-size:12px;margin:14px 0 6px;color:var(--acc)">${name}</h4>
-        <div class="asis-sources">${items.map(sourceLine).join("")}</div>`
-        )
-        .join("")}`;
-    } else if (asisMode === "origen") {
-      const res = await getJSON(`/api/origin?claim=${encodeURIComponent(q)}`);
-      result.innerHTML = `
-      <p class="note">${res.advertencia}</p>
-      <div class="asis-chain">
-      ${res.cadena
-        .map(
-          (n) => `<div class="asis-chain-item">
-        <div class="t">${n.kind} · +${n.horas_desde_primera}h</div>
-        <a class="asis-source" href="${n.link}" target="_blank" rel="noopener noreferrer">${n.title}<div class="src-meta">${n.source}</div></a>
-      </div>`
-        )
-        .join("")}
-      </div>
-      ${res.sin_fecha.length ? `<h4 style="font-size:12px;margin:14px 0 6px;color:var(--acc)">Sin fecha utilizable (${res.sin_fecha.length})</h4><div class="asis-sources">${res.sin_fecha.map(sourceLine).join("")}</div>` : ""}
-      <p class="note">Total encontrado: ${res.total_encontrado}</p>`;
-    } else {
-      const res = await postJSON("/api/contrast", { proposal: q, province });
-      result.innerHTML = `
-      <p class="asis-answer">${res.hallazgo}</p>
-      <p class="note">${res.con_referencia_a_costo} de ${res.total} mencionan costo/financiamiento · ${res.con_referencia_legal} mencionan marco legal.</p>
-      <h4 style="font-size:12px;margin:14px 0 6px;color:var(--acc)">Preguntas sugeridas</h4>
-      <ul style="margin:0;padding-left:18px">${res.preguntas_sugeridas.map((p) => `<li style="font-size:12.5px;color:var(--ink);margin-bottom:4px">${p}</li>`).join("")}</ul>
-      <h4 style="font-size:12px;margin:14px 0 6px;color:var(--acc)">Evidencia (${res.evidencia.length})</h4>
-      <div class="asis-sources">${res.evidencia
-        .map(
-          (a) => `<a class="asis-source" href="${a.link}" target="_blank" rel="noopener noreferrer">${a.title}
-        <div class="src-meta">${a.source || ""}${a.menciona_costo ? " · menciona costo" : ""}${a.menciona_marco_legal ? " · menciona marco legal" : ""}</div></a>`
-        )
-        .join("")}</div>
-      <div class="warn">${res.advertencia}</div>`;
-    }
-  } catch (e) {
-    result.innerHTML = `<div class="asis-loading">No se pudo completar la búsqueda. Intenta de nuevo.</div>`;
-  } finally {
-    document.getElementById("asisRun").disabled = false;
-  }
-}
-
 let tendSel = null;
 let tendOpenTerm = null;
 async function runTendencias(province) {
@@ -757,7 +676,7 @@ async function runTendencias(province) {
     box.innerHTML = "";
     return;
   }
-  box.innerHTML = `<div class="asis-loading">Leyendo X y medios sobre ${province}. Puede tardar unos segundos…</div>`;
+  box.innerHTML = `<div class="asis-loading"><span class="tend-spinner"></span> Leyendo X y medios sobre ${province}…</div>`;
   try {
     const res = await getJSON(`/api/trends?province=${encodeURIComponent(province)}`);
     if (res.note) {
@@ -819,9 +738,6 @@ function paintTendMap() {
 }
 
 function initAsistente() {
-  renderAsisModos();
-  document.getElementById("asisRun").onclick = runAsistente;
-  document.getElementById("asisProv").innerHTML += PROVINCIAS.map((p) => `<option value="${p}">${p}</option>`).join("");
   if (PATHS) {
     drawTendMapSVG(document.getElementById("tend-map"), PATHS.mainland);
     drawTendMapSVG(document.getElementById("tend-map-gal"), PATHS.galapagos);

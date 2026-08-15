@@ -137,16 +137,11 @@ nav button.on {
 .gmap {
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
 }
-.gasis {
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
-  align-items: start;
-}
 @media (max-width: 900px) {
   .g2,
   .g3,
   .g4,
-  .gmap,
-  .gasis {
+  .gmap {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -750,7 +745,39 @@ textarea {
   line-height: 1.6;
   color: var(--ink);
   white-space: pre-wrap;
+  border-left: 3px solid var(--acc);
+  padding: 10px 14px;
+  margin-top: 10px;
+  border-radius: 0 8px 8px 0;
+  background: var(--acc-soft, rgba(37,99,235,.06));
 }
+.asis-refused {
+  border-left-color: #d32f2f;
+  background: rgba(211,47,47,.07);
+  color: #b71c1c;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .asis-refused {
+    background: rgba(239,83,80,.12);
+    color: #ef9a9a;
+  }
+}
+:root[data-theme="dark"] .asis-refused {
+  background: rgba(239,83,80,.12);
+  color: #ef9a9a;
+}
+.tend-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--line);
+  border-top-color: var(--acc);
+  border-radius: 50%;
+  animation: tend-spin .7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes tend-spin { to { transform: rotate(360deg); } }
 .asis-sources {
   margin-top: 12px;
   display: flex;
