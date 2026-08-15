@@ -879,12 +879,12 @@ textarea {
    visible together on a normal screen. */
 .tend-layout {
   display: grid;
-  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
 .tend-map-canvas {
-  max-width: 260px;
+  max-width: 340px;
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
@@ -913,9 +913,9 @@ textarea {
 }
 .tend-inset-gal {
   position: absolute;
-  top: 5px;
-  left: 5px;
-  width: 42px;
+  top: 6px;
+  left: 6px;
+  width: 55px;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -923,7 +923,7 @@ textarea {
   padding: 3px;
 }
 .tend-inset-gal .inset-gal-label {
-  font-size: 5.5px;
+  font-size: 6.5px;
 }
 .tend-inset-gal svg {
   width: 100%;
