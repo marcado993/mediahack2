@@ -99,8 +99,81 @@
   })();
 
   let hoverNode = null;
+  let pinnedNode = null; // stays open after a click until closed or clicked again, Obsidian-style
   let hoverBranch = null; // index into graph.dims, or null when nothing/root is hovered
+  let svgEl;
+
+  // Draggable nodes, like Obsidian's graph view: click and drag any node to
+  // reposition it, edges follow. Offsets are relative to the computed
+  // layout so switching province (which recomputes `graph` from scratch)
+  // naturally resets everyone to their default spot.
+  let dragOffsets = {}; // nodeId -> {dx, dy} in viewBox units
+  let dragging = null; // {id, startX, startY, pointerId} while a drag is live
+
+  // `offsets` is passed in (rather than read from the closed-over
+  // `dragOffsets` directly) so every call site textually references it -
+  // Svelte's reactivity tracks identifiers literally present in a reactive
+  // statement or template expression, not variables a called function
+  // happens to close over, so pos(id, x, y) alone would silently never
+  // rerun when a drag updates dragOffsets.
+  function pos(offsets, id, x, y) {
+    const o = offsets[id];
+    return o ? { x: x + o.dx, y: y + o.dy } : { x, y };
+  }
+
+  $: rootP = graph ? pos(dragOffsets, "root", graph.root.x, graph.root.y) : null;
+
+  function toSvgPoint(clientX, clientY) {
+    const rect = svgEl.getBoundingClientRect();
+    return {
+      x: ((clientX - rect.left) / rect.width) * W,
+      y: ((clientY - rect.top) / rect.height) * H,
+    };
+  }
+
+  function startDrag(event, id, baseX, baseY) {
+    event.stopPropagation();
+    const p = toSvgPoint(event.clientX, event.clientY);
+    const current = dragOffsets[id] ?? { dx: 0, dy: 0 };
+    dragging = { id, baseX, baseY, grabX: p.x - current.dx, grabY: p.y - current.dy, moved: false };
+    // Capture isn't available for every pointer/browser combination - the
+    // drag itself is driven by the window-level listeners below regardless,
+    // capture only makes it keep tracking if the cursor leaves the node.
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch (e) {}
+  }
+
+  function onDragMove(event) {
+    if (!dragging) return;
+    const p = toSvgPoint(event.clientX, event.clientY);
+    const dx = p.x - dragging.grabX;
+    const dy = p.y - dragging.grabY;
+    if (Math.hypot(dx, dy) > 1.5) dragging.moved = true;
+    dragOffsets = { ...dragOffsets, [dragging.id]: { dx, dy } };
+  }
+
+  let justDragged = false; // pointerup fires before click, so "dragging" alone can't gate the click handler below
+
+  function endDrag() {
+    if (dragging?.moved) {
+      justDragged = true;
+      // Clears on the next tick, after the click event this same gesture
+      // fires has had a chance to see it.
+      setTimeout(() => (justDragged = false), 0);
+    }
+    dragging = null;
+  }
+
+  function nodeClick(node) {
+    // A drag that actually moved the node shouldn't also toggle the pin -
+    // without this a drag-and-release also fires a click on the same node.
+    if (justDragged) return;
+    pinnedNode = pinnedNode?.id === node.id ? null : node;
+  }
 </script>
+
+<svelte:window on:pointermove={onDragMove} on:pointerup={endDrag} />
 
 <div class="graph-wrap" class:bare>
 
@@ -119,7 +192,7 @@
     </div>
   {:else}
     <div class="canvas">
-      <svg viewBox="0 0 {W} {H}">
+      <svg viewBox="0 0 {W} {H}" bind:this={svgEl}>
         <defs>
           <radialGradient id="grad-bajo" cx="35%" cy="30%" r="75%">
             <stop offset="0%" stop-color="#eef4fc" />
@@ -154,47 +227,53 @@
 
         <circle cx={CX} cy={CY} r={R1} fill="none" stroke="var(--hairline)" stroke-width="1" stroke-dasharray="2 5" />
 
-        <circle class="root-halo" cx={graph.root.x} cy={graph.root.y} r="46" fill="url(#root-halo)" />
+        <circle class="root-halo" cx={rootP.x} cy={rootP.y} r="46" fill="url(#root-halo)" />
 
         {#each graph.dims as d, i}
+          {@const dP = pos(dragOffsets, "dim-" + i, d.x, d.y)}
           <path
             class="edge"
             class:dimmed={hoverBranch !== null && hoverBranch !== i}
-            d={curve(graph.root.x, graph.root.y, d.x, d.y, 14)}
+            d={curve(rootP.x, rootP.y, dP.x, dP.y, 14)}
             fill="none"
             stroke={alertLevelHex(d.value)}
             stroke-width={edgeWidth(d.value, 3)}
-            
           />
         {/each}
         {#each graph.dims as d, i}
-          {#each d.raws as r}
+          {@const dP = pos(dragOffsets, "dim-" + i, d.x, d.y)}
+          {#each d.raws as r, j}
+            {@const rP = pos(dragOffsets, "raw-" + i + "-" + j, r.x, r.y)}
             <path
               class="edge raw-edge"
               class:dimmed={hoverBranch !== null && hoverBranch !== i}
-              d={curve(d.x, d.y, r.x, r.y, 6)}
+              d={curve(dP.x, dP.y, rP.x, rP.y, 6)}
               fill="none"
               stroke={alertLevelHex(r.value)}
               stroke-width={edgeWidth(r.value, 1.6)}
-              
             />
           {/each}
         {/each}
 
         {#each graph.dims as d, i}
           {#each d.raws as r, j}
+            {@const id = "raw-" + i + "-" + j}
+            {@const rP = pos(dragOffsets, id, r.x, r.y)}
             <circle
-              cx={r.x}
-              cy={r.y}
+              cx={rP.x}
+              cy={rP.y}
               r="4.2"
               fill="url(#grad-{tierKey(r.value)})"
               stroke="#fff"
               stroke-width="1.2"
               class="node raw"
               class:dimmed={hoverBranch !== null && hoverBranch !== i}
+              class:pinned={pinnedNode?.id === id}
               style="animation-delay: {120 + i * 90 + j * 45}ms"
+              on:pointerdown={(e) => startDrag(e, id, r.x, r.y)}
+              on:click={() => nodeClick({ id, label: r.label, value: r.value, bruto: r.bruto, baseX: r.x, baseY: r.y })}
               on:mouseenter={() => {
-                hoverNode = { label: r.label, value: r.value, bruto: r.bruto, x: r.x, y: r.y };
+                hoverNode = { id, label: r.label, value: r.value, bruto: r.bruto, baseX: r.x, baseY: r.y };
                 hoverBranch = i;
               }}
               on:mouseleave={() => {
@@ -203,8 +282,8 @@
               }}
             />
             <text
-              x={r.x}
-              y={r.y - 9}
+              x={rP.x}
+              y={rP.y - 9}
               text-anchor="middle"
               class="raw-label"
               class:dimmed={hoverBranch !== null && hoverBranch !== i}>{r.label}</text
@@ -213,18 +292,23 @@
         {/each}
 
         {#each graph.dims as d, i}
+          {@const id = "dim-" + i}
+          {@const dP = pos(dragOffsets, id, d.x, d.y)}
           <circle
-            cx={d.x}
-            cy={d.y}
+            cx={dP.x}
+            cy={dP.y}
             r="14"
             fill="url(#grad-{tierKey(d.value)})"
             stroke="#fff"
             stroke-width="1.6"
             class="node dim"
             class:dimmed={hoverBranch !== null && hoverBranch !== i}
+            class:pinned={pinnedNode?.id === id}
             style="animation-delay: {i * 90}ms"
+            on:pointerdown={(e) => startDrag(e, id, d.x, d.y)}
+            on:click={() => nodeClick({ id, label: d.label, value: d.value, list: d.list, baseX: d.x, baseY: d.y })}
             on:mouseenter={() => {
-              hoverNode = { label: d.label, value: d.value, x: d.x, y: d.y, list: d.list };
+              hoverNode = { id, label: d.label, value: d.value, list: d.list, baseX: d.x, baseY: d.y };
               hoverBranch = i;
             }}
             on:mouseleave={() => {
@@ -233,17 +317,17 @@
             }}
           />
           <text
-            x={d.x}
-            y={d.y + (d.y > CY ? 27 : -20)}
+            x={dP.x}
+            y={dP.y + (dP.y > CY ? 27 : -20)}
             text-anchor="middle"
             class="dim-label"
             class:dimmed={hoverBranch !== null && hoverBranch !== i}>{d.label}</text
           >
-          <text x={d.x} y={d.y + 4} text-anchor="middle" class="node-value">{d.value ?? "—"}</text>
+          <text x={dP.x} y={dP.y + 4} text-anchor="middle" class="node-value">{d.value ?? "—"}</text>
           {#if d.list}
             <text
-              x={d.x}
-              y={d.y + (d.y > CY ? 39 : -6)}
+              x={dP.x}
+              y={dP.y + (dP.y > CY ? 39 : -6)}
               text-anchor="middle"
               class="hint-label"
               class:dimmed={hoverBranch !== null && hoverBranch !== i}>{d.list.length} instituciones ›</text
@@ -252,32 +336,39 @@
         {/each}
 
         <circle
-          cx={graph.root.x}
-          cy={graph.root.y}
+          cx={rootP.x}
+          cy={rootP.y}
           r="26"
           fill="url(#grad-{tierKey(graph.root.value)})"
           stroke="#fff"
           stroke-width="2"
           class="node root"
-          
+          class:pinned={pinnedNode?.id === "root"}
+          on:pointerdown={(e) => startDrag(e, "root", graph.root.x, graph.root.y)}
+          on:click={() => nodeClick({ id: "root", label: "IVD compuesto", value: graph.root.value, baseX: graph.root.x, baseY: graph.root.y })}
         />
-        <text x={graph.root.x} y={graph.root.y + 6} text-anchor="middle" class="root-value">{graph.root.value}</text>
+        <text x={rootP.x} y={rootP.y + 6} text-anchor="middle" class="root-value">{graph.root.value}</text>
       </svg>
 
-      {#if hoverNode}
-        <div class="tooltip" class:list={!!hoverNode.list} style="left:{(hoverNode.x / W) * 100}%; top:{(hoverNode.y / H) * 100}%;">
-          <strong>{hoverNode.label}</strong>
-          {#if hoverNode.list}
-            {#each hoverNode.list as item}
+      {#if pinnedNode || hoverNode}
+        {@const shown = pinnedNode ?? hoverNode}
+        {@const shownPos = pos(dragOffsets, shown.id, shown.baseX, shown.baseY)}
+        <div class="tooltip" class:list={!!shown.list} class:pinned={!!pinnedNode} style="left:{(shownPos.x / W) * 100}%; top:{(shownPos.y / H) * 100}%;">
+          {#if pinnedNode}
+            <button class="tooltip-close" on:click={() => (pinnedNode = null)} aria-label="Cerrar">×</button>
+          {/if}
+          <strong>{shown.label}</strong>
+          {#if shown.list}
+            {#each shown.list as item}
               <div class="tooltip-row">
                 <span class="tooltip-row-label">{item.label}</span>
                 <span class="tooltip-row-value" style="color:{alertLevelHex(item.value)}">{item.value ?? "—"}%</span>
               </div>
             {/each}
           {:else}
-            <span style="color:{alertLevelHex(hoverNode.value)}">{hoverNode.value ?? "—"}% · {alertLevel(hoverNode.value).tag}</span>
-            {#if hoverNode.bruto}
-              <span class="tooltip-bruto">valor real: {hoverNode.bruto.valor}{hoverNode.bruto.unidad === "índice" ? "" : hoverNode.bruto.unidad}</span>
+            <span style="color:{alertLevelHex(shown.value)}">{shown.value ?? "—"}% · {alertLevel(shown.value).tag}</span>
+            {#if shown.bruto}
+              <span class="tooltip-bruto">valor real: {shown.bruto.valor}{shown.bruto.unidad === "índice" ? "" : shown.bruto.unidad}</span>
             {/if}
           {/if}
         </div>
@@ -361,10 +452,18 @@
     opacity: 0.08;
   }
   .node {
-    cursor: pointer;
+    cursor: grab;
+    touch-action: none;
     filter: drop-shadow(0 1px 2px rgba(28, 43, 58, 0.22));
     transition: r 0.15s ease, opacity 0.2s ease, filter 0.15s ease;
     animation: node-in 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+  }
+  .node:active {
+    cursor: grabbing;
+  }
+  .node.pinned {
+    stroke: var(--brand) !important;
+    stroke-width: 2.4 !important;
   }
   @keyframes node-in {
     from {
@@ -441,6 +540,26 @@
     flex-direction: column;
     gap: 2px;
     z-index: 10;
+  }
+  .tooltip.pinned {
+    pointer-events: auto;
+    padding-right: 22px;
+    border-color: var(--brand);
+  }
+  .tooltip-close {
+    position: absolute;
+    top: 3px;
+    right: 5px;
+    border: none;
+    background: none;
+    color: var(--ink-dim);
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px;
+  }
+  .tooltip-close:hover {
+    color: var(--ink);
   }
   .tooltip.list {
     transform: translate(-50%, -8px);

@@ -11,7 +11,7 @@
 <div class="card" style="--c: {alertLevel(value).color}">
   <div class="label">{label}</div>
   <div class="value-row">
-    <MonoValue {value} unit="%" size={19} color="var(--ink)" />
+    <MonoValue {value} unit="%" size={19} color="var(--ink)" animate />
     <AlertBadge {value} pill />
   </div>
   {#if sub}

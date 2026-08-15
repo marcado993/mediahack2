@@ -1,6 +1,6 @@
 <script>
   import { onMount } from "svelte";
-  import { fade } from "svelte/transition";
+  import { fade, fly } from "svelte/transition";
   import EcuadorMap from "./lib/organisms/EcuadorMap.svelte";
   import AssociationGraph from "./lib/organisms/AssociationGraph.svelte";
   import DimensionBars from "./lib/organisms/DimensionBars.svelte";
@@ -56,7 +56,12 @@
     noDataSelected = false;
     detailLoading = true;
     try {
-      const result = await getProvince(selectedName);
+      // A local/nearby backend can resolve this in well under 100ms - too
+      // fast to register as a transition, so switching province reads as
+      // an abrupt swap instead of the skeleton building into real content.
+      // Floor the loading state at a perceptible minimum on purpose.
+      const minDelay = new Promise((resolve) => setTimeout(resolve, 350));
+      const [result] = await Promise.all([getProvince(selectedName), minDelay]);
       // Guard against a slower stale request resolving after a newer click.
       if (selectedKey === key) {
         detail = result;
@@ -140,7 +145,7 @@
               <button class="btn-secondary" on:click={() => selectProvince(selectedKey, selectedName)}>Reintentar</button>
             </div>
           {:else if detailLoading}
-            <div class="skeleton" transition:fade={{ duration: 120 }} aria-live="polite" aria-busy="true">
+            <div class="skeleton" transition:fade={{ duration: 200 }} aria-live="polite" aria-busy="true">
               {#each Array(3) as _}
                 <div class="skeleton-group">
                   <div class="skeleton-line w40"></div>
@@ -149,18 +154,20 @@
               {/each}
             </div>
           {:else if noDataSelected}
-            <div class="panel-message" transition:fade={{ duration: 150 }}>
+            <div class="panel-message" transition:fade={{ duration: 180 }}>
               <p><strong>{selectedName}</strong> queda fuera del IVD: el INEC no reporta indicadores de pobreza/desigualdad para esta provincia.</p>
               <button class="btn-secondary" on:click={clearSelection}>Ver provincias con muestra</button>
             </div>
           {:else if detail}
-            <div transition:fade={{ duration: 150 }} class="graph-fill">
-              {#if graphView === "bars"}
-                <DimensionBars {detail} />
-              {:else}
-                <AssociationGraph {detail} bare />
-              {/if}
-            </div>
+            {#key `${detail.province}-${graphView}`}
+              <div transition:fly={{ y: 10, duration: 320, opacity: 0 }} class="graph-fill">
+                {#if graphView === "bars"}
+                  <DimensionBars {detail} />
+                {:else}
+                  <AssociationGraph {detail} bare />
+                {/if}
+              </div>
+            {/key}
           {:else}
             <IndicatorEmptyState
               {provinces}
@@ -180,7 +187,7 @@
             <button class="back" on:click={clearSelection}>‹ todas las provincias</button>
           </div>
         {:else if detailLoading}
-          <div class="skeleton" transition:fade={{ duration: 120 }} aria-live="polite" aria-busy="true">
+          <div class="skeleton" transition:fade={{ duration: 200 }} aria-live="polite" aria-busy="true">
             <div class="skeleton-line w60"></div>
             <div class="skeleton-line w40"></div>
             <div class="skeleton-grid">
@@ -188,12 +195,14 @@
             </div>
           </div>
         {:else if detail}
-          <div transition:fade={{ duration: 150 }} class="rail-fill">
-            <IndicatorBreakdown {detail} />
+          <div transition:fly={{ y: 10, duration: 320, opacity: 0 }} class="rail-fill">
+            {#key detail.province}
+              <IndicatorBreakdown {detail} />
+            {/key}
             <button class="back" on:click={clearSelection}>‹ todas las provincias</button>
           </div>
         {:else}
-          <div transition:fade={{ duration: 150 }} class="rail-fill">
+          <div transition:fade={{ duration: 200 }} class="rail-fill">
             <ProvinceList {provinces} selected={selectedKey} onSelect={selectProvince} />
           </div>
         {/if}

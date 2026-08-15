@@ -60,6 +60,22 @@
 
   $: activeKey = hovered || highlightKey || selected;
 
+  // Press feedback on click: echo the *actual province shape* outward from
+  // itself (not a generic circle) - three staggered copies of its own <path>,
+  // reused via <use>, scaling from their own fill-box so each echo follows
+  // the real coastline instead of a circle. One shot per click, never a
+  // loop, so it reads as "you pressed something real" and gets out of the
+  // way of reading the data.
+  let echoKey = null;
+  let echoSeq = 0;
+  function spawnEcho(key) {
+    const seq = ++echoSeq;
+    echoKey = key;
+    setTimeout(() => {
+      if (echoSeq === seq) echoKey = null;
+    }, 1400);
+  }
+
   // First-time guidance (Nielsen "help and documentation" / recognition over
   // recall): a reader landing here has no reason to know the map is
   // clickable. Shown once as an inline banner - never a popover over the
@@ -148,6 +164,7 @@
         {#each mainlandFeatures as feature, i}
           {@const key = provinceKey(feature.properties.province)}
           <path
+            id="province-path-{key}"
             d={mainPath(feature)}
             fill={colorFor(feature)}
             stroke={selected === key || highlightKey === key ? "var(--brand)" : "#ffffff"}
@@ -158,7 +175,11 @@
             style="animation-delay: {i * 22}ms"
             role="button"
             tabindex="0"
-            on:click={() => (dismissHint(), onSelect(key, feature.properties.province))}
+            on:click={() => {
+              spawnEcho(key);
+              dismissHint();
+              onSelect(key, feature.properties.province);
+            }}
             on:keydown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), dismissHint(), onSelect(key, feature.properties.province))}
             on:mouseenter={() => (hovered = key)}
             on:mouseleave={() => (hovered = null)}
@@ -215,12 +236,24 @@
             stroke={selected === key ? "var(--brand)" : "#ffffff"}
             stroke-width={selected === key ? 1.8 : 0.8}
             class="province"
-            on:click={() => (dismissHint(), onSelect(key, feature.properties.province))}
+            on:click={() => {
+              dismissHint();
+              onSelect(key, feature.properties.province);
+            }}
             on:mouseenter={() => (hovered = key)}
             on:mouseleave={() => (hovered = null)}
           />
         {/each}
       </g>
+
+      {#if echoKey}
+        {@const echoColor = alertLevelHex(indexByProvince[echoKey]?.vulnerability_index)}
+        <g class="echo-group" style="--echo-color: {echoColor}">
+          <use href="#province-path-{echoKey}" class="echo echo-1" />
+          <use href="#province-path-{echoKey}" class="echo echo-2" />
+          <use href="#province-path-{echoKey}" class="echo echo-3" />
+        </g>
+      {/if}
 
       {#if withData.some((f) => isImputed(f))}
         <g transform="translate({WIDTH - 132}, {HEIGHT - 22})">
@@ -318,7 +351,11 @@
     opacity: 1;
   }
   .ping {
-    animation: pulse 1.8s ease-out infinite;
+    /* One gentle pulse when a province becomes active, then it settles into
+       a plain static marker - a loop here read as a literal heartbeat and
+       competes with reading the data, which is exactly the "no animation
+       in a loop" rule this dashboard follows. */
+    animation: pulse 1s ease-out;
     transform-box: fill-box;
     transform-origin: center;
   }
@@ -330,6 +367,51 @@
     70%,
     100% {
       r: 16;
+      opacity: 0;
+    }
+  }
+  .echo-group {
+    pointer-events: none;
+  }
+  /* Echo the province's own outline outward from itself, not a generic
+     circle - fill-box is what makes scale() expand from the shape's own
+     center instead of the SVG origin, so it grows following the real
+     coastline. One shot, never a loop (a province pulsing forever would
+     compete with reading its data). */
+  .echo {
+    fill: none;
+    stroke: var(--echo-color, var(--brand));
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: echo-out 1.1s cubic-bezier(0.1, 0.5, 0.3, 1) forwards;
+  }
+  .echo-1 {
+    stroke-width: 3;
+    --start-op: 0.65;
+  }
+  .echo-2 {
+    stroke-width: 2;
+    --start-op: 0.45;
+    animation-delay: 180ms;
+  }
+  .echo-3 {
+    stroke-width: 1.2;
+    --start-op: 0.3;
+    animation-delay: 360ms;
+  }
+  @keyframes echo-out {
+    /* A percentage scale grows by very different absolute pixel amounts
+       depending on the province's own size - a big province (Manabí,
+       Guayas) blew straight past the map's edge and got clipped almost
+       instantly, while a small one (Santa Elena) stayed on screen long
+       enough to read. Capped low enough that the wave stays visible
+       against the map edge regardless of which province it's echoing. */
+    0% {
+      transform: scale(1);
+      opacity: var(--start-op, 0.5);
+    }
+    100% {
+      transform: scale(1.16);
       opacity: 0;
     }
   }
@@ -365,8 +447,12 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .ping,
-    .province {
+    .province,
+    .echo {
       animation: none;
+    }
+    .echo {
+      opacity: 0;
     }
   }
 </style>
