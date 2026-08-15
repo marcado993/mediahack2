@@ -8,6 +8,7 @@
 
   export let indexByProvince = {};
   export let selected = null;
+  export let highlightKey = null; // cross-highlight from hovering a CTA elsewhere on the page (e.g. the empty-state's "start with X" button)
   export let onSelect = (key, name) => {};
 
   const WIDTH = 520;
@@ -57,7 +58,7 @@
     mouse = { x: event.offsetX, y: event.offsetY };
   }
 
-  $: activeKey = hovered || selected;
+  $: activeKey = hovered || highlightKey || selected;
 
   // First-time guidance (Nielsen "help and documentation" / recognition over
   // recall): a reader landing here has no reason to know the map is
@@ -149,10 +150,11 @@
           <path
             d={mainPath(feature)}
             fill={colorFor(feature)}
-            stroke={selected === key ? "var(--brand)" : "#ffffff"}
-            stroke-width={selected === key ? 2.6 : 1}
+            stroke={selected === key || highlightKey === key ? "var(--brand)" : "#ffffff"}
+            stroke-width={selected === key ? 2.6 : highlightKey === key ? 2 : 1}
             class="province"
             class:hovered={hovered === key}
+            class:external-highlight={highlightKey === key}
             style="animation-delay: {i * 22}ms"
             role="button"
             tabindex="0"
@@ -266,13 +268,16 @@
   }
   .province {
     cursor: pointer;
-    transition: filter 0.12s ease;
+    transition: filter 0.12s ease, stroke 0.1s ease-out, stroke-width 0.1s ease-out, transform 0.1s ease-out;
     transform-box: fill-box;
     transform-origin: center;
     animation: province-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
   }
   .province.hovered {
     filter: brightness(0.93);
+  }
+  .province.external-highlight {
+    filter: drop-shadow(0 2px 3px rgba(28, 43, 58, 0.35));
   }
   @keyframes province-in {
     from {

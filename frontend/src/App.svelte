@@ -8,6 +8,7 @@
   import ProvinceList from "./lib/organisms/ProvinceList.svelte";
   import StatStrip from "./lib/organisms/StatStrip.svelte";
   import IndicatorBreakdown from "./lib/organisms/IndicatorBreakdown.svelte";
+  import IndicatorEmptyState from "./lib/molecules/IndicatorEmptyState.svelte";
   import Headline from "./lib/organisms/Headline.svelte";
   import SourceBar from "./lib/molecules/SourceBar.svelte";
   import { listProvinces, getProvince } from "./lib/utils/api";
@@ -19,7 +20,10 @@
   let selectedName = null;
   let detail = null;
   let detailLoading = false;
+  let detailError = false;
   let noDataSelected = false; // clicked Galápagos - excluded from the IVD (no INEC poverty/inequality data)
+  let hasSelectedOnce = false; // lighter empty-state copy once the user already knows how this works
+  let highlightKey = null; // cross-highlight on the map from hovering the empty state's CTA
   let graphView = "bars"; // "bars" (default, comparable at a glance) | "graph" (network identity view)
   let loading = true;
   let error = null;
@@ -32,6 +36,7 @@
   async function selectProvince(key, name) {
     selectedKey = key;
     detail = null;
+    detailError = false;
 
     if (!indexByProvince[key]) {
       // Not in the IVD dataset (only Galápagos, which INEC has no poverty
@@ -50,11 +55,19 @@
     selectedName = indexByProvince[key].province;
     noDataSelected = false;
     detailLoading = true;
-    const result = await getProvince(selectedName);
-    // Guard against a slower stale request resolving after a newer click.
-    if (selectedKey === key) {
-      detail = result;
-      detailLoading = false;
+    try {
+      const result = await getProvince(selectedName);
+      // Guard against a slower stale request resolving after a newer click.
+      if (selectedKey === key) {
+        detail = result;
+        detailLoading = false;
+        hasSelectedOnce = true;
+      }
+    } catch (e) {
+      if (selectedKey === key) {
+        detailError = true;
+        detailLoading = false;
+      }
     }
   }
 
@@ -62,6 +75,7 @@
     selectedKey = null;
     selectedName = null;
     detail = null;
+    detailError = false;
     noDataSelected = false;
   }
 
@@ -97,21 +111,64 @@
 
     <main class="body">
       <section class="map-card">
-        <EcuadorMap {indexByProvince} selected={selectedKey} onSelect={selectProvince} />
+        <EcuadorMap {indexByProvince} selected={selectedKey} {highlightKey} onSelect={selectProvince} />
       </section>
 
       <section class="graph-card">
         <PanelHeader eyebrow="INDICADORES" title={detail ? detail.province : ""}>
-          <div class="view-toggle" role="tablist">
-            <button role="tab" aria-selected={graphView === "bars"} class:active={graphView === "bars"} on:click={() => (graphView = "bars")}>Barras</button>
-            <button role="tab" aria-selected={graphView === "graph"} class:active={graphView === "graph"} on:click={() => (graphView = "graph")}>Red</button>
+          <div class="view-toggle" role="tablist" class:disabled={!detail}>
+            <button
+              role="tab"
+              aria-selected={graphView === "bars"}
+              class:active={graphView === "bars"}
+              disabled={!detail}
+              on:click={() => (graphView = "bars")}>Barras</button
+            >
+            <button
+              role="tab"
+              aria-selected={graphView === "graph"}
+              class:active={graphView === "graph"}
+              disabled={!detail}
+              on:click={() => (graphView = "graph")}>Red</button
+            >
           </div>
         </PanelHeader>
         <div class="graph-body">
-          {#if graphView === "bars"}
-            <DimensionBars {detail} />
+          {#if detailError}
+            <div class="panel-message" transition:fade={{ duration: 150 }}>
+              <p>No se pudieron cargar los indicadores.</p>
+              <button class="btn-secondary" on:click={() => selectProvince(selectedKey, selectedName)}>Reintentar</button>
+            </div>
+          {:else if detailLoading}
+            <div class="skeleton" transition:fade={{ duration: 120 }} aria-live="polite" aria-busy="true">
+              {#each Array(3) as _}
+                <div class="skeleton-group">
+                  <div class="skeleton-line w40"></div>
+                  {#each Array(3) as __}<div class="skeleton-bar"></div>{/each}
+                </div>
+              {/each}
+            </div>
+          {:else if noDataSelected}
+            <div class="panel-message" transition:fade={{ duration: 150 }}>
+              <p><strong>{selectedName}</strong> queda fuera del IVD: el INEC no reporta indicadores de pobreza/desigualdad para esta provincia.</p>
+              <button class="btn-secondary" on:click={clearSelection}>Ver provincias con muestra</button>
+            </div>
+          {:else if detail}
+            <div transition:fade={{ duration: 150 }} class="graph-fill">
+              {#if graphView === "bars"}
+                <DimensionBars {detail} />
+              {:else}
+                <AssociationGraph {detail} bare />
+              {/if}
+            </div>
           {:else}
-            <AssociationGraph {detail} bare />
+            <IndicatorEmptyState
+              {provinces}
+              visitedBefore={hasSelectedOnce}
+              onSelectMax={(p) => selectProvince(provinceKey(p.province), p.province)}
+              onHoverMax={(p) => (highlightKey = provinceKey(p.province))}
+              onLeaveMax={() => (highlightKey = null)}
+            />
           {/if}
         </div>
       </section>
@@ -236,6 +293,8 @@
   .graph-body {
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
   }
   .view-toggle {
     display: flex;
@@ -259,6 +318,49 @@
   .view-toggle button.active {
     background: var(--brand);
     color: #fff;
+  }
+  .view-toggle button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .graph-fill {
+    height: 100%;
+    min-height: 0;
+  }
+  .panel-message {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    padding: 24px 20px;
+  }
+  .panel-message p {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--ink-mid);
+    margin: 0;
+    max-width: 300px;
+  }
+  .panel-message strong {
+    color: var(--ink);
+  }
+  .btn-secondary {
+    font-family: var(--body);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--brand);
+    background: none;
+    border: 1px solid var(--hairline-strong);
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background 0.1s ease;
+  }
+  .btn-secondary:hover {
+    background: var(--brand-soft);
   }
   .rail-panel {
     min-height: 0;
@@ -310,7 +412,27 @@
     padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 14px;
+  }
+  .skeleton-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .skeleton-bar {
+    height: 10px;
+    border-radius: 3px;
+    background: var(--card-alt);
+    animation: shimmer 1.3s ease-in-out infinite;
+  }
+  .skeleton-bar:nth-child(2) {
+    width: 85%;
+  }
+  .skeleton-bar:nth-child(3) {
+    width: 65%;
+  }
+  .skeleton-bar:nth-child(4) {
+    width: 45%;
   }
   .skeleton-line {
     height: 14px;
@@ -358,7 +480,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .skeleton-line,
-    .skeleton-card {
+    .skeleton-card,
+    .skeleton-bar {
       animation: none;
     }
   }

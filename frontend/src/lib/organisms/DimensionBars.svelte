@@ -4,7 +4,7 @@
   // give it to them ready-made instead of only offering the node graph.
   import { alertLevelHex, alertLevel } from "../utils/alertLevel";
 
-  export let detail = null;
+  export let detail;
 
   const SHORT_LABEL = {
     "Pobreza por ingresos": "Pobreza (ingresos)",
@@ -27,28 +27,21 @@
     { key: "d3_desconfianza_institucional", label: "D3 · Desconfianza institucional", raw: "desconfianza_por_institucion", bruto: null },
   ];
 
-  $: groups = detail
-    ? DIM_DEFS.map((def) => ({
-        ...def,
-        value: detail[def.key],
-        items: Object.entries(detail[def.raw] ?? {})
-          .map(([label, value]) => ({
-            label: SHORT_LABEL[label] ?? label,
-            value,
-            bruto: def.bruto ? detail[def.bruto]?.[label] : null,
-          }))
-          .filter((i) => i.value != null)
-          .sort((a, b) => b.value - a.value),
+  $: groups = DIM_DEFS.map((def) => ({
+    ...def,
+    value: detail[def.key],
+    items: Object.entries(detail[def.raw] ?? {})
+      .map(([label, value]) => ({
+        label: SHORT_LABEL[label] ?? label,
+        value,
+        bruto: def.bruto ? detail[def.bruto]?.[label] : null,
       }))
-    : [];
+      .filter((i) => i.value != null)
+      .sort((a, b) => b.value - a.value),
+  }));
 </script>
 
 <div class="bars-wrap">
-  {#if !detail}
-    <div class="empty">
-      <p>Selecciona una provincia en el mapa o la lista<br />para comparar sus indicadores.</p>
-    </div>
-  {:else}
     <div class="scroll">
       {#each groups as g}
         <div class="dim-block">
@@ -71,7 +64,6 @@
         </div>
       {/each}
     </div>
-  {/if}
 </div>
 
 <style>
@@ -80,20 +72,6 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
-  }
-  .empty {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--ink-dim);
-    text-align: center;
-    padding: 20px;
-  }
-  .empty p {
-    font-size: 12px;
-    line-height: 1.5;
-    margin: 0;
   }
   .scroll {
     flex: 1;
