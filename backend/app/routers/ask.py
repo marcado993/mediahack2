@@ -21,6 +21,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import unicodedata
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
@@ -49,6 +50,11 @@ SYSTEM_PROMPT = (
     "REGLA 2 - MUESTRA LAS PUBLICACIONES, NO DESCRIPCIONES. El usuario quiere las publicaciones en "
     "sí. No expliques qué es Lupa Media ni quién es Ecuador Chequea, no describas las cuentas ni su "
     "línea editorial. Lista lo que encontraste y ya.\n\n"
+    "REGLA 3 - RELEVANCIA. Si la pregunta NO tiene relacion con Ecuador, politica, elecciones, "
+    "desinformacion, medios, funcionarios o temas de interes periodistico ecuatoriano, NO "
+    "llames search_news. Responde en UNA linea que este asistente solo cubre temas "
+    "politico-electorales de Ecuador. Ejemplos que DEBES rechazar sin buscar: recetas, tareas "
+    "escolares, chistes, clima, traducciones, preguntas personales, entretenimiento.\n\n"
     "FORMATO: agrupa por fuente y cita cada publicación como enlace markdown con su título y URL "
     "exactos, ej. [Título](url). El usuario debe poder hacer clic directo desde tu respuesta.\n\n"
     "Si de verdad no hubo resultados tras buscar, dilo en una línea - nunca inventes una "
@@ -102,6 +108,95 @@ class AskResponse(BaseModel):
     articles_used: list[dict] = []
     by_source: dict = {}
 
+
+
+# ── Input validation ────────────────────────────────────────────────
+
+def _vnorm(text: str) -> str:
+    text = unicodedata.normalize("NFD", (text or "").lower())
+    return "".join(c for c in text if unicodedata.category(c) != "Mn")
+
+_OFF_TOPIC_RE = [
+    re.compile(p) for p in [
+        r"\bcomo\s+(hacer|preparar|cocinar|hornear)\b",
+        r"\breceta\b",
+        r"\bcuanto\s+(es|son|mide|pesa)\s+\d",
+        r"\braiz\s+cuadrada\b",
+        r"\bcalcula\b",
+        r"\b(pelicula|cancion|serie|videojuego|anime|manga)s?\b",
+        r"\b(netflix|spotify|fortnite|minecraft)\b",
+        r"^[\s,.!?]*(hola|hi|hello|hey|que\s+tal|buenos?\s+dias?|buenas?\s+(tardes?|noches?)|saludos?)[\s,.!?]*(hola|hi|hello|hey|que\s+tal|buenos?\s+dias?|buenas?\s+(tardes?|noches?)|como\s+estas?|saludos?)?[\s,.!?]*$",
+        r"\bcomo\s+te\s+llamas\b",
+        r"\b(quien|que)\s+eres\b",
+        r"\bcuentame\s+(un|una)\s+(chiste|historia|cuento)\b",
+        r"\b(clima|temperatura|pronostico)\s+(de|en|para)\b",
+        r"\btraducir?\b",
+        r"\b(escribe|redacta|genera)\s+(un|una|mi)\s+(ensayo|tarea|carta|poema|cancion|codigo|programa)\b",
+    ]
+]
+
+_RELEVANT_TERMS = {
+    "ecuador", "ecuatoriano", "ecuatoriana", "quito", "guayaquil", "cuenca",
+    "azuay", "bolivar", "canar", "carchi", "chimborazo", "cotopaxi",
+    "el oro", "esmeraldas", "galapagos", "guayas", "imbabura", "loja",
+    "los rios", "manabi", "morona", "napo", "orellana", "pastaza",
+    "pichincha", "santa elena", "santo domingo", "sucumbios", "tungurahua",
+    "zamora", "politica", "politico", "presidente", "asamblea", "candidato",
+    "candidata", "eleccion", "elecciones", "voto", "partido", "gobierno",
+    "gobernador", "alcalde", "prefecto", "ministro", "ministra",
+    "corrupcion", "desinformacion", "verificacion", "propaganda", "campana",
+    "electoral", "constitucion", "ley", "decreto", "fiscal", "juez",
+    "tribunal", "cne", "seguridad", "violencia", "narcotrafico", "crimen",
+    "inseguridad", "migracion", "salud", "educacion", "empleo", "pobreza",
+    "economia", "presupuesto", "funcionario", "provincia", "denuncia",
+    "investiga", "acusa", "dice", "habla", "propuesta", "reforma",
+    "noboa", "correa", "lasso", "metastasis", "periodista", "prensa",
+    "medio", "noticias",
+}
+
+_VULGAR_TERMS = {
+    "puta", "mierda", "verga", "culo", "pendejo", "maricon",
+    "porno", "desnudo", "idiota", "imbecil", "estupido", "ctm",
+    "hijueputa", "malparido", "gonorrea",
+}
+
+_REFUSAL_OFFTOPIC = (
+    "Este asistente solo cubre temas pol\u00edtico-electorales de Ecuador. "
+    "Puedes preguntar sobre candidatos, propuestas, funcionarios, "
+    "desinformaci\u00f3n o cualquier tema de inter\u00e9s period\u00edstico en el pa\u00eds."
+)
+_REFUSAL_VULGAR = (
+    "Este asistente est\u00e1 dise\u00f1ado para investigaci\u00f3n period\u00edstica. "
+    "Reformula tu consulta de manera profesional."
+)
+_REFUSAL_SHORT = (
+    "La pregunta es demasiado corta. Escribe una consulta m\u00e1s espec\u00edfica "
+    "sobre temas pol\u00edtico-electorales de Ecuador."
+)
+
+
+def _validate_question(question: str) -> str | None:
+    """Return a refusal message if the question is invalid, None if OK."""
+    q = question.strip()
+    if len(q) < 8:
+        return _REFUSAL_SHORT
+
+    normalized = _vnorm(q)
+    words = set(normalized.split())
+
+    if words & _VULGAR_TERMS:
+        return _REFUSAL_VULGAR
+
+    for pat in _OFF_TOPIC_RE:
+        if pat.search(normalized):
+            if any(t in normalized for t in _RELEVANT_TERMS):
+                return None
+            return _REFUSAL_OFFTOPIC
+
+    if len(normalized) < 25 and not any(t in normalized for t in _RELEVANT_TERMS):
+        return _REFUSAL_OFFTOPIC
+
+    return None
 
 # DeepSeek intermittently emits its tool call as *literal text* in the
 # content field instead of populating the structured `tool_calls` field:
@@ -228,6 +323,10 @@ def ask(req: AskRequest):
     question = req.question.strip()
     if not question:
         raise HTTPException(status_code=422, detail="La pregunta no puede estar vacía.")
+
+    refusal = _validate_question(question)
+    if refusal:
+        return AskResponse(answer=refusal, model=MODEL, articles_used=[], by_source={})
 
     user_content = question
     if req.province:
