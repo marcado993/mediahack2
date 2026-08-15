@@ -105,30 +105,21 @@
 
 <!-- ============ ASISTENTE ============ -->
 <section class="view" id="v-asistente">
- <div class="grid gasis">
+ <h2 style="margin-bottom:4px">Temas más hablados por provincia</h2>
+ <p class="note" style="margin:0 0 12px">Selecciona una provincia en el mapa para ver los temas y actores más mencionados en X y medios</p>
+ <div class="grid gmap">
   <div class="card">
-   <h2>Asistente de investigación</h2>
-   <p class="note" style="margin-top:2px">Busca en Lupa Media, Ecuador Chequea, El Comercio y redes sociales · solo contenido político-electoral</p>
-   <div class="chips" id="asisModos"></div>
-   <textarea id="asisInput" rows="2" placeholder="Escribe tu pregunta o el texto a verificar…"></textarea>
-   <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px">
-    <select id="asisProv"><option value="">Sin provincia específica</option></select>
-    <button class="btn" id="asisRun">Buscar</button>
-   </div>
-   <div id="asisResult"></div>
-  </div>
-  <div class="card">
-   <h3>Temas más hablados por provincia</h3>
-   <p class="note" style="margin:0 0 10px">Selecciona una provincia en el mapa</p>
-   <div class="tend-map-canvas">
+   <div class="map-canvas">
     <svg id="tend-map" viewBox="0 0 560 640" preserveAspectRatio="xMidYMid meet"></svg>
-    <div class="tend-inset-gal">
+    <div class="inset-gal">
      <span class="inset-gal-label">GALÁPAGOS</span>
      <svg id="tend-map-gal" viewBox="0 0 110 110"></svg>
     </div>
    </div>
+  </div>
+  <div class="card" style="max-height:820px;overflow:auto">
    <div id="tendProvLabel" class="tend-prov-label"></div>
-   <div id="tendResult"></div>
+   <div id="tendResult"><p class="note" style="margin-top:24px">← Haz clic en una provincia para ver sus temas y actores más mencionados</p></div>
   </div>
  </div>
 </section>

@@ -137,16 +137,11 @@ nav button.on {
 .gmap {
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
 }
-.gasis {
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
-  align-items: start;
-}
 @media (max-width: 900px) {
   .g2,
   .g3,
   .g4,
-  .gmap,
-  .gasis {
+  .gmap {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -846,35 +841,18 @@ textarea {
 }
 
 /* ---------- Trends map in Assistant ---------- */
-.tend-map-canvas {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  overflow: hidden;
-  background: #eaf0f6;
-  position: relative;
+.tend-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--line);
+  border-top-color: var(--acc);
+  border-radius: 50%;
+  animation: tend-spin .7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
 }
-.tend-map-canvas svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-.tend-inset-gal {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  width: 72px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  box-shadow: var(--sh);
-  padding: 4px;
-}
-.tend-inset-gal svg {
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
+@keyframes tend-spin { to { transform: rotate(360deg); } }
 .tend-pv {
   fill: #b9c8d8;
   stroke: #fff;
