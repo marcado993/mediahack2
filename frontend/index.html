@@ -119,7 +119,15 @@
   </div>
   <div class="card">
    <h3>Temas más hablados por provincia</h3>
-   <select id="tendProv"><option value="">Elige una provincia…</option></select>
+   <p class="note" style="margin:0 0 10px">Selecciona una provincia en el mapa</p>
+   <div class="tend-map-canvas">
+    <svg id="tend-map" viewBox="0 0 560 640" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="tend-inset-gal">
+     <span class="inset-gal-label">GALÁPAGOS</span>
+     <svg id="tend-map-gal" viewBox="0 0 110 110"></svg>
+    </div>
+   </div>
+   <div id="tendProvLabel" class="tend-prov-label"></div>
    <div id="tendResult"></div>
   </div>
  </div>
