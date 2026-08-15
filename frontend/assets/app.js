@@ -213,6 +213,63 @@ async function initMapas() {
   drawMapSVG(document.getElementById("map"), PATHS.mainland);
   drawMapSVG(document.getElementById("map-gal"), PATHS.galapagos);
   paintMap();
+  renderScatter();
+}
+
+// Exclusión digital x hiperexposición digital: two independent digital-
+// vulnerability mechanisms - a province can be high in one, the other,
+// both, or neither. Plain hand-drawn SVG, same as the reference chart.
+function renderScatter() {
+  const sv = document.getElementById("scatter");
+  const provincias = MAPA.provincias;
+  const W = 700,
+    H = 420,
+    m = { l: 56, r: 16, t: 14, b: 44 };
+  const X = (v) => m.l + (v / 100) * (W - m.l - m.r);
+  const Y = (v) => H - m.b - (v / 100) * (H - m.t - m.b);
+  const mx = provincias.reduce((a, p) => a + p.EXCLUSION, 0) / provincias.length;
+  const my = provincias.reduce((a, p) => a + p.HIPEREXP, 0) / provincias.length;
+
+  let s = `<rect x="${m.l}" y="${m.t}" width="${W - m.l - m.r}" height="${H - m.t - m.b}" fill="#fbfcfd" stroke="#e6ebf0"/>`;
+  [0, 25, 50, 75, 100].forEach((v) => {
+    s += `<line x1="${X(v)}" y1="${m.t}" x2="${X(v)}" y2="${H - m.b}" stroke="#eef2f6"/><line x1="${m.l}" y1="${Y(v)}" x2="${W - m.r}" y2="${Y(v)}" stroke="#eef2f6"/>
+    <text x="${X(v)}" y="${H - m.b + 15}" font-size="10" fill="#8b98a9" text-anchor="middle">${v}</text>
+    <text x="${m.l - 8}" y="${Y(v) + 3}" font-size="10" fill="#8b98a9" text-anchor="end">${v}</text>`;
+  });
+  s += `<line x1="${X(mx)}" y1="${m.t}" x2="${X(mx)}" y2="${H - m.b}" stroke="#b9c4d0" stroke-dasharray="4 3"/><line x1="${m.l}" y1="${Y(my)}" x2="${W - m.r}" y2="${Y(my)}" stroke="#b9c4d0" stroke-dasharray="4 3"/>`;
+  const quad = [
+    ["Hiperexposición dominante", X(mx) - 8, Y(my) - 8, "end"],
+    ["Doble mecanismo", X(mx) + 8, Y(my) - 8, "start"],
+    ["Riesgo digital bajo", X(mx) - 8, Y(my) + 18, "end"],
+    ["Exclusión dominante", X(mx) + 8, Y(my) + 18, "start"],
+  ];
+  quad.forEach(([t, x, y, a]) => {
+    s += `<text x="${x}" y="${y}" font-size="9.5" fill="#a6b2c0" text-anchor="${a}" font-weight="600">${t}</text>`;
+  });
+  for (const p of provincias) {
+    const r = 4 + Math.sqrt(p.poblacion) / 450;
+    s += `<circle cx="${X(p.EXCLUSION)}" cy="${Y(p.HIPEREXP)}" r="${r}" fill="${col(p.IVEI)}" stroke="#fff" stroke-width="1.2" data-k="${provinceKey(p.provincia)}" style="cursor:pointer"/>`;
+  }
+  provincias
+    .filter((p) => p.poblacion > 380000 || p.EXCLUSION > 68 || p.HIPEREXP > 74)
+    .forEach((p) => {
+      s += `<text x="${X(p.EXCLUSION)}" y="${Y(p.HIPEREXP) - 9}" font-size="9.5" fill="#3c4a5c" text-anchor="middle" font-weight="600">${p.provincia}</text>`;
+    });
+  s += `<text x="${(W + m.l) / 2}" y="${H - 6}" font-size="11" fill="#657388" text-anchor="middle" font-weight="600">Índice de exclusión digital →</text>
+  <text transform="translate(15,${(H - m.b + m.t) / 2}) rotate(-90)" font-size="11" fill="#657388" text-anchor="middle" font-weight="600">Índice de hiperexposición digital →</text>`;
+  sv.innerHTML = s;
+
+  const idx = byKey();
+  sv.querySelectorAll("circle[data-k]").forEach((c) => {
+    const p = idx[c.dataset.k];
+    if (!p) return;
+    c.addEventListener("mouseenter", (e) => {
+      tipShow(e.clientX, e.clientY, `<b>${p.provincia}</b><br>Exclusión digital <b>${fmt(p.EXCLUSION)}</b><br>Hiperexposición <b>${fmt(p.HIPEREXP)}</b><br><span class="r">${p.perfil}</span>`);
+    });
+    c.addEventListener("mousemove", (e) => tipMove(e.clientX, e.clientY));
+    c.addEventListener("mouseleave", tipHide);
+    c.addEventListener("click", () => goToPerfil(p.provincia));
+  });
 }
 
 // ---------------------------------------------------------------------
