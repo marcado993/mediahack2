@@ -5,6 +5,11 @@
   // and 4 items - legible at this scale); D3's 9 institutions would just
   // crowd into unreadable labels at this size, so that node expands into a
   // list on hover instead of nine more leaf nodes.
+  //
+  // Visual treatment: same palette and typography as the rest of the
+  // dashboard (no separate dark theme for this one panel) - just glossy
+  // orb nodes instead of flat circles, and hovering a node dims every
+  // unrelated branch so the reader's eye follows one thread at a time.
   import { alertLevelHex, alertLevel } from "../utils/alertLevel";
 
   export let detail = null; // ProvinceDetail from the API, or null
@@ -37,6 +42,13 @@
     "Poder Judicial": "Judicial",
     "Partidos políticos": "Partidos",
   };
+
+  // Tier key drives which radial-gradient orb a node gets - keep in sync
+  // with the gradients declared in <defs> below.
+  const TIER_KEY = { BAJO: "bajo", MODERADO: "moderado", ALTO: "alto", "CRÍTICO": "critico", "SIN DATO": "nodata" };
+  function tierKey(value) {
+    return TIER_KEY[alertLevel(value).tag] ?? "nodata";
+  }
 
   function polar(cx, cy, r, angleDeg) {
     const rad = (angleDeg * Math.PI) / 180;
@@ -86,6 +98,7 @@
   })();
 
   let hoverNode = null;
+  let hoverBranch = null; // index into graph.dims, or null when nothing/root is hovered
 </script>
 
 <div class="graph-wrap" class:bare>
@@ -107,64 +120,146 @@
     <div class="canvas">
       <svg viewBox="0 0 {W} {H}">
         <defs>
-          <filter id="node-shadow" x="-150%" y="-150%" width="400%" height="400%">
-            <feDropShadow dx="0" dy="1" stdDeviation="1.6" flood-color="#1c2b3a" flood-opacity="0.28" />
-          </filter>
+          <radialGradient id="grad-bajo" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#eef4fc" />
+            <stop offset="55%" stop-color="#c7d6e8" />
+            <stop offset="100%" stop-color="#93aecb" />
+          </radialGradient>
+          <radialGradient id="grad-moderado" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#c9def4" />
+            <stop offset="55%" stop-color="#7fa8d4" />
+            <stop offset="100%" stop-color="#4d7bac" />
+          </radialGradient>
+          <radialGradient id="grad-alto" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#ffe1ab" />
+            <stop offset="55%" stop-color="#e8a33d" />
+            <stop offset="100%" stop-color="#b87b1f" />
+          </radialGradient>
+          <radialGradient id="grad-critico" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#f28f80" />
+            <stop offset="55%" stop-color="#b23a2e" />
+            <stop offset="100%" stop-color="#7a2018" />
+          </radialGradient>
+          <radialGradient id="grad-nodata" cx="35%" cy="30%" r="75%">
+            <stop offset="0%" stop-color="#f5f6f8" />
+            <stop offset="55%" stop-color="#c9cfd6" />
+            <stop offset="100%" stop-color="#9aa2ac" />
+          </radialGradient>
+          <radialGradient id="root-halo" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color={alertLevelHex(graph.root.value)} stop-opacity="0.22" />
+            <stop offset="100%" stop-color={alertLevelHex(graph.root.value)} stop-opacity="0" />
+          </radialGradient>
         </defs>
 
-        <circle cx={CX} cy={CY} r={R1} fill="none" stroke="var(--hairline)" stroke-width="1" stroke-dasharray="2 4" />
+        <circle cx={CX} cy={CY} r={R1} fill="none" stroke="var(--hairline)" stroke-width="1" stroke-dasharray="2 5" />
 
-        {#each graph.dims as d}
+        <circle class="root-halo" cx={graph.root.x} cy={graph.root.y} r="46" fill="url(#root-halo)" />
+
+        {#each graph.dims as d, i}
           <path
+            class="edge"
+            class:dimmed={hoverBranch !== null && hoverBranch !== i}
             d={curve(graph.root.x, graph.root.y, d.x, d.y, 14)}
             fill="none"
             stroke={alertLevelHex(d.value)}
             stroke-width={edgeWidth(d.value, 3)}
-            opacity="0.7"
+            
           />
         {/each}
-        {#each graph.dims as d}
+        {#each graph.dims as d, i}
           {#each d.raws as r}
-            <path d={curve(d.x, d.y, r.x, r.y, 6)} fill="none" stroke={alertLevelHex(r.value)} stroke-width={edgeWidth(r.value, 1.6)} opacity="0.45" />
+            <path
+              class="edge raw-edge"
+              class:dimmed={hoverBranch !== null && hoverBranch !== i}
+              d={curve(d.x, d.y, r.x, r.y, 6)}
+              fill="none"
+              stroke={alertLevelHex(r.value)}
+              stroke-width={edgeWidth(r.value, 1.6)}
+              
+            />
           {/each}
         {/each}
 
-        {#each graph.dims as d}
-          {#each d.raws as r}
+        {#each graph.dims as d, i}
+          {#each d.raws as r, j}
             <circle
               cx={r.x}
               cy={r.y}
-              r="3.6"
-              fill="#fff"
-              stroke={alertLevelHex(r.value)}
-              stroke-width="2"
+              r="4.2"
+              fill="url(#grad-{tierKey(r.value)})"
+              stroke="#fff"
+              stroke-width="1.2"
               class="node raw"
-              on:mouseenter={() => (hoverNode = { label: r.label, value: r.value, x: r.x, y: r.y })}
-              on:mouseleave={() => (hoverNode = null)}
+              class:dimmed={hoverBranch !== null && hoverBranch !== i}
+              style="animation-delay: {120 + i * 90 + j * 45}ms"
+              on:mouseenter={() => {
+                hoverNode = { label: r.label, value: r.value, x: r.x, y: r.y };
+                hoverBranch = i;
+              }}
+              on:mouseleave={() => {
+                hoverNode = null;
+                hoverBranch = null;
+              }}
             />
-            <text x={r.x} y={r.y - 8} text-anchor="middle" class="raw-label">{r.label}</text>
+            <text
+              x={r.x}
+              y={r.y - 9}
+              text-anchor="middle"
+              class="raw-label"
+              class:dimmed={hoverBranch !== null && hoverBranch !== i}>{r.label}</text
+            >
           {/each}
         {/each}
 
-        {#each graph.dims as d}
+        {#each graph.dims as d, i}
           <circle
             cx={d.x}
             cy={d.y}
-            r="13"
-            fill={alertLevelHex(d.value)}
-            filter="url(#node-shadow)"
+            r="14"
+            fill="url(#grad-{tierKey(d.value)})"
+            stroke="#fff"
+            stroke-width="1.6"
             class="node dim"
-            on:mouseenter={() => (hoverNode = { label: d.label, value: d.value, x: d.x, y: d.y, list: d.list })}
-            on:mouseleave={() => (hoverNode = null)}
+            class:dimmed={hoverBranch !== null && hoverBranch !== i}
+            style="animation-delay: {i * 90}ms"
+            on:mouseenter={() => {
+              hoverNode = { label: d.label, value: d.value, x: d.x, y: d.y, list: d.list };
+              hoverBranch = i;
+            }}
+            on:mouseleave={() => {
+              hoverNode = null;
+              hoverBranch = null;
+            }}
           />
-          <text x={d.x} y={d.y + (d.y > CY ? 26 : -19)} text-anchor="middle" class="dim-label">{d.label}</text>
+          <text
+            x={d.x}
+            y={d.y + (d.y > CY ? 27 : -20)}
+            text-anchor="middle"
+            class="dim-label"
+            class:dimmed={hoverBranch !== null && hoverBranch !== i}>{d.label}</text
+          >
           <text x={d.x} y={d.y + 4} text-anchor="middle" class="node-value">{d.value ?? "—"}</text>
           {#if d.list}
-            <text x={d.x} y={d.y + (d.y > CY ? 38 : -7)} text-anchor="middle" class="hint-label">{d.list.length} instituciones ›</text>
+            <text
+              x={d.x}
+              y={d.y + (d.y > CY ? 39 : -6)}
+              text-anchor="middle"
+              class="hint-label"
+              class:dimmed={hoverBranch !== null && hoverBranch !== i}>{d.list.length} instituciones ›</text
+            >
           {/if}
         {/each}
 
-        <circle cx={graph.root.x} cy={graph.root.y} r="25" fill={alertLevelHex(graph.root.value)} filter="url(#node-shadow)" class="node root" />
+        <circle
+          cx={graph.root.x}
+          cy={graph.root.y}
+          r="26"
+          fill="url(#grad-{tierKey(graph.root.value)})"
+          stroke="#fff"
+          stroke-width="2"
+          class="node root"
+          
+        />
         <text x={graph.root.x} y={graph.root.y + 6} text-anchor="middle" class="root-value">{graph.root.value}</text>
       </svg>
 
@@ -228,48 +323,104 @@
     position: relative;
     flex: 1;
     min-height: 0;
+    background: var(--card-alt);
+    border-radius: 10px;
+    border: 1px solid var(--hairline);
   }
   svg {
     width: 100%;
     height: 100%;
   }
+  .root-halo {
+    animation: halo-breathe 3.2s ease-in-out infinite;
+    transform-origin: center;
+  }
+  @keyframes halo-breathe {
+    0%,
+    100% {
+      opacity: 0.7;
+      r: 42;
+    }
+    50% {
+      opacity: 1;
+      r: 48;
+    }
+  }
+  .edge {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+  }
+  .raw-edge {
+    opacity: 0.5;
+  }
+  .edge.dimmed {
+    opacity: 0.08;
+  }
   .node {
     cursor: pointer;
-    transition: r 0.12s ease;
+    filter: drop-shadow(0 1px 2px rgba(28, 43, 58, 0.22));
+    transition: r 0.15s ease, opacity 0.2s ease, filter 0.15s ease;
+    animation: node-in 0.5s cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+  }
+  @keyframes node-in {
+    from {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
   .node.raw:hover {
-    r: 5.5;
+    r: 6;
+    filter: drop-shadow(0 2px 4px rgba(28, 43, 58, 0.3));
   }
   .node.dim:hover {
-    r: 15;
+    r: 16;
+    filter: drop-shadow(0 2px 6px rgba(28, 43, 58, 0.32));
+  }
+  .node.dimmed {
+    opacity: 0.15;
+  }
+  .node.root {
+    filter: drop-shadow(0 2px 6px rgba(28, 43, 58, 0.28));
   }
   .dim-label {
     font-family: var(--body);
     font-weight: 500;
     font-size: 11px;
     fill: var(--ink-mid);
+    transition: opacity 0.2s ease;
   }
   .hint-label {
     font-family: var(--mono);
     font-size: 8px;
     fill: var(--brand);
+    transition: opacity 0.2s ease;
   }
   .node-value {
     font-family: var(--mono);
     font-size: 10px;
-    fill: #fff;
+    fill: var(--ink);
     font-weight: 700;
+    pointer-events: none;
   }
   .raw-label {
     font-family: var(--body);
     font-size: 8px;
     fill: var(--ink-dim);
+    transition: opacity 0.2s ease;
+  }
+  text.dimmed {
+    opacity: 0.15;
   }
   .root-value {
-    font-family: var(--display);
-    font-size: 18px;
-    fill: #fff;
+    font-family: var(--mono);
+    font-size: 16px;
+    fill: var(--ink);
     font-weight: 700;
+    pointer-events: none;
   }
   .tooltip {
     position: absolute;
