@@ -4,7 +4,6 @@
   import MonoValue from "../atoms/MonoValue.svelte";
   import StoryAngle from "../molecules/StoryAngle.svelte";
   import AskModule from "../molecules/AskModule.svelte";
-  import TrendsPanel from "../molecules/TrendsPanel.svelte";
 
   export let detail = null;
 
@@ -45,7 +44,6 @@
        first time was never scrolling far enough to discover the media-listening
        action down at the bottom. -->
   <AskModule province={detail.province} ivd={detail.ivd} nivel={detail.nivel} />
-  <TrendsPanel province={detail.province} />
 
   <div class="scroll">
     <div class="confiabilidad" class:imputed={isImputed}>

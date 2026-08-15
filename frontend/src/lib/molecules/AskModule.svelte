@@ -487,6 +487,27 @@
     gap: 6px;
     margin-top: 8px;
   }
+  /* Phone: three mode cards side by side leave ~90px each, which truncates
+     both the label and its hint. Stack them into rows instead. */
+  @media (max-width: 640px) {
+    .modal {
+      padding: 16px 16px 18px;
+      max-height: 88vh;
+    }
+    .modes {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+    .mode {
+      flex-direction: row;
+      align-items: baseline;
+      gap: 7px;
+      padding: 8px 10px;
+    }
+    .trigger-text small {
+      white-space: normal;
+    }
+  }
   .chip {
     font-family: var(--body);
     font-size: 11px;

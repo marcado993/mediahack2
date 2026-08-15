@@ -31,9 +31,15 @@ from app.news_search import search_news_articles
 
 router = APIRouter(prefix="/api", tags=["contrast"])
 
-# Vocabulario de costo/financiamiento para ampliar la búsqueda: una propuesta
-# rara vez se publica junto a la palabra "presupuesto" literal.
+# Dos ejes de contraste, porque una propuesta puede fallar por dos razones
+# distintas y un periodista necesita distinguirlas: no alcanza la plata, o
+# no es competencia de ese cargo.
 COST_TERMS = ["presupuesto", "costo", "financiamiento", "inversión", "millones", "obra"]
+
+# El segundo eje. Un alcalde que promete algo que por ley le corresponde al
+# Gobierno central no tiene un problema de presupuesto: tiene un problema de
+# competencia. Es de las preguntas más útiles y menos hechas en campaña.
+LEGAL_TERMS = ["ley", "normativa", "competencia", "constitución", "ordenanza", "COOTAD", "reforma"]
 
 
 class ContrastRequest(BaseModel):
@@ -62,12 +68,12 @@ def contrast(req: ContrastRequest):
                     evidence.append(item)
 
     # La propuesta tal cual, y luego cruzada con vocabulario de costo.
-    absorb(search_news_articles(proposal, limit=20))
+    absorb(search_news_articles(proposal, limit=20, include_social=False))
     base = f"{req.province} {proposal}" if req.province else proposal
-    for term in COST_TERMS[:3]:
-        if len(evidence) >= 8:
+    for term in COST_TERMS[:2] + LEGAL_TERMS[:2]:
+        if len(evidence) >= 10:
             break
-        absorb(search_news_articles(f"{base} {term}", limit=12))
+        absorb(search_news_articles(f"{base} {term}", limit=12, include_social=False))
 
     # Marcamos qué piezas mencionan cifras o financiamiento: es lo que el
     # periodista busca primero, y es un dato verificable del texto, no una
@@ -75,27 +81,40 @@ def contrast(req: ContrastRequest):
     for item in evidence:
         text = (item.get("title") or "").lower()
         item["menciona_costo"] = any(t in text for t in COST_TERMS) or any(c.isdigit() for c in text)
+        item["menciona_marco_legal"] = any(t.lower() in text for t in LEGAL_TERMS)
 
     con_costo = [e for e in evidence if e["menciona_costo"]]
+    con_legal = [e for e in evidence if e["menciona_marco_legal"]]
 
     return {
         "proposal": proposal,
         "province": req.province,
         "evidencia": evidence[:12],
         "con_referencia_a_costo": len(con_costo),
+        "con_referencia_legal": len(con_legal),
         "total": len(evidence),
         "hallazgo": (
-            "Ninguna fuente consultada publicó algo sobre el costo o financiamiento de esta "
-            "propuesta. La ausencia de cifras públicas es en sí misma reporteable: se puede "
-            "preguntar a quien la propone cuánto cuesta y de dónde saldría el dinero."
-            if not con_costo
-            else f"{len(con_costo)} de {len(evidence)} publicaciones mencionan cifras, costo o financiamiento."
+            "Ninguna fuente consultada publicó algo sobre el costo ni sobre el marco legal de "
+            "esta propuesta. Esa ausencia es en sí misma reporteable: se puede preguntar a "
+            "quien la propone cuánto cuesta, de dónde saldría el dinero y si el cargo al que "
+            "aspira tiene competencia para ejecutarla."
+            if not con_costo and not con_legal
+            else (
+                f"{len(con_costo)} de {len(evidence)} publicaciones mencionan cifras o "
+                f"financiamiento; {len(con_legal)} mencionan leyes, competencias o normativa."
+            )
         ),
+        "preguntas_sugeridas": [
+            "¿Cuánto cuesta y de qué partida saldría el dinero?",
+            "¿El cargo al que aspira tiene competencia legal para ejecutarla?",
+            "¿Requiere una reforma o una ordenanza previa?",
+        ],
         "advertencia": (
-            "Esta herramienta NO evalúa si la propuesta es viable. No dispone de los "
-            "presupuestos asignados por provincia ni de las partidas del Presupuesto General "
-            "del Estado, y emitir un veredicto sin esos datos sería inventar una conclusión "
-            "sobre la propuesta de un candidato real. Aquí solo se reúne la evidencia "
-            "publicada; el contraste y la conclusión los hace el periodista."
+            "Esta herramienta NO evalúa si la propuesta es viable ni si es legal. No dispone "
+            "de los presupuestos asignados por provincia, de las partidas del Presupuesto "
+            "General del Estado ni de un corpus normativo (COOTAD, Constitución), y emitir un "
+            "veredicto sin esos datos sería inventar una conclusión sobre la propuesta de un "
+            "candidato real. Aquí solo se reúne la evidencia publicada y se sugieren las "
+            "preguntas; el contraste y la conclusión los hace el periodista."
         ),
     }

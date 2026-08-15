@@ -101,22 +101,26 @@ def province_trends(province: str, limit: int = 6):
                 seen_links.add(link)
                 posts.append(item)
 
-    for expansion in QUERY_EXPANSION:
+    # RSS first: it's an HTTP fetch, so the panel has something to show even
+    # if X is slow or its cookies have expired.
+    try:
+        media = search_news_articles(province, limit=20, include_social=False)
+        absorb([a for group in media.get("by_source", {}).values() for a in group])
+    except Exception:
+        pass
+
+    # Then X, capped at two queries. Each one is a full browser render of a
+    # live search (~15s); letting it run three deep pushed this endpoint past
+    # a minute and the auto-loading panel simply never appeared.
+    for expansion in QUERY_EXPANSION[:2]:
         absorb(search_x_posts(f"{province} ({expansion})", limit=40).get("articles", []))
-        if len(posts) >= 8:
+        if len(posts) >= 10:
             break
-    if len(posts) < 4:
-        absorb(search_x_posts(province, limit=40).get("articles", []))
 
     # Beyond X: the same province is covered by the fact-checkers and outlets
     # this project already aggregates, and for provinces with little social
     # conversation that's where the entire signal lives. Without this, every
     # province except Pichincha came back empty.
-    try:
-        media = search_news_articles(province, limit=20)
-        absorb([a for group in media.get("by_source", {}).values() for a in group])
-    except Exception:
-        pass
 
     if not posts:
         return {

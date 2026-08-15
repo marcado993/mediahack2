@@ -11,6 +11,7 @@
   import IndicatorEmptyState from "./lib/molecules/IndicatorEmptyState.svelte";
   import Headline from "./lib/organisms/Headline.svelte";
   import SourceBar from "./lib/molecules/SourceBar.svelte";
+  import TrendsPanel from "./lib/molecules/TrendsPanel.svelte";
   import { listProvinces, getProvince } from "./lib/utils/api";
   import { provinceKey } from "./lib/utils/geo";
 
@@ -110,8 +111,11 @@
     <div class="status error">{error}</div>
   {:else}
     <Headline {provinces} />
-    <div class="strip-row">
+    <div class="strip-row" class:with-trends={!!detail}>
       <StatStrip {provinces} />
+      {#if detail}
+        <TrendsPanel province={detail.province} />
+      {/if}
     </div>
 
     <main class="body">
@@ -272,6 +276,16 @@
   .strip-row {
     flex: 0 0 auto;
     padding: 10px 14px 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  /* With a province selected the KPI strip and the trending-topics strip
+     sit side by side; the topics get the narrower column since they're
+     chips, not numbers that need room to breathe. A class rather than
+     :has() - the latter silently collapsed the grid in testing. */
+  .strip-row.with-trends {
+    grid-template-columns: 1fr 300px;
   }
 
   .body {
@@ -537,10 +551,13 @@
     }
     .rail-panel {
       height: auto;
-      /* Raised from 420px: the province panel now also carries the
-         media-listening button and the trends strip above the indicator
-         cards, and at the old height those cards got squeezed to nothing. */
-      min-height: 620px;
+      /* The trends strip moved out to the top row, so this only has to fit
+         the listening button plus the indicator cards again. */
+      min-height: 540px;
+    }
+    /* Side-by-side KPI + topics doesn't fit a phone; stack them. */
+    .strip-row.with-trends {
+      grid-template-columns: 1fr;
     }
   }
 </style>
