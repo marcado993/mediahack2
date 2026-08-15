@@ -285,7 +285,10 @@
      chips, not numbers that need room to breathe. A class rather than
      :has() - the latter silently collapsed the grid in testing. */
   .strip-row.with-trends {
-    grid-template-columns: 1fr 300px;
+    /* Wide enough that the chips lay out in rows instead of forcing the
+       panel to scroll - the 300px version was cramped next to a KPI card
+       that was mostly empty space. */
+    grid-template-columns: 1fr 470px;
   }
 
   .body {

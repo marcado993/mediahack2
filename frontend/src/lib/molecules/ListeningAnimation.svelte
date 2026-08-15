@@ -33,6 +33,10 @@
     Escuchando fuentes…
   </div>
 
+  <!-- Indeterminate bar above the per-source list: the ticks alone were
+       ambiguous between "still working" and "finished, found nothing". -->
+  <div class="bar" role="progressbar" aria-label="Buscando"><span></span></div>
+
   <ul class="sources">
     {#each SOURCES as s, i}
       <li class:done={i < reached} class:active={i === reached}>
@@ -86,6 +90,28 @@
     50% {
       opacity: 0.35;
       transform: scale(0.75);
+    }
+  }
+  .bar {
+    height: 3px;
+    border-radius: 3px;
+    background: var(--hairline);
+    overflow: hidden;
+  }
+  .bar span {
+    display: block;
+    height: 100%;
+    width: 40%;
+    border-radius: 3px;
+    background: var(--brand);
+    animation: slide 1.2s ease-in-out infinite;
+  }
+  @keyframes slide {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(250%);
     }
   }
   .sources {

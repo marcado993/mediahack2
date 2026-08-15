@@ -48,8 +48,16 @@
 </script>
 
 {#if loading}
-  <div class="trends compact">
-    <span class="eyebrow">TEMAS MÁS HABLADOS</span>
+  <!-- Explicit rather than a bare shimmer: the skeleton chips alone read as
+       "this panel is empty", not "this panel is working". A moving bar plus
+       a sentence naming what it's doing removes that ambiguity. -->
+  <div class="trends compact" aria-busy="true">
+    <div class="head">
+      <span class="eyebrow">TEMAS MÁS HABLADOS</span>
+      <span class="meta">buscando…</span>
+    </div>
+    <div class="bar" role="progressbar" aria-label="Buscando temas"><span></span></div>
+    <p class="note">Leyendo X y medios sobre {province}. Puede tardar unos segundos.</p>
     <div class="skeleton-chips">
       {#each Array(4) as _}<span class="skel"></span>{/each}
     </div>
@@ -111,11 +119,35 @@
     /* Hard cap: this panel shares a fixed-height rail with the indicator
        cards, and must never grow enough to squeeze them out - at 168px it
        collapsed the indicator list to zero height on the mobile layout. */
-    max-height: 118px;
+    max-height: 142px;
     overflow-y: auto;
   }
   .trends.compact {
     gap: 7px;
+  }
+  .bar {
+    height: 3px;
+    border-radius: 3px;
+    background: var(--hairline);
+    overflow: hidden;
+  }
+  /* Indeterminate: we genuinely don't know how long the live search takes,
+     and a fake percentage would be a lie about progress. */
+  .bar span {
+    display: block;
+    height: 100%;
+    width: 40%;
+    border-radius: 3px;
+    background: var(--brand);
+    animation: slide 1.2s ease-in-out infinite;
+  }
+  @keyframes slide {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(250%);
+    }
   }
   .skeleton-chips {
     display: flex;
@@ -232,6 +264,11 @@
   @media (prefers-reduced-motion: reduce) {
     .skel {
       animation: none;
+    }
+    .bar span {
+      animation: none;
+      width: 100%;
+      opacity: 0.5;
     }
   }
 </style>
