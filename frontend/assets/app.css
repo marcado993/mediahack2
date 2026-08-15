@@ -873,35 +873,6 @@ textarea {
 }
 
 /* ---------- Trends map in Assistant ---------- */
-.tend-map-canvas {
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  overflow: hidden;
-  background: #eaf0f6;
-  position: relative;
-}
-.tend-map-canvas svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
-.tend-inset-gal {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  width: 72px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  box-shadow: var(--sh);
-  padding: 4px;
-}
-.tend-inset-gal svg {
-  width: 100%;
-  height: auto;
-  overflow: visible;
-}
 .tend-pv {
   fill: #b9c8d8;
   stroke: #fff;

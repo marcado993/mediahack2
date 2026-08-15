@@ -105,18 +105,22 @@
 
 <!-- ============ ASISTENTE ============ -->
 <section class="view" id="v-asistente">
- <div class="card">
-  <h2>Temas más hablados por provincia</h2>
-  <p class="note" style="margin:0 0 10px">Selecciona una provincia en el mapa para ver los temas y actores más mencionados en X y medios</p>
-  <div class="tend-map-canvas">
-   <svg id="tend-map" viewBox="0 0 560 640" preserveAspectRatio="xMidYMid meet"></svg>
-   <div class="tend-inset-gal">
-    <span class="inset-gal-label">GALÁPAGOS</span>
-    <svg id="tend-map-gal" viewBox="0 0 110 110"></svg>
+ <h2 style="margin-bottom:4px">Temas más hablados por provincia</h2>
+ <p class="note" style="margin:0 0 12px">Selecciona una provincia en el mapa para ver los temas y actores más mencionados en X y medios</p>
+ <div class="grid gmap">
+  <div class="card">
+   <div class="map-canvas">
+    <svg id="tend-map" viewBox="0 0 560 640" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="inset-gal">
+     <span class="inset-gal-label">GALÁPAGOS</span>
+     <svg id="tend-map-gal" viewBox="0 0 110 110"></svg>
+    </div>
    </div>
   </div>
-  <div id="tendProvLabel" class="tend-prov-label"></div>
-  <div id="tendResult"></div>
+  <div class="card" style="max-height:820px;overflow:auto">
+   <div id="tendProvLabel" class="tend-prov-label"></div>
+   <div id="tendResult"><p class="note" style="margin-top:24px">← Haz clic en una provincia para ver sus temas y actores más mencionados</p></div>
+  </div>
  </div>
 </section>
 
