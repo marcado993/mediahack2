@@ -491,19 +491,26 @@ function stackChart(etnias) {
   return `<div class="stack">${bars}</div><div style="font-size:10.5px;color:var(--mut);margin-top:6px;line-height:1.7">${legend}</div>`;
 }
 
-async function goToPerfil(provincia) {
-  document.querySelector('nav button[data-v="perfil"]').click();
+async function loadPerfil(provincia) {
   document.getElementById("selProv").value = provincia;
   document.getElementById("perfil").innerHTML = `<p class="note">Cargando…</p>`;
   const data = await getJSON(`/api/segmentadores/perfil/${encodeURIComponent(provincia)}`);
   renderPerfil(data);
 }
 
+// Used by clicks from other tabs (map, ranking, scatter, datos) - those
+// should actually switch to the Perfil tab. The initial preload on page
+// load must NOT do this, or the site opens on Perfil instead of Mapas.
+async function goToPerfil(provincia) {
+  document.querySelector('nav button[data-v="perfil"]').click();
+  await loadPerfil(provincia);
+}
+
 function initPerfilSelect() {
   const sel = document.getElementById("selProv");
   sel.innerHTML = PROVINCIAS.map((p) => `<option value="${p}">${p}</option>`).join("");
-  sel.onchange = () => goToPerfil(sel.value);
-  if (PROVINCIAS.length) goToPerfil(PROVINCIAS[0]);
+  sel.onchange = () => loadPerfil(sel.value);
+  if (PROVINCIAS.length) loadPerfil(PROVINCIAS[0]);
 }
 
 // ---------------------------------------------------------------------
