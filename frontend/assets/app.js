@@ -559,6 +559,16 @@ function initPerfilSelect() {
   sel.innerHTML = PROVINCIAS.map((p) => `<option value="${p}">${p}</option>`).join("");
   sel.onchange = () => loadPerfil(sel.value);
   if (PROVINCIAS.length) loadPerfil(PROVINCIAS[0]);
+
+  // No PDF library - the browser's own print dialog ("Guardar como PDF")
+  // does the job with zero dependencies, using the @media print rules
+  // already in app.css to hide everything but the profile itself.
+  document.getElementById("btnFicha").onclick = () => {
+    const original = document.title;
+    document.title = `Ficha - ${sel.value || "provincia"}`;
+    window.print();
+    document.title = original;
+  };
 }
 
 // ---------------------------------------------------------------------

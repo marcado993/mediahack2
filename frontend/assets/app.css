@@ -957,10 +957,24 @@ textarea {
   header,
   nav,
   .chips,
-  .noprint {
+  .noprint,
+  #tip {
     display: none !important;
   }
+  /* Only the active tab prints - without this every view (map, huge data
+     table, Sankey...) dumped into the same PDF as the province profile. */
   .view {
+    display: none !important;
+  }
+  .view.on {
     display: block !important;
+  }
+  .wrap {
+    max-width: none;
+    padding: 0;
+  }
+  .tend-panel {
+    max-height: none;
+    overflow: visible;
   }
 }
