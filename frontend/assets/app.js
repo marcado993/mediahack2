@@ -68,8 +68,15 @@ function rampColor(t, arr = RAMP) {
     b = arr[i + 1];
   return `rgb(${a.map((c, j) => Math.round(c + (b[j] - c) * f)).join(",")})`;
 }
+// RES and HABDIG both read "higher = better" (more resilient / more
+// digitally competent), the opposite of every other layer here - they get
+// the ramp reversed rather than inverting the value, so their own legend
+// gradient starts green too.
+function isPositiveKey(key) {
+  return key === "RES" || key === "HABDIG";
+}
 function scaleFor(key) {
-  return key === "RES" ? GREEN : RAMP;
+  return isPositiveKey(key) ? GREEN : RAMP;
 }
 
 // Each indicator is colored against the *observed* range across the 24
@@ -155,14 +162,23 @@ function valueFor(key) {
   return rec[capa];
 }
 
+const CAPA_DESC = {
+  RES: "Mayor valor = mayor capacidad de contraste (más resiliente).",
+  HABDIG: "Mayor valor = más competencia digital reportada por la propia persona.",
+};
+const CAPA_LG = {
+  RES: ["menor resiliencia", "mayor resiliencia"],
+  HABDIG: ["menor competencia", "mayor competencia"],
+};
+
 function paintMap() {
   const idx = byKey();
   const active = MAPA.capas.find((c) => c.codigo === capa);
   document.getElementById("capaTit").textContent = active.nombre;
-  document.getElementById("capaDesc").textContent =
-    capa === "RES" ? "Mayor valor = mayor capacidad de contraste (más resiliente)." : "Mayor valor = mayor vulnerabilidad.";
-  document.getElementById("lgA").textContent = capa === "RES" ? "menor resiliencia" : "menor";
-  document.getElementById("lgB").textContent = capa === "RES" ? "mayor resiliencia" : "mayor";
+  document.getElementById("capaDesc").textContent = CAPA_DESC[capa] ?? "Mayor valor = mayor vulnerabilidad.";
+  const [lgA, lgB] = CAPA_LG[capa] ?? ["menor", "mayor"];
+  document.getElementById("lgA").textContent = lgA;
+  document.getElementById("lgB").textContent = lgB;
   document.getElementById("lgBar").style.background = "linear-gradient(90deg," + scaleFor(capa).map(([r, g, b]) => `rgb(${r},${g},${b})`).join(",") + ")";
 
   document.querySelectorAll(".pv").forEach((el) => {
@@ -172,14 +188,26 @@ function paintMap() {
     el.classList.toggle("sel", key === mapSel);
   });
 
-  const rows = [...MAPA.provincias].sort((a, b) => (capa === "RES" ? a[capa] - b[capa] : b[capa] - a[capa]));
+  // Nulls (no data for this layer) always sink to the bottom of the
+  // ranking, regardless of which direction the layer sorts in.
+  const rows = [...MAPA.provincias].sort((a, b) => {
+    if (a[capa] == null) return 1;
+    if (b[capa] == null) return -1;
+    return isPositiveKey(capa) ? a[capa] - b[capa] : b[capa] - a[capa];
+  });
   document.getElementById("rk").innerHTML = rows
     .map((p, i) => {
       const key = provinceKey(p.provincia);
       const v = p[capa];
+      let tag = "";
+      if (capa === "HABDIG") {
+        tag = v == null ? ' <span class="tag">sin encuestas</span>' : p.HABDIG_n < 10 ? ' <span class="tag">muestra chica</span>' : "";
+      } else if (p.n_lb === 0) {
+        tag = ' <span class="tag">sin muestra LB</span>';
+      }
       return `<tr data-k="${key}" class="${key === mapSel ? "sel" : ""}">
       <td style="width:26px"><span class="rk" style="background:${col(capa, v)}">${i + 1}</span></td>
-      <td>${p.provincia}${p.n_lb === 0 ? ' <span class="tag">sin muestra LB</span>' : ""}</td>
+      <td>${p.provincia}${tag}</td>
       <td class="num"><b>${fmt(v)}</b></td></tr>`;
     })
     .join("");

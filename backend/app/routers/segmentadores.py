@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
-from app import ivei
+from app import habilidades_digitales, ivei
 
 router = APIRouter(prefix="/api/segmentadores", tags=["segmentadores"])
 
@@ -19,28 +19,34 @@ def provincias():
 
 @router.get("/mapa")
 def mapa():
-    provincias = [
-        {
-            "provincia": p["nombre"],
-            "rank": p["rank"],
-            "nivel": p["nivel"],
-            "perfil": p["perfil"],
-            "IVEI": p["IVEI"],
-            "EST": p["EST"],
-            "EXP": p["EXP"],
-            "RES": p["RES"],
-            "PRE": p["PRE"],
-            "EXCLUSION": p["EXCLUSION"],
-            "HIPEREXP": p["HIPEREXP"],
-            "poblacion": p["poblacion"],
-            "n_lb": p["n_lb"],
-        }
-        for p in ivei.list_provinces()
-    ]
+    hd = habilidades_digitales.load_habilidades_digitales()
+    provincias = []
+    for p in ivei.list_provinces():
+        hd_rec = hd.get(p["nombre"])
+        provincias.append(
+            {
+                "provincia": p["nombre"],
+                "rank": p["rank"],
+                "nivel": p["nivel"],
+                "perfil": p["perfil"],
+                "IVEI": p["IVEI"],
+                "EST": p["EST"],
+                "EXP": p["EXP"],
+                "RES": p["RES"],
+                "PRE": p["PRE"],
+                "EXCLUSION": p["EXCLUSION"],
+                "HIPEREXP": p["HIPEREXP"],
+                "poblacion": p["poblacion"],
+                "n_lb": p["n_lb"],
+                "HABDIG": hd_rec["score"] if hd_rec else None,
+                "HABDIG_n": hd_rec["n"] if hd_rec else 0,
+            }
+        )
     return {"capas": [{"codigo": c, "nombre": n, "color": col} for c, n, col in ivei.DIMENSIONS] + [
         {"codigo": "IVEI", "nombre": "Vulnerabilidad electoral integrada", "color": "#b23a2e"},
         {"codigo": "EXCLUSION", "nombre": "Exclusión digital", "color": "#1d6a96"},
         {"codigo": "HIPEREXP", "nombre": "Hiperexposición digital", "color": "#b3541e"},
+        {"codigo": "HABDIG", "nombre": "Habilidades digitales", "color": "#0e7c86"},
     ], "provincias": provincias, "nacional": ivei.get_national()}
 
 
