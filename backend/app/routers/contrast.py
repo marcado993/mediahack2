@@ -23,6 +23,7 @@ El veredicto lo pone el periodista, con las fuentes en la mano.
 from __future__ import annotations
 
 import re
+import unicodedata
 
 from typing import Optional
 
@@ -42,6 +43,11 @@ COST_TERMS = ["presupuesto", "costo", "financiamiento", "inversión", "millones"
 # Gobierno central no tiene un problema de presupuesto: tiene un problema de
 # competencia. Es de las preguntas más útiles y menos hechas en campaña.
 LEGAL_TERMS = ["ley", "normativa", "competencia", "constitución", "ordenanza", "COOTAD", "reforma"]
+
+
+def _normalize(text: str) -> str:
+    text = unicodedata.normalize("NFD", (text or "").lower())
+    return "".join(c for c in text if unicodedata.category(c) != "Mn")
 
 
 class ContrastRequest(BaseModel):
@@ -81,11 +87,11 @@ def contrast(req: ContrastRequest):
     # periodista busca primero, y es un dato verificable del texto, no una
     # interpretación nuestra.
     for item in evidence:
-        text = (item.get("title") or "").lower()
-        has_cost_term = any(t in text for t in COST_TERMS)
-        has_monetary_figure = bool(re.search(r"\$\s*[\d.,]+|[\d.,]+\s*(?:millones|mil|dólares|dolares|usd)", text))
+        text = _normalize(item.get("title") or "")
+        has_cost_term = any(_normalize(t) in text for t in COST_TERMS)
+        has_monetary_figure = bool(re.search(r"\$\s*[\d.,]+|[\d.,]+\s*(?:millones|mil|dolares|usd)", text))
         item["menciona_costo"] = has_cost_term or has_monetary_figure
-        item["menciona_marco_legal"] = any(t.lower() in text for t in LEGAL_TERMS)
+        item["menciona_marco_legal"] = any(_normalize(t) in text for t in LEGAL_TERMS)
 
     con_costo = [e for e in evidence if e["menciona_costo"]]
     con_legal = [e for e in evidence if e["menciona_marco_legal"]]

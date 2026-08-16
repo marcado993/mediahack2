@@ -170,6 +170,15 @@ def search_news_articles(
         except Exception:
             pass
 
+    # Social modules do their own matching with simple OR logic; for multi-
+    # term queries, re-filter through _match() so "corrupción Ecuador" does
+    # not keep posts that only mention "Ecuador" without "corrupción".
+    if include_social and len(terms) > 1:
+        for name in list(by_source):
+            if name in FEEDS:
+                continue
+            by_source[name] = _match(by_source[name], terms, exclude_sports=False)[:PER_SOURCE_LIMIT]
+
     # "Solo política, cosas relevantes para las elecciones" - applied last so
     # it covers every source uniformly. Social sources already self-filter,
     # but RSS feeds carry plenty of non-political items.
