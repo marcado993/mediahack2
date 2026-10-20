@@ -38,13 +38,13 @@ NAME_ALIASES = {
 # direction: 1 = higher reads as more vulnerable/worse, -1 = higher is
 # better/more resilient, 0 = descriptive only (no inherent "better/worse").
 INDICATORS = {
-    "IVEI": ("IVEI_indice_integrado", "Vulnerabilidad electoral integrada", "pts/100", "IVEI 2024", 1),
-    "EST": ("dim1_vulnerab_estructural", "Vulnerabilidad estructural", "pts/100", "IVEI 2024", 1),
-    "EXP": ("dim2_exposicion_informativa", "Exposición informativa", "pts/100", "IVEI 2024", 1),
-    "RES": ("dim3_resiliencia_informativa", "Resiliencia informativa", "pts/100", "IVEI 2024", -1),
-    "PRE": ("dim4_presion_coyuntural", "Presión coyuntural", "pts/100", "IVEI 2024", 1),
-    "EXCLUSION": ("idx_exclusion_digital", "Exclusión digital", "pts/100", "IVEI 2024", 1),
-    "HIPEREXP": ("idx_hiperexposicion_digital", "Hiperexposición digital", "pts/100", "IVEI 2024", 1),
+    "IVEI": ("IVEI_indice_integrado", "Nivel de vulnerabilidad", "pts/100", "IVEI 2024", 1),
+    "EST": ("dim1_vulnerab_estructural", "Carencias de base", "pts/100", "IVEI 2024", 1),
+    "EXP": ("dim2_exposicion_informativa", "Dependencia de redes", "pts/100", "IVEI 2024", 1),
+    "RES": ("dim3_resiliencia_informativa", "Capacidad de contrastar", "pts/100", "IVEI 2024", -1),
+    "PRE": ("dim4_presion_coyuntural", "Clima electoral", "pts/100", "IVEI 2024", 1),
+    "EXCLUSION": ("idx_exclusion_digital", "Sin conexión", "pts/100", "IVEI 2024", 1),
+    "HIPEREXP": ("idx_hiperexposicion_digital", "Saturación de redes", "pts/100", "IVEI 2024", 1),
     "ivd_original": ("IVD_original_fase1", "IVD original (fase 1)", "pts/100", "IVD 2024", 1),
     "poblacion": ("poblacion_2022", "Población", "hab.", "Censo 2022 (INEC)", 0),
     "densidad": ("densidad_hab_km2", "Densidad poblacional", "hab/km²", "Censo 2022 (INEC)", 0),
@@ -94,10 +94,10 @@ INDICATORS = {
 }
 
 DIMENSIONS = [
-    ("EST", "Vulnerabilidad estructural", "#4a6fa5"),
-    ("EXP", "Exposición informativa", "#b3541e"),
-    ("RES", "Resiliencia informativa", "#2f7d52"),
-    ("PRE", "Presión coyuntural", "#7a4a9e"),
+    ("EST", "Carencias de base", "#4a6fa5"),
+    ("EXP", "Dependencia de redes", "#b3541e"),
+    ("RES", "Capacidad de contrastar", "#2f7d52"),
+    ("PRE", "Clima electoral", "#7a4a9e"),
 ]
 
 PLATFORM_COLS = {
@@ -123,33 +123,37 @@ MEDIA_TYPE_COLS = {
 # the label means methodologically, not a judgment of the province.
 PERFIL_DESCRIPCIONES = {
     "Alta exposición con capacidad de filtro": (
-        "Buena parte de la población está conectada y consume contenido digital, "
-        "pero también cuenta con escolaridad y percepción de riesgo informativo "
-        "por encima del promedio nacional, lo que amortigua esa exposición."
+        "Mucha gente está conectada y consume contenido en redes, pero también tiene más escolaridad "
+        "y más conciencia de que circula información falsa que el promedio del país. Eso amortigua el efecto."
     ),
     "Exclusión digital con carencia estructural": (
-        "El acceso a internet y a dispositivos está por debajo del promedio "
-        "nacional y coincide con indicadores socioeconómicos más débiles: la "
-        "vulnerabilidad aquí es sobre todo de acceso, no de exceso de exposición."
+        "Menos gente tiene internet o dispositivos que en el promedio del país, y además hay más pobreza y "
+        "menos escolaridad. Aquí el problema es sobre todo de acceso: la desinformación llega por rumor y "
+        "boca a boca, no por exceso de redes."
     ),
     "Perfil intermedio": (
-        "Ninguna de las cuatro dimensiones se aparta de forma marcada del "
-        "promedio nacional en ningún sentido."
+        "Ninguno de los cuatro factores se aparta de forma marcada del promedio del país."
     ),
     "Hiperexposición con baja resiliencia": (
-        "Alto consumo de plataformas de circulación rápida (Facebook, WhatsApp, "
-        "TikTok) combinado con menor capacidad de contraste (escolaridad, "
-        "percepción de riesgo, diversidad de fuentes) que el promedio nacional."
+        "Mucho uso de Facebook, WhatsApp y TikTok, donde el contenido circula rápido, combinado con menos "
+        "capacidad de contrastar la información (escolaridad, conciencia del riesgo, variedad de fuentes) que el promedio."
     ),
     "Carencia estructural y déficit de resiliencia": (
-        "Coinciden indicadores socioeconómicos débiles y baja capacidad de "
-        "contraste de la información: es el perfil con menos amortiguadores "
-        "frente a la desinformación."
+        "Coinciden más pobreza y menos escolaridad con poca capacidad de contrastar la información: "
+        "es el perfil con menos defensas frente a la desinformación."
     ),
     "Exposición alta sobre base estructural sólida": (
-        "Alta exposición al ecosistema digital, pero sobre indicadores "
-        "socioeconómicos y educativos por encima del promedio nacional."
+        "Mucho uso de redes, pero sobre una base social mejor que el promedio del país: menos pobreza y más escolaridad."
     ),
+}
+
+PERFIL_PLANO = {
+    "Alta exposición con capacidad de filtro": "Muy conectada y con capacidad de verificar",
+    "Exclusión digital con carencia estructural": "Poca conexión y muchas carencias",
+    "Perfil intermedio": "Perfil intermedio",
+    "Hiperexposición con baja resiliencia": "Saturada de redes y sin herramientas de contraste",
+    "Carencia estructural y déficit de resiliencia": "Muchas carencias y poca capacidad de contrastar",
+    "Exposición alta sobre base estructural sólida": "Muy conectada, con buena base social",
 }
 
 
@@ -227,17 +231,12 @@ def diagnostico(name: str) -> list[str]:
 
     out: list[str] = []
     dim_labels = {
-        "EST": "la vulnerabilidad estructural",
-        "EXP": "la exposición al ecosistema digital",
-        "RES": "el déficit de resiliencia informativa",
-        "PRE": "la presión coyuntural",
+        "EST": "las carencias de base (pobreza, ruralidad, poca escolaridad)",
+        "EXP": "la dependencia de redes",
+        "RES": "la poca capacidad de contrastar la información",
+        "PRE": "el clima electoral tenso",
     }
-    dim_labels2 = {
-        "EST": "de la vulnerabilidad estructural",
-        "EXP": "de la exposición al ecosistema digital",
-        "RES": "del déficit de resiliencia informativa",
-        "PRE": "de la presión coyuntural",
-    }
+    dim_labels2 = dim_labels
     dims = [
         ("EST", _dif(p, nac, "EST")),
         ("EXP", _dif(p, nac, "EXP")),
@@ -248,17 +247,17 @@ def diagnostico(name: str) -> list[str]:
     top = [d for d in dims if d[1] > 3]
 
     out.append(
-        f"{p['nombre']} ocupa el puesto {int(p['rank'])} de 24 en el índice integrado "
+        f"{p['nombre']} ocupa el puesto {int(p['rank'])} de 24 en nivel de vulnerabilidad (1 = la más vulnerable) "
         f"({p['IVEI']:.1f} sobre 100, vulnerabilidad {(p['nivel'] or '').lower()}), "
         f"frente a un promedio nacional de {nac['IVEI']:.1f}."
     )
     if top:
-        sentence = f"Lo que explica ese resultado es, en primer lugar, {dim_labels[top[0][0]]} ({p[top[0][0]]:.1f} sobre 100)"
+        sentence = f"Lo que más pesa en ese resultado es {dim_labels[top[0][0]]} ({p[top[0][0]]:.1f} sobre 100)"
         if len(top) > 1:
-            sentence += f", seguida {dim_labels2[top[1][0]]}"
+            sentence += f"; le sigue {dim_labels2[top[1][0]]}"
         out.append(sentence + ".")
     else:
-        out.append("Ninguna dimensión se aparta de forma marcada del promedio nacional.")
+        out.append("Ninguno de los cuatro factores se aparta de forma marcada del promedio del país.")
 
     ex = []
     if _dif(p, nac, "pobreza_ingresos") > 4:
@@ -278,7 +277,7 @@ def diagnostico(name: str) -> list[str]:
     if ex:
         out.append("En términos concretos, la provincia combina " + "; ".join(ex) + ".")
 
-    out.append(f"Perfil territorial: {p['perfil']}. {p['perfil_desc']}")
+    out.append(f"Tipo de provincia: {PERFIL_PLANO.get(p['perfil'], p['perfil'])}. {p['perfil_desc']}")
 
     brecha = (p.get("net_urbano") or 0) - (p.get("net_rural") or 0)
     if brecha > 12:
@@ -291,7 +290,7 @@ def diagnostico(name: str) -> list[str]:
     if p["n_lb"] == 0:
         out.append(
             "Advertencia: el Latinobarómetro 2024 no incluyó muestra en esta provincia, de modo que los "
-            "indicadores de confianza, dieta informativa y presión coyuntural corresponden al promedio "
+            "indicadores de confianza, dieta informativa y clima electoral corresponden al promedio "
             "nacional imputado y no describen a la provincia."
         )
     elif p["n_lb"] < 50:
@@ -385,10 +384,10 @@ def recomendaciones_periodismo(name: str) -> list[dict]:
         })
     if (p.get("PRE") or 0) > (nac.get("PRE") or 0) + 5:
         r.append({
-            "titulo": "Coyuntura sensible",
+            "titulo": "Clima electoral tenso",
             "texto": (
                 "Los indicadores de victimización, temor al delito y desconfianza electoral están sobre "
-                f"el promedio (presión coyuntural {p['PRE']:.1f} sobre 100). Los rumores sobre seguridad y "
+                f"el promedio (clima electoral: {p['PRE']:.1f} sobre 100). Los rumores sobre seguridad y "
                 "sobre integridad del voto tienen aquí terreno más fértil."
             ),
         })
@@ -448,7 +447,7 @@ def perfil_completo(name: str) -> dict | None:
                 "hiperexposicion": p.get("HIPEREXP"),
                 "nacional_exclusion": nac.get("EXCLUSION"),
                 "nacional_hiperexposicion": nac.get("HIPEREXP"),
-                "nota": "Son dos mecanismos independientes: una provincia puede puntuar alto en ambos, en uno o en ninguno.",
+                "nota": "Son dos formas distintas de llegar a la desinformación: quedar sin conexión o vivir saturado de redes. Una provincia puede tener una, las dos o ninguna.",
             },
         },
         "dieta_informativa": {
@@ -472,11 +471,11 @@ def perfil_completo(name: str) -> dict | None:
         "resiliencia": {
             "escolaridad": meta("escolaridad"),
             "componentes": [meta(k) for k in ["analf_digital", "conciencia", "conf_interp"]],
-            "nota": "La resiliencia se mide como dimensión propia, no como inverso de la vulnerabilidad.",
+            "nota": "La capacidad de contrastar se mide por sí sola; no es simplemente lo contrario de las carencias.",
         },
         "presion_coyuntural": {
             "componentes": [meta(k) for k in ["fraude", "victima", "temor", "narco", "corrupcion", "extremos"]],
-            "nota": "Latinobarómetro 2024. Es la dimensión con datos más frágiles a nivel provincial.",
+            "nota": "Latinobarómetro 2024. Son los datos más frágiles a nivel provincial: las muestras por provincia son pequeñas.",
         },
         "socioeconomico": [meta(k) for k in ["pobreza_ingresos", "pobreza_extrema", "nbi", "gini", "escolaridad", "analfabetismo", "desconfianza", "ivd_original"]],
         "diagnostico": diagnostico(name),

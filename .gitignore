@@ -34,3 +34,8 @@ dist/
 *.log
 backend_log.txt
 server.log
+
+# Estado en tiempo de ejecución de la marca blanca
+backend/app/data/tenants.json
+# Solicitudes de información: contienen nombre y correo de personas
+backend/app/data/solicitudes.json
