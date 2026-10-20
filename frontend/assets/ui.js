@@ -16,7 +16,7 @@ export function fmtInt(v) {
 
 // General margin of the index, as the methodology documents it. A per-province
 // interval replaces it as soon as the sensitivity table exists.
-export const MARGEN_GENERAL = "±5 a ±7 pts";
+export const MARGEN_GENERAL = "±5 a ±7 puntos";
 
 const svg = (body) => `<svg class="ic" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">${body}</svg>`;
 export const ICON = {
@@ -30,7 +30,8 @@ export const ICON = {
 
 /** dataSourceQuality: "alta" | "media" | "baja". Three pips + a word: never colour alone. */
 export function qualityBadge({ dataSourceQuality, detail = "" }) {
-  return `<span class="sol ${dataSourceQuality}" title="${esc(detail)}"><span class="pips" aria-hidden="true"><i></i><i></i><i></i></span>Solidez ${dataSourceQuality}</span>`;
+  const palabra = { alta: "sólida", media: "media", baja: "débil" }[dataSourceQuality] ?? dataSourceQuality;
+  return `<span class="sol ${dataSourceQuality}" title="${esc(detail)}"><span class="pips" aria-hidden="true"><i></i><i></i><i></i></span>Fuente ${palabra}</span>`;
 }
 
 export function importedTag({ compact = false } = {}) {
@@ -56,5 +57,5 @@ export function scoreRange({ confidenceRange = null } = {}) {
   if (confidenceRange && confidenceRange.low != null && confidenceRange.high != null) {
     return `<span class="rango" title="Banda de sensibilidad del puntaje">Rango: ${fmt(confidenceRange.low, 0)} – ${fmt(confidenceRange.high, 0)}</span>`;
   }
-  return `<span class="rango" title="Margen general del índice según la metodología. El rango por provincia está en preparación.">Margen orientativo ${MARGEN_GENERAL}</span>`;
+  return `<span class="rango" title="Margen general del índice según la metodología. El rango por provincia está en preparación.">Puede variar ${MARGEN_GENERAL}</span>`;
 }

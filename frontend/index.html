@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>
+<div id="progress" aria-hidden="true"></div>
 <a class="skip" href="#main">Saltar al contenido</a>
 <header><div class="wrap">
 <div class="brand-row">
@@ -23,13 +24,11 @@
  <button role="tab" class="on" data-v="perfil">Preparar mi nota</button>
  <button role="tab" data-v="mapas">Mapa del país</button>
  <button role="tab" data-v="comparar">Comparar</button>
- <button role="tab" data-v="meto">Cómo se calcula</button>
- <button type="button" id="btnMas" aria-haspopup="true" aria-expanded="false" aria-controls="menuMas">Más</button>
- <div id="menuMas" class="more-menu" hidden>
-  <button role="tab" data-v="datos">Tabla de datos</button>
-  <button role="tab" data-v="fuentes">Fuentes</button>
-  <button role="tab" data-v="asistente">Conversación pública</button>
- </div>
+ <span class="nav-sep" aria-hidden="true"></span>
+ <button role="tab" class="t2" data-v="meto">Cómo se calcula</button>
+ <button role="tab" class="t2" data-v="datos">Tabla de datos</button>
+ <button role="tab" class="t2" data-v="fuentes">Fuentes</button>
+ <button role="tab" class="t2" data-v="asistente">Conversación pública</button>
 </nav>
 </div></header>
 <p class="cut"><span class="wrap">Datos con corte a la última publicación de cada fuente · sujetos a actualización continua. <span id="brandSub"></span></span></p>
@@ -61,7 +60,7 @@
    <div class="legend" id="lgWrap"><span id="lgA">menor</span><span class="bar" id="lgBar"></span>
     <span id="lgB">mayor</span></div>
    <ul class="lgcat" id="lgCat" hidden></ul>
-   <details class="howto noprint"><summary>Cómo leer este mapa</summary>
+   <div class="howto noprint"><h3 class="howto-h">Cómo leer este mapa</h3>
     <ul>
      <li>Cada provincia se pinta según el factor elegido arriba. Un azul más oscuro significa condiciones más favorables para que la desinformación prospere; uno claro, menos.</li>
      <li>Los colores comparan provincias entre sí: muestran quién está mejor o peor que las demás, no un nivel absoluto.</li>
@@ -69,7 +68,7 @@
      <li>Un nivel alto describe al territorio, no a las personas ni a los medios de ahí.</li>
     </ul>
     <p style="margin:6px 0 0"><button type="button" class="linkbtn" id="btnGlosario">¿Qué significa cada término?</button></p>
-   </details>
+   </div>
    <p class="lgimp" id="lgImp"><span class="impsw" aria-hidden="true"></span>Borde punteado: la provincia no tiene muestra propia del Latinobarómetro y usa el valor nacional.</p>
    <p class="hint noprint">Toca una provincia para ver su resumen.</p>
   </div>
@@ -81,25 +80,34 @@
    </div>
   </div>
  </div>
- <details class="card sec" id="cardScatter" style="margin-top:16px"><summary><h2>Para análisis: dos formas de llegar a la desinformación</h2><span class="sub-s">Gráfico de dispersión</span></summary><div class="sec-body">
+ <section class="card" id="cardScatter" style="margin-top:16px"><h2>Dos formas de llegar a la desinformación</h2>
   <p class="note" style="margin:2px 0 12px">Una provincia puede quedar sin conexión, vivir saturada de redes, las dos cosas o ninguna. Cada punto es una provincia: mientras más a la derecha, más gente sin conexión; mientras más arriba, más saturación de redes. Las dos medidas casi no se parecen (correlación de −0,32), así que no se pueden leer como una sola.</p>
   <div style="overflow-x:auto"><svg id="scatter" viewBox="0 0 700 420"></svg></div>
- </div></details>
+ </section>
 </section>
 
 <!-- ============ PERFIL ============ -->
 <section class="view on" id="v-perfil">
- <section class="modulos noprint" id="modulos" aria-labelledby="modTitulo">
-  <h2 id="modTitulo">¿Qué necesitas hoy?</h2>
-  <div class="mod-row" role="group" aria-label="Elige una tarea">
-   <button type="button" class="mod-h" data-mod="prov" aria-expanded="true" aria-controls="modPanel"><b>Cubro una provincia</b><span>Elige y copia tu párrafo.</span></button>
-   <button type="button" class="mod-h" data-mod="cmp" aria-expanded="false" aria-controls="modPanel"><b>Comparo dos territorios</b><span>A frente a B.</span></button>
-   <button type="button" class="mod-h" data-mod="crit" aria-expanded="false" aria-controls="modPanel"><b>¿Para qué sirve este dato?</b><span>Criterio editorial.</span></button>
-  </div>
-  <div class="mod-panel" id="modPanel"></div>
- </section>
- <section id="sinoGlobal" aria-live="polite"></section>
- <div id="perfil" aria-live="polite"></div>
+ <div class="notes-layout">
+  <aside class="prov-aside noprint" aria-label="Elegir provincia">
+   <div class="aside-map">
+   <p class="aside-h">Toca tu provincia en el mapa</p>
+   <div class="map-canvas sel-map">
+    <svg id="map-sel" viewBox="0 0 560 640" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Mapa de Ecuador"></svg>
+    <div class="inset-gal inset-sel"><span class="inset-gal-label">GALÁPAGOS</span><svg id="map-sel-gal" viewBox="0 0 110 110"></svg></div>
+   </div>
+   <p class="pais" style="margin:6px 2px 12px">Más oscuro = más vulnerable.</p>
+   </div>
+   <div class="aside-find">
+   <label class="aside-h" for="provFiltro">O búscala por nombre</label>
+   <input id="provFiltro" class="mod-input" type="text" placeholder="Pichincha, Guayas…" autocomplete="off" spellcheck="false">
+   <div id="provRecientes" class="recent"></div>
+   <div id="provLista" class="prov-list" role="list"></div>
+   <button type="button" class="pl-item pl-home" id="btnInicio"><span class="pl-n">← Volver al inicio</span></button>
+   </div>
+  </aside>
+  <div class="notes-main"><div id="perfil" aria-live="polite"></div></div>
+ </div>
 </section>
 
 <!-- ============ COMPARAR ============ -->

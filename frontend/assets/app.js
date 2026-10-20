@@ -155,6 +155,7 @@ const viewEnabled = (v) => v in VIEW_FLAG && flag(VIEW_FLAG[v]);
 
 function showView(v) {
   if (!viewEnabled(v)) v = "perfil";
+  if (v !== currentView) pulsoBarra();
   currentView = v;
   document.querySelectorAll("nav button").forEach((b) => {
     const on = b.dataset.v === v;
@@ -163,7 +164,6 @@ function showView(v) {
     b.tabIndex = on ? 0 : -1;
   });
   document.querySelectorAll(".view").forEach((el) => el.classList.toggle("on", el.id === "v-" + v));
-  $("btnMas")?.classList.toggle("on", !!document.querySelector("#menuMas button.on"));
 }
 
 function pathFor(v) {
@@ -196,6 +196,7 @@ function applyRoute() {
     const p = PROVINCIAS.find((x) => provinceKey(x) === provinceKey(a));
     if (p && p !== perfilActual) loadPerfil(p);
   }
+  if (currentView === "perfil" && !a && PROVINCIAS.length && (perfilActual || !$("perfil").innerHTML.trim())) renderInicio();
   if (currentView === "comparar" && a && b && PROVINCIAS.length) {
     const pa = PROVINCIAS.find((x) => provinceKey(x) === provinceKey(a));
     const pb = PROVINCIAS.find((x) => provinceKey(x) === provinceKey(b));
@@ -209,35 +210,8 @@ function applyRoute() {
 addEventListener("popstate", applyRoute);
 
 const tabs = () => [...document.querySelectorAll("nav > button:not([hidden])")];
-function cerrarMas() {
-  $("menuMas").hidden = true;
-  $("btnMas").setAttribute("aria-expanded", "false");
-}
-function abrirMas() {
-  const btn = $("btnMas");
-  const menu = $("menuMas");
-  menu.hidden = false;
-  const r = btn.getBoundingClientRect();
-  menu.style.top = `${r.bottom + 4}px`;
-  menu.style.left = `${Math.max(8, Math.min(r.left, innerWidth - menu.offsetWidth - 8))}px`;
-  btn.setAttribute("aria-expanded", "true");
-  menu.querySelector("button:not([hidden])")?.focus();
-}
 document.querySelectorAll("nav button[data-v]").forEach((b) => {
-  b.addEventListener("click", () => {
-    cerrarMas();
-    navigate(pathFor(b.dataset.v));
-  });
-});
-$("btnMas").addEventListener("click", () => ($("menuMas").hidden ? abrirMas() : cerrarMas()));
-document.addEventListener("click", (e) => {
-  if (!e.target.closest("#menuMas, #btnMas")) cerrarMas();
-});
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && !$("menuMas").hidden) {
-    cerrarMas();
-    $("btnMas").focus();
-  }
+  b.addEventListener("click", () => navigate(pathFor(b.dataset.v)));
 });
 document.querySelectorAll("nav > button").forEach((b) => {
   b.addEventListener("keydown", (e) => {
@@ -248,6 +222,35 @@ document.querySelectorAll("nav > button").forEach((b) => {
     e.preventDefault();
   });
 });
+
+// Thin bar on top: moves while any request is in flight, and gives a short
+// pulse when you switch views, so the page never looks frozen.
+let enVuelo = 0;
+let barTimer;
+function barraOn() {
+  const b = $("progress");
+  clearTimeout(barTimer);
+  b.classList.remove("done");
+  b.classList.add("on");
+}
+function barraOff() {
+  const b = $("progress");
+  b.classList.add("done");
+  barTimer = setTimeout(() => b.classList.remove("on", "done"), 450);
+}
+addEventListener("ovade:busy", () => {
+  enVuelo++;
+  barraOn();
+});
+addEventListener("ovade:idle", () => {
+  enVuelo = Math.max(0, enVuelo - 1);
+  if (!enVuelo) barraOff();
+});
+function pulsoBarra() {
+  if (enVuelo) return;
+  barraOn();
+  setTimeout(() => !enVuelo && barraOff(), 220);
+}
 
 // Small, non-blocking feedback instead of alert(): says what happened and
 // disappears on its own.
@@ -343,7 +346,7 @@ function renderCapas() {
   const MAIN = ["IVEI", "EST", "EXP", "RES", "PRE"];
   const EXTRA = ["EXCLUSION", "HIPEREXP", "HABDIG", "PERFIL"];
   const byCode = Object.fromEntries(capasAll().filter(capaEnabled).map((c) => [c.codigo, c]));
-  const expandido = masCapas || EXTRA.includes(capa);
+  const expandido = true;
   const chip = (code) => {
     const c = byCode[code];
     if (!c) return "";
@@ -355,14 +358,10 @@ function renderCapas() {
   };
   box.innerHTML =
     MAIN.map(chip).join("") +
-    `<button type="button" class="linkbtn fmore" id="btnMasCapas" aria-expanded="${expandido}">${expandido ? "Menos capas" : "Más capas"}</button>` +
-    (expandido ? `<span class="chip-sep" aria-hidden="true"></span>${EXTRA.map(chip).join("")}` : "");
+    `<span class="chip-sep" aria-hidden="true"></span>` +
+    EXTRA.map(chip).join("");
   box.querySelectorAll("[data-capa]").forEach((b) => (b.onclick = () => navigate(`mapas/${b.dataset.capa}`, { replace: true })));
   box.querySelectorAll("[data-ficha]").forEach((b) => (b.onclick = () => openFicha(b.dataset.ficha)));
-  $("btnMasCapas").onclick = () => {
-    masCapas = !expandido;
-    renderCapas();
-  };
 }
 
 function valueFor(key) {
@@ -754,8 +753,8 @@ const PERFIL_SECCIONES = [
 ];
 
 // Collapsible detail block: the essentials stay short, the evidence is one click away.
-const detalle = (id, titulo, sub, cuerpo, open = false) =>
-  `<details class="card sec" id="sec-${id}"${open ? " open" : ""}><summary><h2>${titulo}</h2><span class="sub-s">${sub}</span></summary><div class="sec-body">${cuerpo}</div></details>`;
+const detalle = (id, titulo, sub, cuerpo) =>
+  `<section class="card sec-open" id="sec-${id}"><div class="sec-h"><h2>${titulo}</h2><span class="sub-s">${sub}</span></div>${cuerpo}</section>`;
 
 function factorRow(d, provincia) {
   const f = FACTORES[d.codigo] ?? {};
@@ -896,45 +895,67 @@ function renderPerfil(data) {
   if (conf) cuidado.push(`<span class="conf ${conf.cls}">${esc(conf.label)}</span>`);
   if (isImputed) cuidado.push("<span>Su opinión es el promedio del país.</span>");
   if (isBorderlineCase) cuidado.push("<span>Su perfil puede cambiar con ajustes menores.</span>");
+  const chips = [
+    ["esencial", "Resumen"],
+    ...(showGuide ? [["angulos", "Datos para tu nota"], ["ideas", "Ideas"], ["decidir", "Qué afirmar"]] : []),
+    ["factores", "Qué lo explica"],
+    ["diagnostico", "Por qué"],
+    ["digital", "Perfil digital"],
+    ["dieta", "Dieta informativa"],
+    ["resiliencia", "Contraste y clima"],
+    ["contexto", "Contexto"],
+  ];
 
   target.innerHTML = `
   <div class="kit-head">
    <h2 class="prov-title">${esc(data.provincia)}</h2>
    ${provinceFlags({ isImputed, isBorderlineCase, compact: true })}
   </div>
+  <div class="idx noprint" role="navigation" aria-label="Ir a una sección">${chips.map(([id, l]) => `<button type="button" data-sec="${id}">${l}</button>`).join("")}</div>
 
-  <section class="card kit-main" id="sec-esencial">
-   <div class="km-top">
-    <div class="km-num">
-     <span class="big">${fmt(data.ivei.indice)}</span>
-     <span class="pill" style="background:${nivelColor};color:${inkFor(nivelColor)}">${esc(data.ivei.nivel)}</span>
-     ${scoreRange({ confidenceRange: data.ivei.rango ?? null })}
+  <div class="kit-grid">
+   <section class="card kit-main" id="sec-esencial">
+    <div class="km-top">
+     <div class="km-num">
+      <span class="big">${fmt(data.ivei.indice)}</span>
+      <span class="pill" style="background:${nivelColor};color:${inkFor(nivelColor)}">${esc(data.ivei.nivel)}</span>
+      ${scoreRange({ confidenceRange: data.ivei.rango ?? null })}
+     </div>
+     <div class="km-txt">
+      <p class="ess-lead"><b>Puesto ${data.ivei.puesto} de 24</b> <span class="pais">1 = la más vulnerable · país ${fmt(data.ivei.nacional)}</span></p>
+      <p class="ess-tipo"><span class="pdot" style="background:${perfilColor(data.perfil_territorial.tipo)}"></span><b>${esc(perfilPlano(data.perfil_territorial.tipo))}</b></p>
+      <p class="note" style="margin:0">${esc(data.perfil_territorial.descripcion)}</p>
+     </div>
     </div>
-    <div class="km-txt">
-     <p class="ess-lead"><b>Puesto ${data.ivei.puesto} de 24</b> <span class="pais">1 = la más vulnerable · país ${fmt(data.ivei.nacional)}</span></p>
-     <p class="ess-tipo"><span class="pdot" style="background:${perfilColor(data.perfil_territorial.tipo)}"></span><b>${esc(perfilPlano(data.perfil_territorial.tipo))}</b></p>
-    </div>
-   </div>
+    ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
+    ${
+      flag("cita_lista")
+        ? `<div class="copiar">
+       <p class="frase" id="fraseTexto">${esc(frase)}</p>
+       <div class="cita-act"><button class="btn" id="btnFrase" type="button">Copiar frase</button><button class="btn gh" id="btnCita" type="button">Copiar párrafo completo</button></div>
+       <blockquote id="citaTexto">${esc(cita)}</blockquote>
+      </div>`
+        : ""
+    }
+    <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
+   </section>
+
    ${
-     flag("cita_lista")
-       ? `<div class="copiar">
-      <p class="frase" id="fraseTexto">${esc(frase)}</p>
-      <div class="cita-act"><button class="btn" id="btnFrase" type="button">Copiar frase</button><button class="btn gh" id="btnCita" type="button">Copiar párrafo completo</button></div>
-      <details class="ver"><summary>Ver el párrafo completo</summary><blockquote id="citaTexto">${esc(cita)}</blockquote></details>
-     </div>`
+     showGuide
+       ? `<section class="card" id="sec-angulos">
+    <div class="sec-h"><h2>Datos para tu nota</h2><button type="button" class="copybtn noprint" id="btnTodo">Copiar todo</button></div>
+    <ul class="angulos">${angulos.map((a) => `<li><div>${a.html}</div><button type="button" class="copybtn noprint" data-copy="${esc(a.copia)}">Copiar</button></li>`).join("")}</ul>
+   </section>`
        : ""
    }
-   <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
-  </section>
+  </div>
 
   ${
     showGuide
-      ? `<section class="card" id="sec-angulos" style="margin-top:16px">
-   <div class="sec-h"><h2>Para citar</h2><button type="button" class="copybtn noprint" id="btnTodo">Copiar todo</button></div>
-   <ul class="angulos">${angulos.map((a) => `<li><div>${a.html}</div><button type="button" class="copybtn noprint" data-copy="${esc(a.copia)}">Copiar</button></li>`).join("")}</ul>
-   <details class="ver"><summary>Ideas para cubrirla</summary>${data.recomendaciones_periodismo.map((r) => `<div class="rec"><b>${esc(r.titulo)}</b><p>${esc(r.texto)}</p></div>`).join("")}</details>
-   <details class="ver" id="sec-decidir"><summary>Qué puedes y qué no afirmar</summary>${decisionBlock({ extraSi: [`Para ${data.provincia}: ${canalSugerido(rec)}`], extraNo })}</details>
-  </section>`
+      ? `<div class="grid g2" style="margin-top:16px">
+   <section class="card" id="sec-ideas"><h2>Ideas para cubrirla</h2>${data.recomendaciones_periodismo.map((r) => `<div class="rec"><b>${esc(r.titulo)}</b><p>${esc(r.texto)}</p></div>`).join("")}</section>
+   <section class="card" id="sec-decidir"><h2>Qué puedes y qué no afirmar</h2>${decisionBlock({ extraSi: [`Para ${data.provincia}: ${canalSugerido(rec)}`], extraNo })}</section>
+  </div>`
       : ""
   }
 
@@ -947,32 +968,29 @@ function renderPerfil(data) {
    ${flag("solicitar_informacion") ? `<button class="btn gh" type="button" data-solicitar>Pedir más información</button>` : ""}
   </div>
 
-  <details class="card sec" id="sec-todo" style="margin-top:16px">
-   <summary><h2>Todos los datos de ${esc(data.provincia)}</h2><span class="sub-s">Factores, diagnóstico, perfil digital</span></summary>
-   <div class="sec-body">
-    <p class="note" style="margin:0 0 14px">${esc(data.perfil_territorial.descripcion)}</p>
-    <div id="sec-resumen" style="margin-bottom:16px">
-     <h3>Los cuatro factores</h3>
-     <div class="frows">${data.dimensiones.map((d) => factorRow(d, data.provincia)).join("")}</div>
-    </div>
-    ${detalle("diagnostico", "Por qué tiene este nivel", "Lo que dicen los datos", diagnostico, true)}
-    ${detalle("digital", "Perfil digital", "Acceso, uso y capacidades", digital)}
-    ${detalle("dieta", `Dieta informativa`, "Qué plataformas usa la gente conectada", dieta)}
-    ${detalle("resiliencia", "Capacidad de contrastar y clima electoral", "Educación, fuentes y ambiente", resiliencia)}
-    ${detalle("contexto", "Contexto social", "Edad, etnia, pobreza y educación", contexto)}
-   </div>
-  </details>`;
+  <h2 class="todo-h">Todos los datos de ${esc(data.provincia)}</h2>
+  <section class="card sec-open" id="sec-factores" style="margin-bottom:16px">
+   <div class="sec-h"><h2>Qué explica este nivel</h2><span class="sub-s">Cuatro factores, de 0 a 100. La marca vertical es el promedio del país.</span></div>
+   <div class="frows">${data.dimensiones.map((d) => factorRow(d, data.provincia)).join("")}</div>
+  </section>
+  ${detalle("diagnostico", "Por qué tiene este nivel", "Lo que dicen los datos", diagnostico)}
+  ${detalle("digital", "Perfil digital", "Acceso, uso y capacidades", digital)}
+  ${detalle("dieta", "Dieta informativa", "Qué plataformas usa la gente conectada", dieta)}
+  ${detalle("resiliencia", "Capacidad de contrastar y clima electoral", "Educación, fuentes y ambiente", resiliencia)}
+  ${detalle("contexto", "Contexto social", "Edad, etnia, pobreza y educación", contexto)}`;
 
+  target.querySelectorAll(".idx [data-sec]").forEach((b) => {
+    b.onclick = () => $("sec-" + b.dataset.sec)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  });
   target.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = () => copiarBtn(b, b.dataset.copy)));
   if ($("btnFrase")) $("btnFrase").onclick = (e) => copiarBtn(e.currentTarget, frase);
   if ($("btnCita")) $("btnCita").onclick = (e) => copiarBtn(e.currentTarget, cita);
   if ($("btnTodo")) $("btnTodo").onclick = (e) => copiarBtn(e.currentTarget, angulos.map((a) => `• ${a.copia}`).join("\n"));
   if ($("btnEnlace")) $("btnEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);
-  if ($("btnSolidez"))
-    $("btnSolidez").onclick = () => {
-      navigate("meto");
-      requestAnimationFrame(() => $("solidez")?.scrollIntoView());
-    };
+  $("btnSolidez").onclick = () => {
+    navigate("meto");
+    requestAnimationFrame(() => $("solidez")?.scrollIntoView());
+  };
   if ($("btnFicha")) $("btnFicha").onclick = () => downloadFicha(data.provincia);
   if ($("essComparar"))
     $("essComparar").onchange = (e) => {
@@ -1005,17 +1023,16 @@ function stackChart(etnias) {
 async function loadPerfil(provincia) {
   perfilActual = provincia;
   const box = document.getElementById("perfil");
-  $("modulos").classList.add("compact");
-  setMod(null);
-  $("sinoGlobal").hidden = true;
-  box.innerHTML = `<div class="asis-loading"><span class="tend-spinner"></span> Armando tu nota sobre ${esc(provincia)}…</div>`;
+  renderProvLista();
+  box.innerHTML = skeletonKit(provincia);
   try {
     const data = await getJSON(`/api/segmentadores/perfil/${encodeURIComponent(provincia)}`);
     if (provincia !== perfilActual) return;
     recordarReciente(provincia);
     renderPerfil(data);
+    renderProvLista();
     const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    requestAnimationFrame(() => box.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" }));
+    if (innerWidth < 900) requestAnimationFrame(() => box.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" }));
   } catch (e) {
     errorBox(box, `No se pudo cargar la nota de ${provincia}.`, () => loadPerfil(provincia));
   }
@@ -1319,7 +1336,7 @@ async function renderCmp() {
    <div class="cita-act" style="margin-top:12px"><button class="btn" id="btnCmpCopia" type="button">Copiar comparación</button><button class="btn gh" id="btnCmpEnlace" type="button">Copiar enlace</button></div>
   </section>
   <section class="card" style="margin-top:16px"><h3>Diferencia por factor</h3>${deltaTableHTML(data)}</section>
-  <details class="card sec" style="margin-top:16px"><summary><h2>Las dos provincias lado a lado</h2></summary><div class="sec-body"><div class="grid g2">
+  <section class="card" style="margin-top:16px"><h2>Las dos provincias lado a lado</h2><div class="grid g2" style="margin-top:10px">
    ${[data.a, data.b]
      .map(
        (p) => `<div><h3>${esc(p.provincia)}</h3>
@@ -1329,11 +1346,11 @@ async function renderCmp() {
     <p class="note"><span class="pdot" style="background:${perfilColor(p.perfil)}"></span><b>${esc(perfilPlano(p.perfil))}.</b></p></div>`
      )
      .join("")}
-  </div></div></details>
-  <details class="card sec" style="margin-top:12px"><summary><h2>Todos los indicadores</h2><span class="sub-s">Indicador por indicador, con fuente</span></summary><div class="sec-body"><div style="overflow:auto;max-height:600px">
+  </div></section>
+  <section class="card" style="margin-top:16px"><h2>Todos los indicadores</h2><p class="note" style="margin:2px 0 10px">Indicador por indicador, con fuente.</p><div style="overflow:auto;max-height:600px">
   <table><thead><tr><th>Indicador</th><th class="num">${esc(data.a.provincia)}</th>
   <th class="num">${esc(data.b.provincia)}</th><th class="num">Dif.</th><th class="num">País</th>
-  <th>Unidad</th></tr></thead><tbody>${rows}</tbody></table></div></div></details>`;
+  <th>Unidad</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
   $("btnCmpCopia").onclick = (e) => copiarBtn(e.currentTarget, copia);
   $("btnCmpEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);
 }
@@ -1542,12 +1559,12 @@ const GLOSARIO = [
   ["Puesto", "", "Lugar entre las 24 provincias. El puesto 1 es la más vulnerable."],
   ["Promedio del país", "valor nacional", "Referencia para saber si una cifra está por encima o por debajo de lo habitual."],
   ["Valor imputado", "", "Cuando una provincia no tiene encuestados, se usa el promedio del país en su lugar. En el mapa se marca con borde punteado."],
-  ["Solidez", "", "Qué tan firme es una cifra según cómo se midió: conteo completo (alta), encuesta con muestra suficiente (media) o muestra débil (baja)."],
+  ["Fuente sólida, media o débil", "solidez", "Qué tan firme es una cifra según cómo se midió: conteo completo (sólida), encuesta con muestra suficiente (media) o muestra débil (débil)."],
 ];
 
 function renderMetodoExtra() {
   const r = solidezResumen();
-  const nivel = (n, t) => `<span class="sol ${n}"><span class="pips" aria-hidden="true"><i></i><i></i><i></i></span>Solidez ${n}</span> ${t}`;
+  const nivel = (n, t) => `<span class="sol ${n}"><span class="pips" aria-hidden="true"><i></i><i></i><i></i></span>Fuente ${{ alta: "sólida", media: "media", baja: "débil" }[n]}</span> ${t}`;
   $("metoExtra").innerHTML = `
   <nav class="jump noprint" aria-label="Ir a una sección">
    <button type="button" data-j="decisiones">Qué puedo afirmar</button>
@@ -1722,39 +1739,9 @@ function selectProvince(name) {
 }
 
 // ---------------------------------------------------------------------
-// Home: "¿Qué necesitas hoy?" - three tasks, each a collapsible module
+// Home: the province list is always in view (left); the note kit, or the
+// start pane when nothing is chosen, fills the right. Nothing is folded away.
 // ---------------------------------------------------------------------
-let modActivo = null;
-const MODS = {
-  prov: { html: modProvHTML, bind: modProvBind },
-  cmp: { html: modCmpHTML, bind: modCmpBind },
-  crit: { html: modCritHTML, bind: modCritBind },
-};
-
-function setMod(name) {
-  modActivo = name;
-  document.querySelectorAll(".mod-h").forEach((b) => {
-    const on = b.dataset.mod === name;
-    b.setAttribute("aria-expanded", String(on));
-    b.classList.toggle("on", on);
-  });
-  const panel = $("modPanel");
-  panel.hidden = !name;
-  if (!name) {
-    panel.innerHTML = "";
-    return;
-  }
-  panel.innerHTML = MODS[name].html();
-  MODS[name].bind();
-}
-
-function initModulos() {
-  document.querySelectorAll(".mod-h").forEach((b) => {
-    b.onclick = () => setMod(modActivo === b.dataset.mod ? null : b.dataset.mod);
-  });
-  setMod("prov");
-}
-
 // Recently covered provinces: a journalist usually returns to the same few.
 const RECIENTES_KEY = "ovade_recientes";
 function recientes() {
@@ -1770,52 +1757,110 @@ function recordarReciente(p) {
   } catch (_) {}
 }
 
-let provOrden = "az";
-function provBtn(p) {
+function provItem(p) {
   const r = byKey()[provinceKey(p)] ?? {};
-  return `<button type="button" role="listitem" class="prov-btn${p === perfilActual ? " on" : ""}" data-p="${esc(p)}"><span class="dot" style="background:${col("IVEI", r.IVEI)}"></span>${esc(p)}</button>`;
+  const marks = (r.n_lb === 0 ? `<span class="pl-ic is-warn" title="Valor imputado">${ICON.warn}</span>` : "") + (esLimite(p) ? `<span class="pl-ic is-pin" title="Caso limítrofe">${ICON.pin}</span>` : "");
+  return `<button type="button" role="listitem" class="pl-item${p === perfilActual ? " on" : ""}" data-p="${esc(p)}"><span class="dot" style="background:${col("IVEI", r.IVEI)}"></span><span class="pl-n">${esc(p)}</span>${marks}<span class="pl-r" title="Puesto entre 24 (1 = la más vulnerable)">${Math.round(r.rank)}</span></button>`;
 }
-function provGridHTML() {
-  const list = [...PROVINCIAS].sort(provOrden === "az" ? (a, b) => a.localeCompare(b, "es") : (a, b) => (byKey()[provinceKey(a)]?.rank ?? 99) - (byKey()[provinceKey(b)]?.rank ?? 99));
-  return list.map(provBtn).join("");
-}
-function modProvHTML() {
+function renderProvLista() {
+  paintSel();
+  const q = provinceKey($("provFiltro").value.trim());
   const rec = recientes();
-  return `<label class="sr" for="modProvInput">Provincia</label>
-   <input id="modProvInput" class="mod-input" type="text" placeholder="Escribe una provincia: Pichincha, Guayas…" autocomplete="off" spellcheck="false">
-   ${rec.length ? `<div class="recent"><span>Recientes</span>${rec.map(provBtn).join("")}</div>` : ""}
-   <div class="grid-head"><span class="pais"><span class="dot" style="background:${rampColor(0.1)}"></span>menos <span class="dot" style="background:${rampColor(0.95)}"></span>más vulnerable</span>
-    <div class="seg" role="group" aria-label="Orden"><button type="button" data-ord="az" aria-pressed="${provOrden === "az"}">A–Z</button><button type="button" data-ord="rank" aria-pressed="${provOrden === "rank"}">Más vulnerables primero</button></div></div>
-   <div class="prov-grid" id="modProvGrid" role="list">${provGridHTML()}</div>`;
+  $("provRecientes").innerHTML = rec.length && !q ? `<span class="pl-h">Recientes</span>${rec.map(provItem).join("")}<span class="pl-h">Todas</span>` : "";
+  const list = [...PROVINCIAS].sort((a, b) => a.localeCompare(b, "es")).filter((p) => !q || provinceKey(p).includes(q));
+  $("provLista").innerHTML = list.length ? list.map(provItem).join("") : `<p class="note">No encontré esa provincia. Prueba con menos letras.</p>`;
 }
-function modProvBind() {
-  const input = $("modProvInput");
-  const grid = $("modProvGrid");
-  const filter = () => {
-    const q = provinceKey(input.value.trim());
-    grid.querySelectorAll(".prov-btn").forEach((b) => (b.hidden = !!q && !provinceKey(b.dataset.p).includes(q)));
+function initProvLista() {
+  drawSelMap($("map-sel"), PATHS.mainland);
+  drawSelMap($("map-sel-gal"), PATHS.galapagos);
+  const filtro = $("provFiltro");
+  filtro.oninput = renderProvLista;
+  filtro.onkeydown = (e) => {
+    if (e.key !== "Enter") return;
+    const first = $("provLista").querySelector(".pl-item");
+    if (first) goToPerfil(first.dataset.p);
   };
-  const go = (e) => {
-    const b = e.target.closest(".prov-btn");
+  const pick = (e) => {
+    const b = e.target.closest(".pl-item");
     if (b) goToPerfil(b.dataset.p);
   };
-  grid.onclick = go;
-  document.querySelector(".recent")?.addEventListener("click", go);
-  input.oninput = filter;
-  input.onkeydown = (e) => {
-    if (e.key !== "Enter") return;
-    const first = [...grid.querySelectorAll(".prov-btn")].find((b) => !b.hidden);
-    if (first) goToPerfil(first.dataset.p);
-    else toast("No encontré esa provincia. Prueba con menos letras.");
+  $("provLista").onclick = pick;
+  $("provRecientes").onclick = pick;
+  $("btnInicio").onclick = () => {
+    history.pushState(null, "", location.pathname + location.search + "#perfil");
+    applyRoute();
   };
-  document.querySelectorAll("[data-ord]").forEach((b) => {
-    b.onclick = () => {
-      provOrden = b.dataset.ord;
-      document.querySelectorAll("[data-ord]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-      grid.innerHTML = provGridHTML();
-      filter();
-    };
-  });
+  renderProvLista();
+}
+
+// Nothing chosen yet: the two other tasks, open, plus what the index can and cannot back.
+function renderInicio() {
+  perfilActual = null;
+  PERFIL_DATA = null;
+  const tareas = flag("inicio_guiado");
+  $("perfil").innerHTML = `
+  <section class="card inicio-main"><h2>¿Sobre qué provincia escribes?</h2>
+   <p class="inicio-lead">Este observatorio mide qué tan fértil es cada provincia para que la desinformación electoral llegue y prospere. <b>Toca tu provincia en el mapa</b> y te llevas una frase lista para tu nota, datos para citar y qué puedes afirmar.</p></section>
+  ${
+    tareas
+      ? `<div class="grid g2" style="margin-top:16px">
+   <section class="card"><h2>Comparo dos territorios</h2><div style="margin-top:10px">${modCmpHTML()}</div></section>
+   <section class="card"><h2>¿Para qué sirve este dato?</h2><div style="margin-top:10px">${metodoTabla(["Decisión", "El índice puede apoyarla", "El índice no puede apoyarla"], DECISIONES)}</div></section>
+  </div>
+  <section class="card" style="margin-top:16px"><h2>Qué puedes afirmar y qué no</h2><div style="margin-top:10px">${decisionBlock()}</div></section>`
+      : ""
+  }`;
+  if (tareas) modCmpBind();
+  renderProvLista();
+}
+
+// A bare "46,4 de 100" means nothing; a bar shows where the province sits among all 24.
+function escalaHTML(valor, nacional, provincia) {
+  const { lo, hi } = indicatorRange("IVEI");
+  const pos = (v) => Math.max(0, Math.min(100, ((v - lo) / (hi - lo || 1)) * 100));
+  const grad = `linear-gradient(90deg,${RAMP.map(([r, g, b]) => `rgb(${r},${g},${b})`).join(",")})`;
+  return `<div class="escala" role="img" aria-label="${esc(provincia)}: ${fmt(valor)}. Promedio del país: ${fmt(nacional)}. Va de ${fmt(lo)} a ${fmt(hi)}">
+   <div class="esc-bar" style="background:${grad}"><span class="esc-pais" style="left:${pos(nacional)}%"></span><span class="esc-mark" style="left:${pos(valor)}%"></span></div>
+   <div class="esc-lab"><span>${fmt(lo)} · la menos vulnerable</span><span>la más vulnerable · ${fmt(hi)}</span></div>
+   <p class="esc-key"><span class="mk"></span>${esc(provincia)} ${fmt(valor)} <span class="mk pais"></span>promedio del país ${fmt(nacional)}</p>
+  </div>`;
+}
+
+// Map used to choose a province: tap the territory, as you would on a paper map.
+function drawSelMap(svgEl, pathsMap) {
+  svgEl.innerHTML = "";
+  for (const [key, d] of Object.entries(pathsMap)) {
+    const p = byKey()[key];
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", d);
+    path.setAttribute("class", "pvs");
+    path.dataset.k = key;
+    path.setAttribute("role", "button");
+    path.setAttribute("tabindex", "0");
+    path.setAttribute("aria-label", p ? `${p.provincia}: abrir la nota` : key);
+    path.setAttribute("fill", col("IVEI", p?.IVEI));
+    path.addEventListener("mouseenter", (e) => p && tipShow(e.clientX, e.clientY, `<b>${esc(p.provincia)}</b><br>Vulnerabilidad ${esc((p.nivel || "").toLowerCase())} · puesto ${Math.round(p.rank)} de 24`));
+    path.addEventListener("mousemove", (e) => tipMove(e.clientX, e.clientY));
+    path.addEventListener("mouseleave", tipHide);
+    path.addEventListener("click", () => p && goToPerfil(p.provincia));
+    path.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && p) {
+        e.preventDefault();
+        goToPerfil(p.provincia);
+      }
+    });
+    svgEl.appendChild(path);
+  }
+}
+function paintSel() {
+  const act = perfilActual ? provinceKey(perfilActual) : "";
+  document.querySelectorAll(".pvs").forEach((el) => el.classList.toggle("sel", el.dataset.k === act));
+}
+
+function skeletonKit(nombre) {
+  return `<div class="kit-head"><h2 class="prov-title">${esc(nombre)}</h2></div>
+  <div class="kit-grid"><section class="card sk"><div class="sk-b" style="width:42%;height:54px"></div><div class="sk-b" style="width:70%"></div><div class="sk-b" style="width:55%"></div><div class="sk-b" style="width:100%;height:46px;margin-top:14px"></div><div class="sk-b" style="width:48%;height:40px"></div></section>
+  <section class="card sk"><div class="sk-b" style="width:36%;height:22px"></div><div class="sk-b" style="width:100%"></div><div class="sk-b" style="width:100%"></div><div class="sk-b" style="width:100%"></div><div class="sk-b" style="width:100%"></div></section></div>`;
 }
 
 function modCmpHTML() {
@@ -1853,23 +1898,6 @@ async function renderCmpMini() {
   } catch (e) {
     errorBox(box, "No se pudo hacer la comparación.", renderCmpMini);
   }
-}
-
-function modCritHTML() {
-  return `<div class="crit"><div class="crit-list" role="group" aria-label="Decisión editorial">${DECISIONES.map(([d], i) => `<button type="button" class="crit-b" data-i="${i}">${esc(d)}</button>`).join("")}</div>
-  <div id="critOut" class="crit-out" aria-live="polite"><p class="note">Elige una decisión editorial para ver si el índice la respalda.</p></div></div>`;
-}
-function modCritBind() {
-  document.querySelectorAll(".crit-b").forEach((b) => {
-    b.onclick = () => {
-      document.querySelectorAll(".crit-b").forEach((x) => x.classList.toggle("on", x === b));
-      const [d, si, no] = DECISIONES[Number(b.dataset.i)];
-      const respalda = !/^No\b/.test(si);
-      $("critOut").innerHTML = `<div class="verdict ${respalda ? "ok" : "ko"}"><h3>${respalda ? ICON.check + "El índice sí puede apoyar esto" : ICON.cross + "El índice no puede apoyar esto"}</h3>
-        <p><b>${esc(d)}.</b> ${esc(respalda ? si : no)}</p>
-        ${respalda ? `<p class="lim"><b>Pero ojo:</b> ${esc(no)}</p>` : si !== "No." ? `<p class="lim">${esc(si)}</p>` : ""}</div>`;
-    };
-  });
 }
 
 // ---------------------------------------------------------------------
@@ -2098,8 +2126,7 @@ function applyFlags() {
   document.querySelectorAll("nav button").forEach((b) => (b.hidden = !viewEnabled(b.dataset.v)));
   setHidden("cardScatter", !flag("grafico_dispersion"));
   setHidden("buscador", !flag("buscador_provincia"));
-  setHidden("modulos", !flag("inicio_guiado"));
-  $("btnMas").hidden = ![...document.querySelectorAll("#menuMas button[data-v]")].some((b) => !b.hidden);
+  if (!perfilActual && $("perfil").querySelector(".inicio-main")) renderInicio();
   document.querySelectorAll("[data-solicitar]").forEach((b) => (b.hidden = !flag("solicitar_informacion")));
   if (MAPA) {
     renderCapas();
@@ -2118,7 +2145,7 @@ onTenant(applyFlags);
   const tenantReady = loadTenant();
   try {
     await initMapas();
-    initModulos();
+    initProvLista();
     initComparar();
     initDatos();
     initMeto();
@@ -2128,7 +2155,6 @@ onTenant(applyFlags);
     initExtras();
     initMapTools();
     renderMetodoExtra();
-    $("sinoGlobal").innerHTML = `<details class="card sec" style="margin-bottom:16px"><summary><h2>Antes de escribir: qué puedes y qué no afirmar</h2></summary><div class="sec-body">${decisionBlock()}</div></details>`;
     await tenantReady;
     applyFlags();
     applyRoute();

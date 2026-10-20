@@ -9,7 +9,13 @@ export const API_BASE = (() => {
 })();
 
 export async function api(path, opts) {
-  const res = await fetch(`${API_BASE}${path}`, opts);
+  dispatchEvent(new Event("ovade:busy"));
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, opts);
+  } finally {
+    dispatchEvent(new Event("ovade:idle"));
+  }
   if (!res.ok) {
     let detail = "";
     try {
