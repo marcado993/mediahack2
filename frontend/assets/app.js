@@ -157,13 +157,37 @@ function showView(v) {
   if (!viewEnabled(v)) v = "perfil";
   if (v !== currentView) pulsoBarra();
   currentView = v;
-  document.querySelectorAll("nav button").forEach((b) => {
+  document.querySelectorAll("header nav button").forEach((b) => {
     const on = b.dataset.v === v;
     b.classList.toggle("on", on);
     b.setAttribute("aria-selected", String(on));
     b.tabIndex = on ? 0 : -1;
   });
+  // "Sobre los datos" lives outside the main tabs: it is consulted, not worked in
+  $("btnSobreDatos").classList.toggle("on", DATOS_VIEWS.includes(v));
+  document.querySelectorAll(".datos-nav [data-ir]").forEach((b) => b.setAttribute("aria-current", b.dataset.ir === v ? "page" : "false"));
   document.querySelectorAll(".view").forEach((el) => el.classList.toggle("on", el.id === "v-" + v));
+}
+
+// Methodology, open data and sources: one section reached from the header
+// button and the footer, with its own small navigation.
+const DATOS_VIEWS = ["meto", "datos", "fuentes"];
+const DATOS_LABEL = { meto: "Metodología y límites", datos: "Datos abiertos", fuentes: "Fuentes oficiales" };
+function initDatosNav() {
+  for (const v of DATOS_VIEWS) {
+    const nav = document.createElement("div");
+    nav.className = "datos-nav noprint";
+    nav.setAttribute("role", "navigation");
+    nav.setAttribute("aria-label", "Sobre los datos");
+    nav.innerHTML = `<div class="dn-top"><p class="dn-k">Sobre los datos</p><button type="button" class="linkbtn" data-ir="perfil">← Volver a preparar mi nota</button></div>
+     <p class="dn-sub">De dónde sale cada cifra, cómo se calcula y qué no puede afirmar.</p>
+     <div class="dn-tabs">${DATOS_VIEWS.map((x) => `<button type="button" data-ir="${x}">${DATOS_LABEL[x]}</button>`).join("")}</div>`;
+    $("v-" + v).prepend(nav);
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-ir]");
+    if (b) navigate(pathFor(b.dataset.ir));
+  });
 }
 
 function pathFor(v) {
@@ -353,7 +377,7 @@ function renderCapas() {
     const on = code === capa;
     const label = code === "IVEI" ? "Todos" : c.nombre;
     const tag = ["EST", "EXP", "RES", "PRE"].includes(code) ? `<span class="fcode">${code}</span>` : "";
-    const help = FACTORES[code] && code !== "HABDIG" && code !== "PERFIL" && !EXTRA.includes(code) ? `<button type="button" class="fhelp" data-ficha="${code}" aria-label="Ficha rápida: ${esc(c.nombre)}">?</button>` : "";
+    const help = FACTORES[code] ? `<button type="button" class="fhelp" data-ficha="${code}" aria-label="Cómo leer ${esc(label)}: qué mide y qué variables usa" title="Qué mide y qué variables usa">?</button>` : "";
     return `<span class="fchip${on ? " on" : ""}"><button type="button" class="fbtn" data-capa="${code}" aria-pressed="${on}" title="${esc(CAPA_DESC[code] ?? "")}">${esc(label)}${tag}</button>${help}</span>`;
   };
   box.innerHTML =
@@ -2130,14 +2154,37 @@ function initPalette() {
 }
 
 // ---------------------------------------------------------------------
-// Quick factsheet per factor: the six methodological questions
+// Help for each map layer: what it measures, which variables it uses (with
+// their source), how it is built and how to read it. Mirrors the variable
+// dictionary in "Fuentes oficiales" (08_diccionario_de_variables.csv).
 // ---------------------------------------------------------------------
-const FUENTES_FACTOR = {
-  IVEI: "27 variables del Censo 2022, la ENEMDU 2024, la ENEMDU-TIC 2024 y el Latinobarómetro 2024.",
-  EST: "10 variables: Censo 2022 (4), ENEMDU 2024 (5) y Latinobarómetro 2024 (1).",
-  EXP: "5 variables: Censo 2022 (2), Latinobarómetro 2024 (2) y ENEMDU-TIC 2024 (1).",
-  RES: "6 variables: Censo 2022 (3) y Latinobarómetro 2024 (3).",
-  PRE: "6 variables del Latinobarómetro 2024.",
+const FUENTE_VAR = {
+  C: ["Censo 2022", "#2a78d6"],
+  E: ["ENEMDU 2024", "#eda100"],
+  L: ["Latinobarómetro 2024", "#d03b3b"],
+  T: ["ENEMDU-TIC 2024", "#1baf7a"],
+  M: ["MINTEL 2023", "#7a4aa0"],
+};
+const VARIABLES_CAPA = {
+  EST: [["Pobreza por NBI (censal)", "C"], ["Población en área rural", "C"], ["Población de 65 años y más", "C"], ["Analfabetismo", "C"], ["Pobreza por ingresos", "E"], ["Pobreza extrema", "E"], ["Pobreza multidimensional", "E"], ["Pobreza por NBI", "E"], ["Coeficiente de Gini", "E"], ["Desconfianza en 9 instituciones", "L"]],
+  EXP: [["Usó teléfono celular", "C"], ["Usó internet", "C"], ["Usa alguna red social", "L"], ["Usa Facebook, WhatsApp o TikTok", "L"], ["Uso de internet en 2024", "T"]],
+  RES: [["Analfabetismo", "C"], ["Analfabetismo digital", "C"], ["Escolaridad promedio", "C"], ["Confianza interpersonal", "L"], ["Percibe información falsa en los medios", "L"], ["Número de plataformas que usa", "L"]],
+  PRE: [["Autoubicación ideológica extrema", "L"], ["Cree que las elecciones son fraudulentas", "L"], ["Fue víctima de un delito en 12 meses", "L"], ["Teme ser víctima de delito violento", "L"], ["Considera muy grave el narcotráfico", "L"], ["Percepción de corrupción", "L"]],
+  EXCLUSION: [["Población de 65 años y más", "C"], ["Usó teléfono celular", "C"], ["Usó internet", "C"], ["Analfabetismo", "C"], ["Analfabetismo digital", "C"], ["Población en área rural", "C"]],
+  HIPEREXP: [["Usó internet", "C"], ["Percibe información falsa en los medios", "L"], ["Usa Facebook, WhatsApp o TikTok", "L"], ["Usa alguna red social", "L"], ["Usa WhatsApp", "L"]],
+  HABDIG: [["Competencias digitales que la persona dice tener (31 preguntas Sí/No)", "M"]],
+};
+const ESCALA = "Cada variable se lleva a una escala de 0 a 100 entre provincias (la menor = 0, la mayor = 100) y se combinan en un solo valor. Las cifras de encuesta se suavizan antes hacia el promedio del país para que una muestra chica no dispare el resultado.";
+const CALCULO_CAPA = {
+  IVEI: "Combina tres factores con una media geométrica: carencias de base, dependencia de redes y la falta de capacidad de contrastar. El clima electoral ajusta el resultado hasta ±7,5 %. Un factor muy bajo no se compensa del todo con otro alto.",
+  EST: `${ESCALA} El índice de pobreza de la fase 1 (ENEMDU y desconfianza) pesa 60 %; el resto sale del Censo.`,
+  EXP: ESCALA,
+  RES: `${ESCALA} En el índice entra al revés: menos capacidad de contrastar suma vulnerabilidad.`,
+  PRE: `${ESCALA} No entra como factor completo: solo ajusta el índice hasta ±7,5 %.`,
+  EXCLUSION: `${ESCALA} Se calcula aparte del índice y nunca se promedia con él: explica por qué una provincia puntúa como puntúa.`,
+  HIPEREXP: `${ESCALA} Se calcula aparte del índice y nunca se promedia con él: explica por qué una provincia puntúa como puntúa.`,
+  HABDIG: "Porcentaje de respuestas «Sí» en el bloque de competencias digitales, promediado por provincia. No entra a ningún índice.",
+  PERFIL: "Cada provincia se asigna a un tipo según qué factores dominan en ella. No agrega variables nuevas: reordena las que ya están en el mapa.",
 };
 const FALLA_FACTOR = {
   IVEI: "Muestras débiles, valores imputados en cuatro provincias y una dieta informativa medida solo en su parte digital. Margen orientativo de ±5 a ±7 puntos.",
@@ -2145,28 +2192,48 @@ const FALLA_FACTOR = {
   EXP: "Mide solo la dieta digital: las bases no preguntan por televisión, radio, prensa ni conversaciones familiares.",
   RES: "Capta solo la capacidad de contraste digital y educativa. En las cuatro provincias sin muestra propia, la parte de opinión usa el promedio del país.",
   PRE: "Es el factor con datos más frágiles a nivel provincial: viene del Latinobarómetro, con muestras pequeñas.",
+  EXCLUSION: "Sale completo del Censo 2022, sin error muestral, pero refleja la situación de hace dos años.",
+  HIPEREXP: "Cuatro de sus cinco variables vienen del Latinobarómetro, con muestras pequeñas por provincia.",
+  HABDIG: "Encuesta voluntaria de 428 personas: 7 provincias no tienen respuestas y varias tienen menos de 10. No representa a la provincia.",
+  PERFIL: "Las provincias marcadas como caso limítrofe pueden cambiar de tipo con ajustes menores del método.",
 };
-function fichaRapida(code) {
-  const f = FACTORES[code];
-  return [
-    ["¿De dónde viene?", FUENTES_FACTOR[code]],
-    ["¿Por qué entra?", f.que],
-    ["¿Qué se transforma?", "Las encuestas se suavizan hacia el promedio del país, se escalan de 0 a 100 entre provincias y se combinan. Ficha detallada en preparación."],
-    ["¿Qué significa?", `${f.lectura} Es un valor relativo entre provincias, no un nivel absoluto.`],
-    ["¿Qué puede fallar?", FALLA_FACTOR[code]],
-    ["¿Qué lo valida?", "Para el índice completo: correlación de 0,92 con la ENEMDU, prueba de ruido de ±2 puntos y orden estable sin el modulador (ρ = 0,99). Las pruebas de pesos, de variables débiles y de fuente alternativa están en curso."],
-  ];
+
+function variablesHTML(code) {
+  if (code === "IVEI" || code === "PERFIL") {
+    return `<ul class="fv-list">${["EST", "EXP", "RES", "PRE"]
+      .map((k) => `<li><button type="button" class="linkbtn" data-ficha="${k}">${esc(factorNombre(k))}</button> <span class="fv-n">${VARIABLES_CAPA[k].length} variables</span></li>`)
+      .join("")}</ul>`;
+  }
+  const vars = VARIABLES_CAPA[code] ?? [];
+  const fuentes = [...new Set(vars.map(([, f]) => f))];
+  return `<ul class="fv-list">${vars.map(([v, f]) => `<li><span class="fdot" style="background:${FUENTE_VAR[f][1]}"></span>${esc(v)} <span class="fv-n">${FUENTE_VAR[f][0]}</span></li>`).join("")}</ul>
+   <p class="fv-pie">${vars.length} ${vars.length === 1 ? "variable" : "variables"} · ${fuentes.map((f) => FUENTE_VAR[f][0]).join(", ")}${fuentes.includes("L") ? ". Las del Latinobarómetro son de encuesta con muestras pequeñas por provincia." : "."}</p>`;
 }
+
 function openFicha(code, provincia) {
-  $("fichaTitulo").textContent = `Ficha rápida: ${code === "IVEI" ? "Todos los factores" : factorNombre(code)}`;
+  const f = FACTORES[code] ?? {};
+  const nombre = code === "IVEI" ? "Nivel de vulnerabilidad (todos los factores)" : factorNombre(code);
+  const [lo, hi] = f.lg ?? ["", ""];
+  const lectura =
+    code === "PERFIL"
+      ? "Los colores son tipos, no niveles: ninguno es «mejor» que otro. Sirven para agrupar provincias que llegan a la desinformación por caminos parecidos."
+      : `${f.lectura} Claro = ${lo}; oscuro = ${hi}. Compara provincias entre sí: no es un nivel absoluto, y describe el territorio, no a sus habitantes.`;
+  $("fichaTitulo").textContent = `Cómo leer: ${nombre}`;
   const conf = provincia ? reliability(PERFIL_DATA?.provincia === provincia ? PERFIL_DATA.n_lb : null) : null;
-  $("fichaSub").textContent =
-    "Las seis preguntas del índice, aplicadas a este factor." +
-    (conf ? ` Para ${provincia}: ${conf.label.toLowerCase()}${conf.detail ? `. ${conf.detail}` : ""}` : "");
-  $("fichaCuerpo").innerHTML = fichaRapida(code)
-    .map(([q, a]) => `<li><b>${esc(q)}</b><p>${esc(a)}</p></li>`)
-    .join("");
-  $("dlgFicha").showModal();
+  $("fichaSub").textContent = conf ? `Para ${provincia}: ${conf.label.toLowerCase()}${conf.detail ? `. ${conf.detail}` : ""}` : "Lo que mide este mapa, con qué datos y cómo citarlo bien.";
+  const bloques = [
+    ["Qué mide", `<p>${esc(f.que ?? "")}</p>`],
+    [code === "IVEI" || code === "PERFIL" ? "Qué factores usa" : "Qué variables usa", variablesHTML(code)],
+    ["Cómo se calcula", `<p>${esc(CALCULO_CAPA[code] ?? "")}</p>`],
+    ["Qué significa", `<p>${esc(lectura)}</p>`],
+    ["Qué puede fallar", `<p>${esc(FALLA_FACTOR[code] ?? "")}</p>`],
+  ];
+  if (code === "IVEI") bloques.push(["Qué lo valida", "<p>Correlación de 0,92 con la ENEMDU, prueba de ruido de ±2 puntos y orden estable sin el modulador (ρ = 0,99). Las pruebas de pesos, de variables débiles y de fuente alternativa están en curso.</p>"]);
+  $("fichaCuerpo").innerHTML = bloques.map(([q, a]) => `<li><b>${esc(q)}</b>${a}</li>`).join("");
+  $("fichaCuerpo").querySelectorAll("[data-ficha]").forEach((b) => (b.onclick = () => openFicha(b.dataset.ficha)));
+  const dlg = $("dlgFicha");
+  if (!dlg.open) dlg.showModal();
+  dlg.scrollTop = 0;
 }
 
 // ---------------------------------------------------------------------
@@ -2266,6 +2333,7 @@ function initMapTools() {
     toast("Mapa en SVG descargado. Cita la fuente: Observatorio OVADE.");
   });
   $("btnPng").onclick = tras(descargarPNG);
+  $("btnLeerCapa").onclick = () => openFicha(capa);
   $("btnCsv").onclick = tras(descargarCSV);
   $("btnCitaMapa").onclick = (e) => {
     const p = mapSel ? byKey()[mapSel] : null;
@@ -2294,7 +2362,11 @@ function setHidden(id, hidden) {
   if (el) el.hidden = hidden;
 }
 function applyFlags() {
-  document.querySelectorAll("nav button").forEach((b) => (b.hidden = !viewEnabled(b.dataset.v)));
+  document.querySelectorAll("header nav button").forEach((b) => (b.hidden = !viewEnabled(b.dataset.v)));
+  document.querySelectorAll("[data-ir]").forEach((b) => (b.hidden = !viewEnabled(b.dataset.ir)));
+  const primeraDatos = DATOS_VIEWS.find(viewEnabled);
+  $("btnSobreDatos").hidden = !primeraDatos;
+  if (primeraDatos) $("btnSobreDatos").dataset.ir = primeraDatos;
   setHidden("cardScatter", !flag("grafico_dispersion"));
   setHidden("buscador", !flag("buscador_provincia"));
   if (!perfilActual && $("perfil").querySelector(".inicio-main")) renderInicio();
@@ -2323,6 +2395,7 @@ onTenant(applyFlags);
     initAsistente();
     initPalette();
     initSolicitud();
+    initDatosNav();
     initExtras();
     initMapTools();
     initAtajos(initGlosario());

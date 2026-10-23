@@ -96,6 +96,21 @@ function paintBrand(cfg) {
     credit.className = "pie-datos";
     credit.textContent = "Datos y metodología: Observatorio de Vulnerabilidad ante la Desinformación Electoral. Fuentes: Censo 2022 y ENEMDU 2024 (INEC), Latinobarómetro 2024, MINTEL 2023. Datos con corte a la última publicación de cada fuente, sujetos a actualización. El índice describe territorios, no personas, medios ni candidatos.";
     foot.append(credit);
+    // Methodology, open data and sources are reference material: reachable from
+    // every page footer instead of crowding the main tabs.
+    const datos = document.createElement("p");
+    datos.className = "pie-datos-links";
+    datos.append("Sobre los datos: ");
+    [["meto", "Metodología y límites"], ["datos", "Datos abiertos"], ["fuentes", "Fuentes oficiales"]].forEach(([v, t], i) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "linkbtn";
+      b.dataset.ir = v;
+      b.textContent = t;
+      if (i) datos.append(" · ");
+      datos.append(b);
+    });
+    foot.append(datos);
     if (cfg.flags.solicitar_informacion !== false) {
       const ask = document.createElement("p");
       const btn = document.createElement("button");
