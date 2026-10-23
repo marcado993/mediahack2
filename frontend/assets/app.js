@@ -940,16 +940,20 @@ function renderPerfil(data) {
   if (conf) cuidado.push(`<span class="conf ${conf.cls}">${esc(conf.label)}</span>`);
   if (isImputed) cuidado.push("<span>Su opinión es el promedio del país.</span>");
   if (isBorderlineCase) cuidado.push("<span>Su perfil puede cambiar con ajustes menores.</span>");
+  const conEscucha = viewEnabled("asistente");
+  // Quick-note mode: only what a reporter on deadline needs is open; the
+  // evidence is folded under "Investigar a fondo" and remembered per browser.
   const chips = [
     ["esencial", "Resumen"],
-    ...(showGuide ? [["angulos", "Datos para tu nota"], ["ideas", "Ideas"], ["decidir", "Qué afirmar"]] : []),
-    ["factores", "Qué lo explica"],
-    ["diagnostico", "Por qué"],
-    ["digital", "Perfil digital"],
-    ["dieta", "Dieta informativa"],
-    ["resiliencia", "Contraste y clima"],
-    ["contexto", "Contexto"],
+    ...(showGuide ? [["angulos", "Datos para tu nota"]] : []),
+    ...(conEscucha ? [["escucha", "Qué se dice"]] : []),
+    ...(showGuide ? [["decidir", "Qué afirmar"]] : []),
+    ["afondo", "Investigar a fondo"],
   ];
+  const segunda = [
+    conEscucha ? `<section class="card" id="sec-escucha" aria-live="polite"></section>` : "",
+    showGuide ? `<section class="card" id="sec-decidir"><h2>Qué puedes y qué no afirmar</h2>${decisionBlock({ extraSi: [`Para ${data.provincia}: ${canalSugerido(rec)}`], extraNo })}</section>` : "",
+  ].filter(Boolean);
 
   target.innerHTML = `
   <div class="kit-head">
@@ -979,7 +983,7 @@ function renderPerfil(data) {
         ? `<div class="copiar">
        <div class="cita-act"><button class="btn" id="btnCita" type="button">Copiar párrafo para tu nota</button><button class="btn gh" id="btnFrase" type="button">Copiar frase corta</button></div>
        <p class="frase" id="fraseTexto">${esc(frase)}</p>
-       <blockquote id="citaTexto">${esc(cita)}</blockquote>
+       <details class="ver"><summary>Ver el párrafo completo que se copia</summary><blockquote id="citaTexto">${esc(cita)}</blockquote></details>
       </div>`
         : ""
     }
@@ -998,14 +1002,7 @@ function renderPerfil(data) {
    }
   </div>
 
-  ${
-    showGuide
-      ? `<div class="grid g2" style="margin-top:16px">
-   <section class="card" id="sec-ideas"><h2>Ideas para cubrirla</h2>${data.recomendaciones_periodismo.map((r) => `<div class="rec"><b>${esc(r.titulo)}</b><p>${esc(r.texto)}</p></div>`).join("")}</section>
-   <section class="card" id="sec-decidir"><h2>Qué puedes y qué no afirmar</h2>${decisionBlock({ extraSi: [`Para ${data.provincia}: ${canalSugerido(rec)}`], extraNo })}</section>
-  </div>`
-      : ""
-  }
+  ${segunda.length ? `<div class="grid ${segunda.length > 1 ? "g2" : ""}" style="margin-top:16px">${segunda.join("")}</div>` : ""}
 
   <div class="kit-actions noprint">
    ${flag("ficha_descargable") ? `<button class="btn gh" type="button" id="btnFicha">Descargar ficha</button>` : ""}
@@ -1016,7 +1013,9 @@ function renderPerfil(data) {
    ${flag("solicitar_informacion") ? `<button class="btn gh" type="button" data-solicitar>Pedir más información</button>` : ""}
   </div>
 
-  <h2 class="todo-h">Todos los datos de ${esc(data.provincia)}</h2>
+  <details class="a-fondo" id="sec-afondo"${aFondoAbierto() ? " open" : ""}>
+  <summary><span class="af-t">Investigar a fondo</span><span class="af-s">Qué explica este nivel, ideas para cubrirla, perfil digital, dieta informativa y contexto social de ${esc(data.provincia)}</span></summary>
+  ${showGuide ? `<section class="card" id="sec-ideas" style="margin-bottom:16px"><h2>Ideas para cubrirla</h2>${data.recomendaciones_periodismo.map((r) => `<div class="rec"><b>${esc(r.titulo)}</b><p>${esc(r.texto)}</p></div>`).join("")}</section>` : ""}
   <section class="card sec-open" id="sec-factores" style="margin-bottom:16px">
    <div class="sec-h"><h2>Qué explica este nivel</h2><span class="sub-s">Cuatro factores, de 0 a 100. La marca vertical es el promedio del país.</span></div>
    <div class="frows">${data.dimensiones.map((d) => factorRow(d, data.provincia)).join("")}</div>
@@ -1025,11 +1024,17 @@ function renderPerfil(data) {
   ${detalle("digital", "Perfil digital", "Acceso, uso y capacidades", digital)}
   ${detalle("dieta", "Dieta informativa", "Qué plataformas usa la gente conectada", dieta)}
   ${detalle("resiliencia", "Capacidad de contrastar y clima electoral", "Educación, fuentes y ambiente", resiliencia)}
-  ${detalle("contexto", "Contexto social", "Edad, etnia, pobreza y educación", contexto)}`;
+  ${detalle("contexto", "Contexto social", "Edad, etnia, pobreza y educación", contexto)}
+  </details>`;
 
   target.querySelectorAll(".idx [data-sec]").forEach((b) => {
-    b.onclick = () => $("sec-" + b.dataset.sec)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    b.onclick = () => {
+      if (b.dataset.sec === "afondo") $("sec-afondo").open = true;
+      $("sec-" + b.dataset.sec)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    };
   });
+  $("sec-afondo").addEventListener("toggle", (e) => recordarAFondo(e.target.open));
+  if (conEscucha) renderEscuchaFicha(data.provincia);
   target.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = () => copiarBtn(b, b.dataset.copy)));
   if ($("btnFrase")) $("btnFrase").onclick = (e) => copiarBtn(e.currentTarget, frase);
   if ($("btnCita")) $("btnCita").onclick = (e) => copiarBtn(e.currentTarget, cita);
@@ -1049,7 +1054,87 @@ function renderPerfil(data) {
 }
 
 // printing the kit should show everything, not only the open sections
-addEventListener("beforeprint", () => document.querySelectorAll("details.sec").forEach((d) => (d.open = true)));
+addEventListener("beforeprint", () => document.querySelectorAll("details.sec, details.a-fondo, details.ver").forEach((d) => (d.open = true)));
+
+// Whether the reporter keeps "Investigar a fondo" open: a per-browser
+// preference, so the deep-research user doesn't have to unfold it every time.
+const AFONDO_KEY = "ovade.afondo";
+function aFondoAbierto() {
+  try {
+    return localStorage.getItem(AFONDO_KEY) === "1";
+  } catch (_) {
+    return false;
+  }
+}
+function recordarAFondo(abierto) {
+  try {
+    localStorage.setItem(AFONDO_KEY, abierto ? "1" : "0");
+  } catch (_) {}
+}
+
+// ---------------------------------------------------------------------
+// "Qué se está diciendo": the digital-listening summary inside the sheet.
+// The index describes the terrain; this shows what is circulating now. They
+// stay visibly separate: the conversation never enters any index.
+// ---------------------------------------------------------------------
+const TEND_CACHE = new Map();
+const TEND_TTL = 5 * 60 * 1000;
+function getTendencias(province) {
+  const hit = TEND_CACHE.get(province);
+  if (hit && Date.now() - hit.t < TEND_TTL) return hit.p;
+  const p = getJSON(`/api/trends?province=${encodeURIComponent(province)}`);
+  TEND_CACHE.set(province, { t: Date.now(), p });
+  p.catch(() => TEND_CACHE.delete(province));
+  return p;
+}
+const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : "");
+const fechaCorta = (iso) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-EC", { day: "numeric", month: "short" });
+};
+function irAEscucha(provincia) {
+  tendSel = provinceKey(provincia);
+  navigate("asistente");
+  paintTendMap();
+  $("tendProvLabel").textContent = provincia;
+  runTendencias(provincia);
+}
+async function renderEscuchaFicha(provincia) {
+  const box = $("sec-escucha");
+  if (!box) return;
+  const head = `<div class="sec-h"><h2>Qué se está diciendo en ${esc(provincia)}</h2><span class="esc-tag">Escucha digital · contexto</span></div>`;
+  box.innerHTML = `${head}<p class="note"><span class="tend-spinner"></span> Leyendo X y medios sobre ${esc(provincia)}…</p>`;
+  let res;
+  try {
+    res = await getTendencias(provincia);
+  } catch (_) {
+    if (perfilActual !== provincia) return;
+    box.innerHTML = `${head}<p class="note">No pudimos leer la conversación en este momento. El resto de la ficha no depende de esto.</p><button type="button" class="linkbtn" id="escReintentar">Reintentar</button>`;
+    $("escReintentar").onclick = () => renderEscuchaFicha(provincia);
+    return;
+  }
+  if (perfilActual !== provincia) return;
+  const terminos = [...(res.actores || []).map((t) => ({ ...t, actor: true })), ...(res.temas || [])].slice(0, 4);
+  const vistos = new Set();
+  const posts = terminos
+    .flatMap((t) => t.samples || [])
+    .filter((s) => safeUrl(s.link) && !vistos.has(s.link) && vistos.add(s.link))
+    .sort((a, b) => String(b.published || "").localeCompare(String(a.published || "")))
+    .slice(0, 2);
+  const mas = `<button type="button" class="linkbtn" id="escMas">Ver toda la conversación en Escucha digital</button>`;
+  if (!terminos.length) {
+    // the backend note can be technical (expired X session); the reporter only needs the outcome
+    box.innerHTML = `${head}<p class="note">No encontramos conversación política reciente sobre ${esc(provincia)} en X ni en medios. Puede ser falta de cobertura o una pausa en la lectura de X: vuelve a intentarlo más tarde.</p>${mas}`;
+  } else {
+    box.innerHTML = `${head}
+     <p class="esc-lead">Lo que más se repite en ${res.total_analizados} publicaciones recientes de X y medios:</p>
+     <div class="trend-chip-row">${terminos.map((t) => `<span class="trend-chip${t.actor ? " actor" : ""}">${esc(t.term)}<span class="count">${t.count}</span></span>`).join("")}</div>
+     ${posts.length ? `<ul class="esc-posts">${posts.map((s) => `<li><a href="${esc(safeUrl(s.link))}" target="_blank" rel="noopener noreferrer">${esc(String(s.title || "").replace(/\s+/g, " ").slice(0, 180))}${String(s.title || "").length > 180 ? "…" : ""}</a><span class="esc-meta">${esc(s.user || s.source || "")}${s.published ? ` · ${esc(fechaCorta(s.published))}` : ""}</span></li>`).join("")}</ul>` : ""}
+     <p class="caveat">Muestra pequeña de publicaciones: pista para reportear, no dato citable. No entra a ningún índice.</p>
+     ${mas}`;
+  }
+  $("escMas").onclick = () => irAEscucha(provincia);
+}
 
 function dataOr(list, key) {
   return list.find((x) => x.key === key) || { label: key, valor: null, nacional: null, unit: "%", direction: 1 };
@@ -1489,18 +1574,20 @@ async function runTendencias(province) {
     box.innerHTML = "";
     return;
   }
-  box.innerHTML = `<div class="asis-loading"><span class="tend-spinner"></span> Leyendo X y medios sobre ${province}…</div>`;
+  box.innerHTML = `<div class="asis-loading"><span class="tend-spinner"></span> Leyendo X y medios sobre ${esc(province)}…</div>`;
   try {
-    const res = await getJSON(`/api/trends?province=${encodeURIComponent(province)}`);
+    // shared cache with the sheet's "Qué se está diciendo"; post text comes
+    // from X and outlets, so every field is escaped and links must be http(s)
+    const res = await getTendencias(province);
     if (res.note) {
-      box.innerHTML = `<p class="note">${res.note}</p>`;
+      box.innerHTML = `<p class="note">${esc(res.note)}</p>`;
       return;
     }
     const all = [...res.actores, ...res.temas];
     box.innerHTML = `
     <p class="note">${res.total_analizados} publicaciones analizadas · X y medios</p>
     <div class="trend-chip-row">${all
-      .map((t, i) => `<button class="trend-chip${res.actores.includes(t) ? " actor" : ""}" data-i="${i}">${t.term}<span class="count">${t.count}</span></button>`)
+      .map((t, i) => `<button class="trend-chip${res.actores.includes(t) ? " actor" : ""}" data-i="${i}">${esc(t.term)}<span class="count">${t.count}</span></button>`)
       .join("")}</div>
     <div id="tendSamples"></div>
     <p class="caveat">Conteo en muestra pequeña — pista para reportear, no dato citable.</p>`;
@@ -1511,7 +1598,10 @@ async function runTendencias(province) {
         document.getElementById("tendSamples").innerHTML =
           tendOpenTerm == null
             ? ""
-            : `<div class="trend-samples">${(all.find((x) => x.term === tendOpenTerm)?.samples || []).map((s) => `<a href="${s.link}" target="_blank" rel="noopener noreferrer">${s.title}</a>`).join("")}</div>`;
+            : `<div class="trend-samples">${(all.find((x) => x.term === tendOpenTerm)?.samples || [])
+                .filter((s) => safeUrl(s.link))
+                .map((s) => `<a href="${esc(safeUrl(s.link))}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a>`)
+                .join("")}</div>`;
       };
     });
   } catch (e) {

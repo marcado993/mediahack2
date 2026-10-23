@@ -3846,3 +3846,106 @@ h3 {
     padding: 8px 11px;
   }
 }
+
+/* ---- quick-note mode: the rest of the sheet folds under "Investigar a fondo" ---- */
+details.a-fondo {
+  margin-top: 22px;
+}
+details.a-fondo > summary {
+  list-style: none;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+}
+details.a-fondo > summary::-webkit-details-marker {
+  display: none;
+}
+details.a-fondo > summary::after {
+  content: "Abrir ▾";
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  font-size: var(--fs-small);
+  font-weight: 650;
+  color: var(--acc);
+}
+details.a-fondo[open] > summary {
+  margin-bottom: 16px;
+}
+details.a-fondo[open] > summary::after {
+  content: "Cerrar ▴";
+}
+details.a-fondo > summary:hover {
+  border-color: color-mix(in srgb, var(--acc) 45%, var(--line));
+}
+.af-t {
+  font-family: var(--display);
+  font-size: var(--fs-section);
+  font-weight: 700;
+  color: var(--ink);
+}
+.af-s {
+  font-size: var(--fs-small);
+  color: var(--mut);
+}
+
+/* ---- "Qué se está diciendo": listening summary inside the sheet ---- */
+#sec-escucha {
+  border-top: 3px solid #7a4a9e;
+}
+.esc-tag {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: #5b3577;
+  background: #f3edf8;
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+.esc-lead {
+  margin: 8px 0 8px;
+  font-size: var(--fs-body);
+}
+span.trend-chip {
+  cursor: default;
+}
+.esc-posts {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.esc-posts li {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.esc-posts a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.esc-posts a:hover {
+  text-decoration: underline;
+}
+.esc-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-small);
+  color: var(--mut);
+}
+#sec-escucha .caveat {
+  margin: 10px 0 6px;
+}
+@media (max-width: 640px) {
+  details.a-fondo > summary {
+    padding: 12px 14px;
+  }
+  .sec-h {
+    flex-wrap: wrap;
+  }
+}
