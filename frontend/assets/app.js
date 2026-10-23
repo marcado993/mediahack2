@@ -937,7 +937,7 @@ function renderPerfil(data) {
   <div class="kit-grid">
    <section class="card kit-main" id="sec-esencial">
     <h3 class="ess-titular">${esc(titular)}</h3>
-    ${aviso ? `<div class="precaucion" role="note"><span class="pc-h">${ICON.warn}Precaución editorial</span><p>${esc(aviso)}</p></div>` : ""}
+    ${aviso ? `<div class="precaucion" role="note"><span class="pc-h">${ICON.warn}Precaución editorial</span><p>${esc(aviso)} ${data.n_lb === 0 ? gl("imputado", "¿Qué es un valor imputado?") : ""}</p></div>` : ""}
     <div class="km-top">
      <div class="km-num">
       <span class="big">${fmt(data.ivei.indice)}</span>
@@ -961,6 +961,7 @@ function renderPerfil(data) {
     }
     ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
+    <p class="gl-row noprint">¿Qué significa? ${gl("ivei", "IVEI")} ${gl("imputado", "valor imputado")} ${gl("factor", "factor")}</p>
    </section>
 
    ${
@@ -1413,7 +1414,7 @@ function renderTabla() {
 
   document.getElementById("tabla").innerHTML = `
   <thead><tr><th data-k="rank">#</th><th data-k="provincia">Provincia</th><th data-k="nivel">Nivel</th>${headCols}</tr></thead>
-  <tbody>${bodyRows}</tbody>
+  <tbody>${bodyRows || `<tr><td colspan="${3 + TABLA_DATA.columnas.length}" class="sin-res">No encontramos «${esc(document.getElementById("buscarDatos").value.trim())}» en la tabla. Revisa la ortografía o prueba con el nombre oficial, como «Azuay» o «Guayas».</td></tr>`}</tbody>
   <tfoot><tr style="font-weight:700;background:#f7f9fb"><td colspan="3">Nacional</td>${footCols}</tr></tfoot>`;
 
   document.querySelectorAll("#tabla th").forEach((th) => {
@@ -1582,6 +1583,85 @@ const GLOSARIO = [
   ["Fuente sólida, media o débil", "solidez", "Qué tan firme es una cifra según cómo se midió: conteo completo (sólida), encuesta con muestra suficiente (media) o muestra débil (débil)."],
 ];
 
+// Inline glossary: a short definition one tap away, without leaving the sheet.
+const GL_TERMS = {
+  ivei: ["IVEI", "Índice de Vulnerabilidad Electoral Integrada. Va de 0 a 100 y dice qué tan fértil es el territorio para que la desinformación llegue y prospere. Describe territorios, no personas."],
+  imputado: ["Valor imputado", GLOSARIO.find(([t]) => t === "Valor imputado")[2]],
+  factor: ["Factor", "Cada uno de los cuatro bloques que forman el índice: carencias de base, dependencia de redes, capacidad de contrastar y clima electoral."],
+};
+const gl = (k, label) => `<button type="button" class="gl" data-gl="${k}" aria-expanded="false">${label}</button>`;
+
+function initGlosario() {
+  const tip = Object.assign(document.createElement("div"), { id: "glTip", hidden: true });
+  tip.setAttribute("role", "note");
+  document.body.appendChild(tip);
+  let cur = null;
+  const cerrar = () => {
+    cur?.setAttribute("aria-expanded", "false");
+    cur?.removeAttribute("aria-describedby");
+    cur = null;
+    tip.hidden = true;
+  };
+  const abrir = (b) => {
+    const [t, d] = GL_TERMS[b.dataset.gl];
+    tip.innerHTML = `<b>${esc(t)}</b><p>${esc(d)}</p><button type="button" class="linkbtn" id="glMas">Ver el glosario completo</button>`;
+    tip.hidden = false;
+    const r = b.getBoundingClientRect();
+    const w = Math.min(320, innerWidth - 24);
+    tip.style.width = w + "px";
+    tip.style.left = Math.max(12, Math.min(r.left, innerWidth - w - 12)) + "px";
+    tip.style.top = r.bottom + 6 + "px";
+    b.setAttribute("aria-expanded", "true");
+    b.setAttribute("aria-describedby", "glTip");
+    cur = b;
+  };
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".gl");
+    if (b) {
+      const mismo = b === cur;
+      cerrar();
+      if (!mismo) abrir(b);
+      return;
+    }
+    if (e.target.closest("#glMas")) {
+      cerrar();
+      navigate("meto");
+      requestAnimationFrame(() => $("glosario")?.scrollIntoView());
+      return;
+    }
+    if (!e.target.closest("#glTip")) cerrar();
+  });
+  addEventListener("scroll", cerrar, { passive: true });
+  return cerrar;
+}
+
+// Esc steps back one layer at a time: open help, download menu, search text,
+// the selected province on the map, and finally the province sheet.
+function initAtajos(cerrarGl) {
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]")) return;
+    if (!$("glTip").hidden) return cerrarGl();
+    if ($("dlMenu").open) {
+      $("dlMenu").open = false;
+      return;
+    }
+    const a = document.activeElement;
+    if (a && a.matches("input[type=text],input[type=search]") && a.value) {
+      a.value = "";
+      a.dispatchEvent(new Event("input"));
+      return;
+    }
+    if (currentView === "mapas" && mapSel) {
+      mapSel = null;
+      paintMap();
+      toast("Selección quitada.");
+    } else if (currentView === "perfil" && perfilActual) {
+      navigate("perfil");
+      toast("Volviste al inicio. Con «Atrás» regresas a la provincia.");
+    }
+  });
+}
+
 function renderMetodoExtra() {
   const r = solidezResumen();
   const nivel = (n, t) => `<span class="sol ${n}"><span class="pips" aria-hidden="true"><i></i><i></i><i></i></span>Fuente ${{ alta: "sólida", media: "media", baja: "débil" }[n]}</span> ${t}`;
@@ -1718,9 +1798,20 @@ function initSolicitud() {
 // Map selection: tap a province and its essentials appear beside the map,
 // without leaving it. The full profile is one more click away.
 // ---------------------------------------------------------------------
+// The press-kit button always says whose quote it will copy.
+function syncKit(p) {
+  const b = $("btnCitaMapa");
+  b.dataset.label = p ? `Copiar cita de ${p.provincia}` : "Copiar cita";
+  b.textContent = b.dataset.label;
+  $("kitNota").textContent = p
+    ? `Incluye fuente${p.n_lb != null && p.n_lb < 50 ? " y la precaución editorial de esta provincia" : ""}. Pega directo en tu nota.`
+    : "Elige una provincia en el mapa para copiar su cita lista para prensa.";
+}
+
 function renderPeek() {
   const box = $("peek");
   const p = mapSel ? byKey()[mapSel] : null;
+  syncKit(p);
   if (!p) {
     box.innerHTML = `<h3>Resumen rápido</h3><p class="note" style="margin:0">Elige una provincia en el mapa o en el ranking y verás aquí lo esencial, sin salir del mapa.</p>`;
     return;
@@ -1782,13 +1873,52 @@ function provItem(p) {
   const marks = (r.n_lb === 0 ? `<span class="pl-ic is-warn" title="Valor imputado">${ICON.warn}</span>` : "") + (esLimite(p) ? `<span class="pl-ic is-pin" title="Caso limítrofe">${ICON.pin}</span>` : "");
   return `<button type="button" role="listitem" class="pl-item${p === perfilActual ? " on" : ""}" data-p="${esc(p)}"><span class="dot" style="background:${col("IVEI", r.IVEI)}"></span><span class="pl-n">${esc(p)}</span>${marks}<span class="pl-r" title="Puesto entre 24 (1 = la más vulnerable)">${Math.round(r.rank)}</span></button>`;
 }
+// Closest province names for a typo ("guallas", "pichinca"): edit distance on
+// the accent-free keys, so the reporter never hits a dead end.
+function sugerir(texto, max = 3) {
+  const q = provinceKey((texto || "").trim());
+  if (!q) return [];
+  const dist = (a, b) => {
+    let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i];
+      for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = cur;
+    }
+    return prev[b.length];
+  };
+  return PROVINCIAS.map((p) => {
+    const k = provinceKey(p);
+    return { p, d: Math.min(dist(q, k), dist(q, k.slice(0, q.length + 1))) };
+  })
+    .filter((x) => x.d <= Math.max(2, Math.floor(q.length / 3)))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, max)
+    .map((x) => x.p);
+}
+const SIN_RESULTADOS = "Prueba con el nombre oficial, como «Azuay» o «Santo Domingo de los Tsáchilas», o toca la provincia en el mapa.";
+
 function renderProvLista() {
   paintSel();
   const q = provinceKey($("provFiltro").value.trim());
   const rec = recientes();
   $("provRecientes").innerHTML = rec.length && !q ? `<span class="pl-h">Recientes</span>${rec.map(provItem).join("")}<span class="pl-h">Todas</span>` : "";
   const list = [...PROVINCIAS].sort((a, b) => a.localeCompare(b, "es")).filter((p) => !q || provinceKey(p).includes(q));
-  $("provLista").innerHTML = list.length ? list.map(provItem).join("") : `<p class="note">No encontré esa provincia. Prueba con menos letras.</p>`;
+  if (list.length) {
+    $("provLista").innerHTML = list.map(provItem).join("");
+    return;
+  }
+  const raw = $("provFiltro").value.trim();
+  const sug = sugerir(raw);
+  $("provLista").innerHTML =
+    `<p class="note sin-res"><b>No encontramos «${esc(raw)}».</b> ${sug.length ? "¿Quisiste decir…?" : SIN_RESULTADOS}</p>` +
+    sug.map(provItem).join("") +
+    `<button type="button" class="linkbtn" id="btnLimpiarFiltro">Ver todas las provincias</button>`;
+  $("btnLimpiarFiltro").onclick = () => {
+    $("provFiltro").value = "";
+    renderProvLista();
+    $("provFiltro").focus();
+  };
 }
 function initProvLista() {
   drawSelMap($("map-sel"), PATHS.mainland);
@@ -1935,15 +2065,22 @@ function initPalette() {
     items = PROVINCIAS.filter((p) => !q || provinceKey(p).includes(q)).sort(
       (a, b) => Number(provinceKey(b).startsWith(q)) - Number(provinceKey(a).startsWith(q)) || (q ? 0 : Number(rec.includes(b)) - Number(rec.includes(a))) || a.localeCompare(b, "es")
     );
+    // no match: offer the nearest names so Enter still gets the reporter somewhere
+    const sinCoincidencia = !items.length;
+    const sug = sinCoincidencia ? sugerir(input.value) : [];
+    if (sinCoincidencia) items = sug;
     idx = Math.min(idx, Math.max(0, items.length - 1));
-    list.innerHTML = items.length
-      ? items
-          .map((p, i) => {
-            const r = byKey()[provinceKey(p)] ?? {};
-            return `<li role="option" id="pal-${i}" aria-selected="${i === idx}" data-p="${esc(p)}" class="${i === idx ? "on" : ""}"><span class="dot" style="background:${col("IVEI", r.IVEI)}"></span><b>${esc(p)}</b><span class="pal-meta">Puesto ${Math.round(r.rank)} · ${esc(r.nivel)}</span>${provinceFlags({ isImputed: r.n_lb === 0, isBorderlineCase: esLimite(p), compact: true })}</li>`;
-          })
-          .join("")
-      : `<li class="pal-empty">No encontré «${esc(input.value)}». Prueba con menos letras o con otro nombre.</li>`;
+    const aviso = sinCoincidencia
+      ? `<li class="pal-empty" role="presentation"><b>No encontramos «${esc(input.value)}».</b> ${sug.length ? "¿Quisiste decir…?" : SIN_RESULTADOS}</li>`
+      : "";
+    list.innerHTML =
+      aviso +
+      items
+        .map((p, i) => {
+          const r = byKey()[provinceKey(p)] ?? {};
+          return `<li role="option" id="pal-${i}" aria-selected="${i === idx}" data-p="${esc(p)}" class="${i === idx ? "on" : ""}"><span class="dot" style="background:${col("IVEI", r.IVEI)}"></span><b>${esc(p)}</b><span class="pal-meta">Puesto ${Math.round(r.rank)} · ${esc(r.nivel)}</span>${provinceFlags({ isImputed: r.n_lb === 0, isBorderlineCase: esLimite(p), compact: true })}</li>`;
+        })
+        .join("");
     input.setAttribute("aria-activedescendant", items.length ? `pal-${idx}` : "");
     list.querySelector(".on")?.scrollIntoView({ block: "nearest" });
   };
@@ -2108,7 +2245,10 @@ async function descargarPNG() {
     g.fillStyle = "#fff";
     g.fillRect(0, 0, c.width, c.height);
     g.drawImage(img, 0, 0, c.width, c.height);
-    c.toBlob((b) => descargar(b, `OVADE_mapa_${capa}.png`), "image/png");
+    c.toBlob((b) => {
+      descargar(b, `OVADE_mapa_${capa}.png`);
+      toast("Mapa en PNG descargado. Cita la fuente: Observatorio OVADE.");
+    }, "image/png");
   } catch (e) {
     toast("No se pudo generar el PNG. Prueba con el SVG.");
   } finally {
@@ -2116,9 +2256,17 @@ async function descargarPNG() {
   }
 }
 function initMapTools() {
-  $("btnSvg").onclick = descargarSVG;
-  $("btnPng").onclick = descargarPNG;
-  $("btnCsv").onclick = descargarCSV;
+  // downloads live in a menu: close it once a choice is made, and say what happened
+  const tras = (fn) => (e) => {
+    $("dlMenu").open = false;
+    return fn(e);
+  };
+  $("btnSvg").onclick = tras(() => {
+    descargarSVG();
+    toast("Mapa en SVG descargado. Cita la fuente: Observatorio OVADE.");
+  });
+  $("btnPng").onclick = tras(descargarPNG);
+  $("btnCsv").onclick = tras(descargarCSV);
   $("btnCitaMapa").onclick = (e) => {
     const p = mapSel ? byKey()[mapSel] : null;
     if (!p) return toast("Elige primero una provincia en el mapa para copiar su cita.");
@@ -2177,6 +2325,7 @@ onTenant(applyFlags);
     initSolicitud();
     initExtras();
     initMapTools();
+    initAtajos(initGlosario());
     renderMetodoExtra();
     await tenantReady;
     applyFlags();

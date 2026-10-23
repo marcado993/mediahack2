@@ -3436,3 +3436,191 @@ nav button.t2.on {
     margin: 0 auto;
   }
 }
+
+/* ---- press kit on the map: one primary action, downloads grouped ---- */
+.maptools {
+  align-items: center;
+}
+.maptools > .btn,
+.dl-menu > summary.btn {
+  padding: 9px 16px;
+  font-size: 13.5px;
+}
+.dl-menu {
+  position: relative;
+}
+.dl-menu > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.dl-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.dl-pop {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 270px;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(13, 22, 34, 0.16);
+}
+.dl-pop button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.dl-pop button:hover,
+.dl-pop button:focus-visible {
+  background: var(--acc-soft);
+}
+.dl-pop b {
+  display: block;
+  font-size: 13.5px;
+}
+.dl-pop span {
+  display: block;
+  font-size: 12px;
+  color: var(--mut);
+}
+.kit-note {
+  flex: 1 1 100%;
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--mut);
+}
+
+/* ---- search shortcut hint and inline glossary ---- */
+.finder-btn kbd {
+  font-size: 12.5px;
+  padding: 2px 8px;
+  background: color-mix(in srgb, var(--on-acc) 22%, transparent);
+  border-color: color-mix(in srgb, var(--on-acc) 70%, transparent);
+}
+.finder-btn .kbd-ctrl {
+  display: none;
+}
+@media (min-width: 1000px) {
+  .finder-btn .kbd-ctrl {
+    display: inline-block;
+  }
+}
+.finder-btn em {
+  opacity: 0.92;
+}
+.gl-row {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--mut);
+}
+.gl {
+  font: inherit;
+  font-size: inherit;
+  font-weight: 650;
+  padding: 0 1px;
+  margin: 0 2px;
+  color: var(--acc);
+  background: none;
+  border: 0;
+  border-bottom: 1px dotted currentColor;
+  cursor: help;
+}
+.gl:hover,
+.gl[aria-expanded="true"] {
+  background: var(--acc-soft);
+}
+#glTip {
+  position: fixed;
+  z-index: 60;
+  padding: 12px 14px;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--acc);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px rgba(13, 22, 34, 0.18);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+#glTip p {
+  margin: 4px 0 8px;
+}
+.sin-res {
+  color: var(--ink);
+  line-height: 1.45;
+}
+#tabla td.sin-res {
+  padding: 18px 12px;
+  text-align: center;
+}
+
+/* ---- consistency and contrast (WCAG AA) ---- */
+nav button {
+  opacity: 0.82;
+}
+nav button.t2 {
+  opacity: 0.78;
+}
+nav button:hover,
+nav button.on,
+nav button.t2:hover,
+nav button.t2.on {
+  opacity: 1;
+}
+.btn.gh {
+  border-color: color-mix(in srgb, var(--acc) 55%, var(--line));
+}
+.btn,
+.btn.gh {
+  min-height: 36px;
+}
+.linkbtn,
+.gl {
+  min-height: 24px;
+}
+
+@media (max-width: 640px) {
+  .maptools > .btn,
+  .dl-menu > summary.btn {
+    flex: 1 1 auto;
+    min-height: 44px;
+    text-align: center;
+  }
+  .dl-menu {
+    flex: 1 1 auto;
+  }
+  .dl-pop {
+    left: auto;
+    right: 0;
+    min-width: min(270px, calc(100vw - 32px));
+  }
+  .btn,
+  .btn.gh,
+  .cita-act .btn {
+    min-height: 44px;
+  }
+  .ess-titular {
+    font-size: 17px;
+  }
+  .precaucion {
+    padding: 9px 11px;
+  }
+  .gl {
+    padding: 4px 2px;
+  }
+  nav button {
+    padding: 11px 13px;
+    white-space: nowrap;
+  }
+}

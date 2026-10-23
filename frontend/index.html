@@ -15,20 +15,20 @@
 <img src="/public/marca-blanco.svg" alt="" class="brand-mark" id="brandMark" width="32" height="32" aria-hidden="true">
 <img id="brandLogo" class="brand-logo" alt="" hidden>
 <h1 id="brandTitle">Observatorio de Vulnerabilidad ante la Desinformación Electoral</h1>
-<button type="button" class="finder-btn" id="buscador" aria-haspopup="dialog" aria-keyshortcuts="/ Control+K">
- <span class="fb-ic" aria-hidden="true"></span><span class="fb-t">¿Qué provincia cubres? <em>Ej. Pichincha, Guayas…</em></span><kbd aria-hidden="true">/</kbd>
+<button type="button" class="finder-btn" id="buscador" aria-haspopup="dialog" aria-keyshortcuts="/ Control+K" title="Buscar provincia: pulsa / o Ctrl+K desde cualquier pantalla">
+ <span class="fb-ic" aria-hidden="true"></span><span class="fb-t">¿Qué provincia cubres? <em>Ej. Pichincha, Guayas…</em></span><kbd aria-hidden="true" class="kbd-slash">/</kbd><kbd aria-hidden="true" class="kbd-ctrl">Ctrl K</kbd>
 </button>
 <button type="button" class="btn-req" id="btnSolicitar" data-solicitar><span class="rq-ic" aria-hidden="true"></span><span class="rq-t">Solicitar información</span></button>
 </div>
 <nav role="tablist" aria-label="Secciones">
  <button role="tab" class="on" data-v="perfil">Preparar mi nota</button>
  <button role="tab" data-v="mapas">Mapa del país</button>
- <button role="tab" data-v="comparar">Comparar</button>
+ <button role="tab" data-v="comparar">Comparar provincias</button>
  <span class="nav-sep" aria-hidden="true"></span>
- <button role="tab" class="t2" data-v="meto">Cómo se calcula</button>
- <button role="tab" class="t2" data-v="datos">Tabla de datos</button>
- <button role="tab" class="t2" data-v="fuentes">Fuentes</button>
- <button role="tab" class="t2" data-v="asistente">Conversación pública</button>
+ <button role="tab" class="t2" data-v="meto">Metodología y límites</button>
+ <button role="tab" class="t2" data-v="datos">Datos abiertos</button>
+ <button role="tab" class="t2" data-v="fuentes">Fuentes oficiales</button>
+ <button role="tab" class="t2" data-v="asistente">Temas en redes y medios</button>
 </nav>
 </div></header>
 <p class="cut"><span class="wrap">Datos con corte a la última publicación de cada fuente · sujetos a actualización continua. <span id="brandSub"></span></span></p>
@@ -39,10 +39,16 @@
 <section class="view" id="v-mapas">
  <div class="filterbar noprint" id="capas" role="group" aria-label="Filtrar el mapa por factor"></div>
  <div class="maptools noprint">
-  <button class="btn gh" type="button" id="btnCitaMapa">Copiar cita formateada para prensa</button>
-  <button class="btn gh" type="button" id="btnSvg">Descargar mapa (SVG)</button>
-  <button class="btn gh" type="button" id="btnPng">Descargar mapa (PNG)</button>
-  <button class="btn gh" type="button" id="btnCsv">Descargar datos abiertos (CSV)</button>
+  <button class="btn" type="button" id="btnCitaMapa">Copiar cita</button>
+  <details class="dl-menu" id="dlMenu">
+   <summary class="btn gh">Descargar ▾</summary>
+   <div class="dl-pop" role="group" aria-label="Descargas para publicar">
+    <button type="button" id="btnSvg"><b>Mapa en SVG</b><span>Editable, con leyenda y créditos</span></button>
+    <button type="button" id="btnPng"><b>Mapa en PNG</b><span>Listo para web y redes</span></button>
+    <button type="button" id="btnCsv"><b>Datos abiertos en CSV</b><span>Las 24 provincias, para analizar</span></button>
+   </div>
+  </details>
+  <p class="kit-note" id="kitNota">Elige una provincia en el mapa para copiar su cita lista para prensa.</p>
  </div>
  <div class="grid gmap">
   <div class="card">
