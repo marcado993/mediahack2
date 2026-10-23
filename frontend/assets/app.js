@@ -687,15 +687,34 @@ function reliability(n) {
   return { cls: "hi", label: `Muestra suficiente (n = ${n})`, detail: "" };
 }
 
-function citaTexto({ provincia, indice, nivel, puesto, nacional, nLb }) {
+// One attribution for every copied text (sentence, paragraph, map quote, bullet).
+const FUENTE_OVADE = "Fuente: Observatorio de Vulnerabilidad ante la Desinformación Electoral.";
+
+// Editorial warning for provinces whose opinion data is imputed or comes from a
+// tiny sample. Shown on screen and appended to everything the reporter copies.
+function precaucion(nLb, provincia) {
   const conf = reliability(nLb);
-  const nota = conf && conf.cls === "lo" ? ` Nota: ${conf.detail.charAt(0).toLowerCase()}${conf.detail.slice(1)}` : "";
+  if (!conf || conf.cls !== "lo") return null;
+  return nLb === 0
+    ? `${provincia} no tiene muestra propia en el Latinobarómetro: sus cifras de opinión son el promedio del país y no deben citarse como datos locales.`
+    : `La muestra de ${provincia} en el Latinobarómetro es pequeña (n = ${nLb}): sus cifras de opinión son orientativas, no exactas.`;
+}
+
+function citaTexto({ provincia, indice, nivel, puesto, nacional, nLb }) {
+  const aviso = precaucion(nLb, provincia);
   return (
     `${provincia} obtiene ${fmt(indice)} sobre 100 en el Índice de Vulnerabilidad Electoral Integrada (IVEI), ` +
     `de vulnerabilidad ${(nivel || "").toLowerCase()}: puesto ${puesto} de 24 provincias (1 = la más vulnerable), con un promedio nacional de ${fmt(nacional)}. ` +
-    `Fuente: Observatorio de Vulnerabilidad ante la Desinformación Electoral, con datos del Censo 2022 y la ENEMDU 2024 (INEC) y el Latinobarómetro 2024. ` +
-    `El índice describe condiciones del territorio, no el comportamiento de sus habitantes.${nota}`
+    `${FUENTE_OVADE.slice(0, -1)}, con datos del Censo 2022 y la ENEMDU 2024 (INEC) y el Latinobarómetro 2024. ` +
+    `El índice describe condiciones del territorio, no el comportamiento de sus habitantes.` +
+    (aviso ? ` Precaución editorial: ${aviso}` : "")
   );
+}
+
+// Short sentence for the reporter in a hurry; same source line, same warning.
+function fraseCorta({ provincia, indice, puesto, nLb }) {
+  const aviso = precaucion(nLb, provincia);
+  return `${provincia}: puesto ${puesto} de 24 en vulnerabilidad electoral (IVEI ${fmt(indice)} de 100). ${FUENTE_OVADE}` + (aviso ? ` Precaución editorial: ${aviso}` : "");
 }
 const buildCita = (d) => citaTexto({ provincia: d.provincia, indice: d.ivei.indice, nivel: d.ivei.nivel, puesto: d.ivei.puesto, nacional: d.ivei.nacional, nLb: d.n_lb });
 const citaDeRegistro = (p) => citaTexto({ provincia: p.provincia, indice: p.IVEI, nivel: p.nivel, puesto: p.rank, nacional: MAPA.nacional.IVEI, nLb: p.n_lb });
@@ -840,12 +859,14 @@ function renderPerfil(data) {
     .sort((a, b) => b[1] - a[1]);
 
   // quotable lines: short on screen, a full sentence with its source when copied
-  const FUENTE_OVADE = "Fuente: Observatorio de Vulnerabilidad ante la Desinformación Electoral.";
   const angulos = [
     ...drivers(rec).map((d) => ({ html: d.html, copia: `${d.plain} ${FUENTE_OVADE}` })),
     ...datosClave(data).map((c) => ({ html: `${c.corto}${solBadge(c.source)}`, copia: `${c.texto} Fuente: ${c.source}.` })),
   ].slice(0, 5);
-  const frase = `${data.provincia}: puesto ${data.ivei.puesto} de 24 en vulnerabilidad electoral (IVEI ${fmt(data.ivei.indice)} de 100). Fuente: OVADE.`;
+  const frase = fraseCorta({ provincia: data.provincia, indice: data.ivei.indice, puesto: data.ivei.puesto, nLb: data.n_lb });
+  const aviso = precaucion(data.n_lb, data.provincia);
+  const pesan = drivers(rec).map((d) => (d.k === "RES" ? "poca capacidad de contrastar" : factorNombre(d.k).toLowerCase()));
+  const titular = `${data.provincia}: vulnerabilidad ${(data.ivei.nivel || "").toLowerCase()} (${fmt(data.ivei.indice)}/100), puesto ${data.ivei.puesto} de 24${pesan.length ? `; pesan más ${pesan.join(" y ")}` : ""}.`;
   const extraNo = [];
   if (isImputed) extraNo.push(`Presentar como propias las cifras de opinión de ${data.provincia}: son el promedio del país.`);
   else if (conf && conf.cls === "lo") extraNo.push(`Dar como exactas las cifras de opinión de ${data.provincia}: ${conf.detail.charAt(0).toLowerCase()}${conf.detail.slice(1)}`);
@@ -915,6 +936,8 @@ function renderPerfil(data) {
 
   <div class="kit-grid">
    <section class="card kit-main" id="sec-esencial">
+    <h3 class="ess-titular">${esc(titular)}</h3>
+    ${aviso ? `<div class="precaucion" role="note"><span class="pc-h">${ICON.warn}Precaución editorial</span><p>${esc(aviso)}</p></div>` : ""}
     <div class="km-top">
      <div class="km-num">
       <span class="big">${fmt(data.ivei.indice)}</span>
@@ -927,16 +950,16 @@ function renderPerfil(data) {
       <p class="note" style="margin:0">${esc(data.perfil_territorial.descripcion)}</p>
      </div>
     </div>
-    ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
     ${
       flag("cita_lista")
         ? `<div class="copiar">
+       <div class="cita-act"><button class="btn" id="btnCita" type="button">Copiar párrafo para tu nota</button><button class="btn gh" id="btnFrase" type="button">Copiar frase corta</button></div>
        <p class="frase" id="fraseTexto">${esc(frase)}</p>
-       <div class="cita-act"><button class="btn" id="btnFrase" type="button">Copiar frase</button><button class="btn gh" id="btnCita" type="button">Copiar párrafo completo</button></div>
        <blockquote id="citaTexto">${esc(cita)}</blockquote>
       </div>`
         : ""
     }
+    ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
    </section>
 
@@ -987,10 +1010,7 @@ function renderPerfil(data) {
   if ($("btnCita")) $("btnCita").onclick = (e) => copiarBtn(e.currentTarget, cita);
   if ($("btnTodo")) $("btnTodo").onclick = (e) => copiarBtn(e.currentTarget, angulos.map((a) => `• ${a.copia}`).join("\n"));
   if ($("btnEnlace")) $("btnEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);
-  $("btnSolidez").onclick = () => {
-    navigate("meto");
-    requestAnimationFrame(() => $("solidez")?.scrollIntoView());
-  };
+  $("btnSolidez").onclick = () => openFicha("IVEI", data.provincia);
   if ($("btnFicha")) $("btnFicha").onclick = () => downloadFicha(data.provincia);
   if ($("essComparar"))
     $("essComparar").onchange = (e) => {
@@ -2000,9 +2020,12 @@ function fichaRapida(code) {
     ["¿Qué lo valida?", "Para el índice completo: correlación de 0,92 con la ENEMDU, prueba de ruido de ±2 puntos y orden estable sin el modulador (ρ = 0,99). Las pruebas de pesos, de variables débiles y de fuente alternativa están en curso."],
   ];
 }
-function openFicha(code) {
+function openFicha(code, provincia) {
   $("fichaTitulo").textContent = `Ficha rápida: ${code === "IVEI" ? "Todos los factores" : factorNombre(code)}`;
-  $("fichaSub").textContent = "Las seis preguntas del índice, aplicadas a este factor.";
+  const conf = provincia ? reliability(PERFIL_DATA?.provincia === provincia ? PERFIL_DATA.n_lb : null) : null;
+  $("fichaSub").textContent =
+    "Las seis preguntas del índice, aplicadas a este factor." +
+    (conf ? ` Para ${provincia}: ${conf.label.toLowerCase()}${conf.detail ? `. ${conf.detail}` : ""}` : "");
   $("fichaCuerpo").innerHTML = fichaRapida(code)
     .map(([q, a]) => `<li><b>${esc(q)}</b><p>${esc(a)}</p></li>`)
     .join("");
