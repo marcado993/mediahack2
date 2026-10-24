@@ -50,3 +50,16 @@ Interactive docs at `http://localhost:8000/docs`.
 
 Galápagos returns 404 from `/api/provinces/{province}` — it has no IVD. The
 frontend handles this directly rather than surfacing a raw error.
+
+## White-label, flags y solicitudes
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/tenant-config?medio=slug&host=` | Marca + flags resueltos de un medio (público) |
+| POST | `/api/solicitudes` | Formulario «Solicitar información» (público, 5 por hora por IP, honeypot) |
+| GET/POST/PUT/DELETE | `/api/admin/tenants[/{slug}]` | Gestión de medios (header `X-Admin-Token`) |
+| GET | `/api/admin/flags` | Registro de feature flags |
+| GET/PUT | `/api/admin/solicitudes[/{id}]` | Bandeja de solicitudes; no se puede marcar «respondida» sin quién firmó la revisión |
+
+`ADMIN_TOKEN` es obligatorio para el panel. `tenants.json` y `solicitudes.json` están ignorados por git
+(el segundo guarda nombres y correos).
