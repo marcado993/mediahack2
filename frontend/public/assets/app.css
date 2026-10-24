@@ -4665,3 +4665,24 @@ nav button {
     margin-top: 0;
   }
 }
+
+/* phone tab bar: labels wrap onto two lines instead of running into each other */
+@media (max-width: 640px) {
+  header nav button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+    font-size: 12px;
+    line-height: 1.15;
+    padding: 6px 3px;
+  }
+}
+@media (max-width: 360px) {
+  header nav button {
+    font-size: 11.5px;
+  }
+}
