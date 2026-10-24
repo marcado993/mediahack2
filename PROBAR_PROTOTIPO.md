@@ -48,7 +48,7 @@ pip install -r backend/requirements.txt
 2. Sitio público (puerto 5173), en otra terminal:
 
    ```bash
-   python -c "import http.server,os; os.chdir('frontend'); http.server.ThreadingHTTPServer(('0.0.0.0',5173),http.server.SimpleHTTPRequestHandler).serve_forever()"
+   cd frontend && npm install && npm run dev
    ```
 
 3. Panel de medios (puerto 5174), en otra terminal:
