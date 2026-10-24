@@ -20,7 +20,8 @@ Optimizar la interfaz gráfica y la experiencia de usuario (UI/UX) del prototipo
 │   ├── index.html            # Markup semántico, vistas y modales
 │   ├── assets/
 │   │   ├── app.css           # Sistema de diseño, tokens, componentes y responsive
-│   │   ├── app.js            # Lógica cliente, navegación, renderizado de mapas/datos
+│   │   ├── app.js            # Punto de entrada (arranque); el resto está en assets/mod/ (ver mod/LEEME.md)
+│   │   ├── mod/              # Módulos ES nativos: estado, nav, mapa, kit, comparar, formularios…
 │   │   ├── ui.js             # Componentes compartidos de certeza y presentación
 │   │   ├── api.js            # Cliente fetch para el backend FastAPI
 │   │   ├── tenant.js         # Personalización de marca y temas
