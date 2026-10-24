@@ -17,7 +17,7 @@ import { gl } from "./metodologia.js";
 import { escalaHTML, recordarReciente, renderProvLista, skeletonKit } from "./inicio.js";
 import { openFicha } from "./descargas.js";
 import { bindVariables, enlaceVariable } from "./diccionario.js";
-import { textoRangoPuesto } from "./sensibilidad.js";
+import { rangoPuestoCorto } from "./sensibilidad.js";
 import { alternarProvincia, sigue } from "./seguimiento.js";
 
 // ---------------------------------------------------------------------
@@ -226,6 +226,7 @@ export function renderPerfil(data) {
     ...datosClave(data).map((c) => ({ variable: c.variable, html: `${c.corto}${solBadge(c.source)}`, copia: `${c.texto} Fuente: ${c.source}.` })),
   ].slice(0, 5);
   const frase = fraseCorta({ provincia: data.provincia, indice: data.ivei.indice, puesto: data.ivei.puesto, nLb: data.n_lb });
+  const fraseVista = fraseCorta({ provincia: data.provincia, indice: data.ivei.indice, puesto: data.ivei.puesto, nLb: null });
   const aviso = precaucion(data.n_lb, data.provincia);
   const pesan = drivers(rec).map((d) => (d.k === "RES" ? "poca capacidad de contrastar" : factorNombre(d.k).toLowerCase()));
   const titular = `${data.provincia}: vulnerabilidad ${(data.ivei.nivel || "").toLowerCase()} (${fmt(data.ivei.indice)}/100), puesto ${data.ivei.puesto} de 24${pesan.length ? `; pesan más ${pesan.join(" y ")}` : ""}.`;
@@ -275,8 +276,9 @@ export function renderPerfil(data) {
 
   const showGuide = flag("guia_reportero");
   const cuidado = [];
-  if (conf) cuidado.push(`<span class="conf ${conf.cls}">${esc(conf.label)}</span>`);
-  if (isImputed) cuidado.push("<span>Su opinión es el promedio del país.</span>");
+  // the editorial warning above already says this: do not repeat it
+  if (conf && !aviso) cuidado.push(`<span class="conf ${conf.cls}">${esc(conf.label)}</span>`);
+  if (isImputed && !aviso) cuidado.push("<span>Su opinión es el promedio del país.</span>");
   if (isBorderlineCase) cuidado.push("<span>Su perfil puede cambiar con ajustes menores.</span>");
   const conEscucha = viewEnabled("asistente");
   // Quick-note mode: only what a reporter on deadline needs is open; the
@@ -284,6 +286,7 @@ export function renderPerfil(data) {
   const chips = [
     ["esencial", "Resumen"],
     ...(showGuide ? [["angulos", "Datos para tu nota"]] : []),
+    ...(flag("vista_comparar") ? [["comparar", "Comparar"]] : []),
     ...(conEscucha ? [["escucha", "Qué se dice"]] : []),
     ...(showGuide ? [["decidir", "Qué afirmar"]] : []),
     ["afondo", "Investigar a fondo"],
@@ -309,7 +312,8 @@ export function renderPerfil(data) {
       flag("cita_lista")
         ? `<div class="copiar">
        <p class="copiar-h">Para tu nota</p>
-       <p class="frase" id="fraseTexto">${esc(frase)}</p>
+       <p class="frase" id="fraseTexto">${esc(fraseVista)}</p>
+       ${aviso ? `<p class="copiar-nota">Al copiar se añade la advertencia de arriba.</p>` : ""}
        <div class="cita-act"><button class="btn" id="btnFrase" type="button">Copiar para mi nota</button><button class="btn gh" id="btnCita" type="button">Copiar con más contexto</button></div>
       </div>`
         : ""
@@ -321,14 +325,13 @@ export function renderPerfil(data) {
       ${scoreRange({ confidenceRange: data.ivei.rango ?? null })}
      </div>
      <div class="km-txt">
-      <p class="ess-lead"><b>Puesto ${data.ivei.puesto} de 24</b> <span class="pais">1 = la más vulnerable · país ${fmt(data.ivei.nacional)}</span></p>
-      <p class="pais" style="margin:0 0 6px;font-size:13px">${esc(textoRangoPuesto(data.provincia))}</p>
+      <p class="ess-lead"><b>Puesto ${data.ivei.puesto} de 24</b> <span class="pais">${esc(rangoPuestoCorto(data.provincia) || "1 = la más vulnerable")}</span></p>
       <p class="ess-tipo"><span class="pdot" style="background:${perfilColor(data.perfil_territorial.tipo)}"></span><b>${esc(perfilPlano(data.perfil_territorial.tipo))}</b></p>
       <p class="note" style="margin:0">${esc(primeraFrase(data.perfil_territorial.descripcion))}</p>
      </div>
     </div>
     ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
-    <p class="rel-aviso">${ICON.warn}<span><b>Índice relativo:</b> compara provincias entre sí, no mide un nivel absoluto. Describe territorios, no personas.</span></p>
+    <p class="rel-aviso">${ICON.warn}<span><b>Índice relativo:</b> compara provincias entre sí. Describe territorios, no personas.</span></p>
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
    </section>
 
@@ -342,12 +345,11 @@ export function renderPerfil(data) {
    }
   </div>
 
+  ${flag("vista_comparar") ? comparaCard(data.provincia) : ""}
   ${segunda.length ? `<div class="grid ${segunda.length > 1 ? "g2" : ""}" style="margin-top:16px">${segunda.join("")}</div>` : ""}
 
   <div class="kit-actions noprint">
    ${flag("ficha_descargable") ? `<button class="btn gh" type="button" id="btnFicha">Descargar ficha</button>` : ""}
-   <label class="sr" for="essComparar">Comparar con otra provincia</label>
-   <select id="essComparar" ${flag("vista_comparar") ? "" : "hidden"}><option value="">Comparar con…</option>${E.PROVINCIAS.filter((p) => p !== data.provincia).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("")}</select>
    <button class="btn gh" type="button" id="btnVerMapa">Ver en el mapa</button>
    <button class="btn gh" type="button" id="btnEnlace">Copiar enlace</button>
    ${typeof navigator !== "undefined" && navigator.share ? `<button class="btn gh" type="button" id="btnCompartir">Compartir</button>` : ""}
@@ -370,6 +372,23 @@ export function renderPerfil(data) {
   </details>
   ${flag("cita_lista") ? `<div class="copy-bar noprint"><button class="btn" id="btnFraseBar" type="button">Copiar para mi nota</button></div>` : ""}`;
 
+  // the section nav stays on screen and shows where you are
+  const botones = [...target.querySelectorAll(".idx [data-sec]")];
+  if (E.spy) removeEventListener("scroll", E.spy);
+  E.spy = () => {
+    if (E.spyT) return;
+    E.spyT = setTimeout(() => {
+      E.spyT = 0;
+      let activo = botones[0];
+      for (const b of botones) {
+        const el = $("sec-" + b.dataset.sec);
+        if (el && el.getBoundingClientRect().top <= 140) activo = b;
+      }
+      botones.forEach((b) => b.classList.toggle("on", b === activo));
+    }, 60);
+  };
+  addEventListener("scroll", E.spy, { passive: true });
+  E.spy();
   const barra = target.querySelector(".copy-bar");
   if (barra && $("btnFrase") && "IntersectionObserver" in window) {
     // the bar only shows once the top button has scrolled out of sight
@@ -416,6 +435,23 @@ export function renderPerfil(data) {
     navigate(`mapas/${E.capa}`);
     requestAnimationFrame(() => $("peek")?.scrollIntoView({ block: "nearest" }));
   };
+}
+
+// Comparing is a first-class move: the three provinces closest in score are one tap away.
+function comparaCard(prov) {
+  const yo = (E.MAPA?.provincias ?? []).find((p) => p.provincia === prov);
+  const cerca = yo
+    ? E.MAPA.provincias
+        .filter((p) => p !== yo && p.IVEI != null)
+        .sort((a, b) => Math.abs(a.IVEI - yo.IVEI) - Math.abs(b.IVEI - yo.IVEI))
+        .slice(0, 3)
+    : [];
+  return `<section class="card cmp-sug" id="sec-comparar" style="margin-top:16px"><h2>Compara ${esc(prov)} con otra provincia</h2>
+   <p class="note" style="margin:2px 0 12px">Las más parecidas en puntaje, a un toque. O elige cualquiera.</p>
+   <div class="cmp-chips">${cerca.map((p) => `<button type="button" class="cmp-chip" data-ruta="comparar/${enc(prov)}/${enc(p.provincia)}"><i class="cdot a"></i>${esc(prov)}<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 7h13m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><i class="cdot b"></i>${esc(p.provincia)}</button>`).join("")}
+    <label class="sr" for="essComparar">Comparar con otra provincia</label>
+    <select id="essComparar"><option value="">Otra provincia…</option>${E.PROVINCIAS.filter((p) => p !== prov).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("")}</select></div>
+  </section>`;
 }
 
 function pintarSeguir(btn, provincia) {
@@ -466,7 +502,7 @@ async function renderEscuchaFicha(provincia) {
   const box = $("sec-escucha");
   if (!box) return;
   const head = `<div class="sec-h"><h2>Qué se está diciendo en ${esc(provincia)}</h2><span class="esc-tag">Escucha digital · insumo para decisión humana</span></div>`;
-  box.innerHTML = `${head}<p class="note" style="margin-bottom:6px">Leyendo X y medios sobre ${esc(provincia)}…</p>${skLines(3)}`;
+  box.innerHTML = `${head}<p class="note" style="margin-bottom:6px">Leyendo X y medios sobre ${esc(provincia)}… puede tardar hasta 20 segundos. Lo demás de la ficha ya está listo.</p>${skLines(3)}`;
   let res;
   try {
     res = await getTendencias(provincia);

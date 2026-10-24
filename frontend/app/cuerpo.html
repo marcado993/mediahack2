@@ -58,7 +58,7 @@
    <ul class="lgcat" id="lgCat" hidden></ul>
    <div class="howto noprint"><h3 class="howto-h">Cómo leer este mapa</h3>
     <ul>
-     <li>Cada provincia se pinta según el factor elegido arriba. Un azul más oscuro significa condiciones más favorables para que la desinformación prospere; uno claro, menos.</li>
+     <li>Cada provincia se pinta según el factor elegido arriba. De verde (condiciones menos favorables para que la desinformación prospere) a rojo (más favorables). En «Capacidad de contrastar» y «Habilidades digitales» es al revés: más capacidad es verde.</li>
      <li>Los colores comparan provincias entre sí: muestran quién está mejor o peor que las demás, no un nivel absoluto.</li>
      <li>El borde punteado marca una provincia sin muestra propia: su dato de opinión es el promedio del país.</li>
      <li>Un nivel alto describe al territorio, no a las personas ni a los medios de ahí.</li>
@@ -95,7 +95,7 @@
     <svg id="map-sel" viewBox="0 0 560 640" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Mapa de Ecuador"></svg>
     <div class="inset-gal inset-sel"><span class="inset-gal-label">GALÁPAGOS</span><svg id="map-sel-gal" viewBox="0 0 110 110"></svg></div>
    </div>
-   <p class="pais" style="margin:6px 2px 12px">Más oscuro = más vulnerable.</p>
+   <p class="pais" style="margin:6px 2px 12px"><i class="cdot" style="background:#78c882"></i>Verde = menos vulnerable · <i class="cdot" style="background:#c8372d"></i>rojo = más vulnerable.</p>
    </div>
    <div class="aside-find">
    <div id="provRecientes" class="recent"></div>
@@ -109,9 +109,14 @@
 
 <!-- ============ COMPARAR ============ -->
 <section class="view" id="v-comparar">
- <div style="display:flex;gap:9px;align-items:center;margin-bottom:15px;flex-wrap:wrap">
-  <label for="cmpA" class="sr">Primera provincia</label><select id="cmpA"></select><span style="color:var(--mut);font-size:13px">frente a</span>
-  <label for="cmpB" class="sr">Segunda provincia</label><select id="cmpB"></select>
+ <div class="card cmp-hero">
+  <h2>Compara dos provincias</h2>
+  <p class="note" style="margin:2px 0 14px">Elige dos y te damos la diferencia, lista para copiar.</p>
+  <div class="cmp-sel">
+   <label class="cmp-lado a"><span><i class="cdot a" aria-hidden="true"></i>Provincia A</span><select id="cmpA"></select></label>
+   <button type="button" class="cmp-swap" id="cmpSwap" aria-label="Intercambiar las dos provincias" title="Intercambiar"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M3 7h13m-4-4 4 4-4 4M17 13H4m4-4-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+   <label class="cmp-lado b"><span><i class="cdot b" aria-hidden="true"></i>Provincia B</span><select id="cmpB"></select></label>
+  </div>
  </div>
  <div id="comparar"></div>
 </section>

@@ -6,6 +6,7 @@ import { ICON, esc, fmt, provinceFlags, scoreRange } from "../ui.js";
 import { E } from "./estado.js";
 import { $ } from "./util.js";
 import { enc, esLimite, perfilColor, perfilPlano } from "./datos.js";
+import { entradaKit } from "./efectos.js";
 import { col, inkFor } from "./color.js";
 import { copiarBtn, errorBox, navigate } from "./nav.js";
 import { dimRow } from "./kit.js";
@@ -27,6 +28,10 @@ export function initComparar() {
   };
   a.onchange = sync;
   b.onchange = sync;
+  $("cmpSwap").onclick = () => {
+    [a.value, b.value] = [b.value, a.value];
+    sync();
+  };
   renderCmp();
 }
 
@@ -36,7 +41,7 @@ export function initComparar() {
 export function deltaTableHTML(d) {
   const { a, b } = d;
   const rows = [["Nivel de vulnerabilidad", a.ivei, b.ivei, 1], ...a.dimensiones.map((x, i) => [x.nombre, x.valor, b.dimensiones[i].valor, x.codigo === "RES" ? -1 : 1])];
-  return `<div style="overflow-x:auto"><table class="delta"><thead><tr><th>Factor</th><th class="num">${esc(a.provincia)}</th><th class="num">${esc(b.provincia)}</th><th class="num">Diferencia</th></tr></thead><tbody>${rows
+  return `<div style="overflow-x:auto"><table class="delta"><thead><tr><th>Factor</th><th class="num"><i class="cdot a"></i>${esc(a.provincia)}</th><th class="num"><i class="cdot b"></i>${esc(b.provincia)}</th><th class="num">Diferencia</th></tr></thead><tbody>${rows
     .map(([label, va, vb, dir]) => {
       const diff = va == null || vb == null ? null : va - vb;
       const peor = diff == null ? "" : Math.abs(diff) < 2 ? "eq" : dir * diff > 0 ? "up" : "dn";
@@ -109,7 +114,7 @@ export async function renderCmp() {
   <section class="card" style="margin-top:16px"><h2>Las dos provincias lado a lado</h2><div class="grid g2" style="margin-top:10px">
    ${[data.a, data.b]
      .map(
-       (p) => `<div><h3>${esc(p.provincia)}</h3>
+       (p, i) => `<div class="cmp-col ${i ? "b" : "a"}"><h3><i class="cdot ${i ? "b" : "a"}"></i>${esc(p.provincia)}</h3>
     <div class="ptags">${provinceFlags({ isImputed: nLb(p.provincia) === 0, isBorderlineCase: esLimite(p.provincia), compact: true })}</div>
     <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><div class="big" style="font-size:34px">${fmt(p.ivei)}</div>
      <span class="pill" style="background:${col("IVEI", p.ivei)};color:${inkFor(col("IVEI", p.ivei))}">${esc(p.nivel)}</span>${scoreRange({ confidenceRange: p.rango ?? null })}</div>
@@ -123,6 +128,7 @@ export async function renderCmp() {
   <table><thead><tr><th>Indicador</th><th class="num">${esc(data.a.provincia)}</th>
   <th class="num">${esc(data.b.provincia)}</th><th class="num">Dif.</th><th class="num">País</th>
   <th>Unidad</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+  entradaKit(target);
   bindVariables(target);
   $("btnCmpCopia").onclick = (e) => copiarBtn(e.currentTarget, copia, "comparacion");
   $("btnCmpEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);

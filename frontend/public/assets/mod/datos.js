@@ -12,15 +12,20 @@ export const NAME_ALIASES = { "santo domingo": "santo domingo de los tsachilas" 
 // dark = more. No traffic-light colours, nothing that shouts or stigmatises. RES (resilience) reads the
 // opposite direction, so it gets the ramp reversed rather than the value
 // inverted, which keeps the legend gradient itself green-first for RES too.
+// Green -> yellow -> orange -> red: low to high. Lightness falls from yellow to dark red,
+// so the order still reads for people who confuse red and green; the ranking numbers and
+// the legend always travel with the colour.
 export const RAMP = [
-  [232, 239, 248],
-  [194, 211, 234],
-  [149, 177, 216],
-  [99, 138, 193],
-  [54, 96, 158],
-  [16, 50, 104],
+  [120, 200, 130],
+  [170, 214, 120],
+  [245, 224, 110],
+  [243, 174, 70],
+  [232, 120, 52],
+  [200, 55, 45],
+  [140, 25, 28],
 ];
 
+// Layers where higher is better (capacity to verify, digital skills) read the other way round
 export const GREEN = [...RAMP].reverse();
 
 // ---------------------------------------------------------------------

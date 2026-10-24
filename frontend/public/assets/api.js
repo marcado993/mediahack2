@@ -22,13 +22,18 @@ export const API_BASE = (() => {
   return "https://mediahack-api.apiprueba.online";
 })();
 
+// Reading X and the press takes up to ~20 s by nature. Those calls have their own
+// "leyendo…" state in place; they must not raise the global "server is slow" notice.
+const LENTAS = [/^\/api\/trends(\?|$|\/)/];
+
 export async function api(path, opts) {
-  dispatchEvent(new Event("ovade:busy"));
+  const lenta = LENTAS.some((r) => r.test(path));
+  if (!lenta) dispatchEvent(new Event("ovade:busy"));
   let res;
   try {
     res = await fetch(`${API_BASE}${path}`, opts);
   } finally {
-    dispatchEvent(new Event("ovade:idle"));
+    if (!lenta) dispatchEvent(new Event("ovade:idle"));
   }
   if (!res.ok) {
     let detail = "";

@@ -27,6 +27,13 @@ export function textoRangoPuesto(provincia) {
   return r.mejor === r.peor ? `Con ±${RUIDO} puntos de ruido, su puesto no cambia.` : `Con ±${RUIDO} puntos de ruido, su puesto puede ir del ${r.mejor} al ${r.peor}.`;
 }
 
+/** Same idea in a few words, for the line next to the position. */
+export function rangoPuestoCorto(provincia) {
+  const r = rangoPuesto(provincia);
+  if (!r || r.mejor === r.peor) return "";
+  return `con ±${RUIDO} puntos de ruido, del ${r.mejor} al ${r.peor}`;
+}
+
 export function sensibilidadHTML() {
   const filas = [...(E.MAPA?.provincias ?? [])].filter((p) => p.IVEI != null).sort((a, b) => a.rank - b.rank);
   if (!filas.length) return "";

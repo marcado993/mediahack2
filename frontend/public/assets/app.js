@@ -24,6 +24,25 @@ document.querySelectorAll("nav button[data-v]").forEach((b) => {
   b.addEventListener("click", () => navigate(pathFor(b.dataset.v)));
 });
 
+// "Comparar provincias" is easy to miss: its tab pulses until it is used once
+const tabCmp = document.querySelector('nav button[data-v="comparar"]');
+const vioComparar = () => {
+  try {
+    return localStorage.getItem("ovade.vioComparar") === "1";
+  } catch (_) {
+    return false;
+  }
+};
+if (tabCmp && !vioComparar()) {
+  tabCmp.classList.add("nuevo");
+  tabCmp.addEventListener("click", () => {
+    tabCmp.classList.remove("nuevo");
+    try {
+      localStorage.setItem("ovade.vioComparar", "1");
+    } catch (_) {}
+  });
+}
+
 document.querySelectorAll("nav > button").forEach((b) => {
   b.addEventListener("keydown", (e) => {
     const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
