@@ -39,3 +39,4 @@ server.log
 backend/app/data/tenants.json
 # Solicitudes de información: contienen nombre y correo de personas
 backend/app/data/solicitudes.json
+backend/app/data/retroalimentacion.json
