@@ -71,7 +71,7 @@ function drawTendMapSVG(svgEl, pathsMap) {
       document.getElementById("tendProvLabel").textContent = displayName;
       runTendencias(displayName);
       // on a phone the result sits under the map: bring it into view, no scrolling needed
-      if (innerWidth <= 760) requestAnimationFrame(() => document.getElementById("tendProvLabel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
+      if (innerWidth <= 760) setTimeout(() => document.getElementById("tendProvLabel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }), 30);
     });
     svgEl.appendChild(path);
   }
