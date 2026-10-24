@@ -287,9 +287,11 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.classList.remove("on"), 3200);
 }
 // Copy with feedback where the eyes already are: the button says "Copiado".
-async function copiarBtn(btn, texto) {
+// `contexto` marks copies worth asking about («¿Te sirvió?»), e.g. a quote.
+async function copiarBtn(btn, texto, contexto) {
   const ok = await copyText(texto);
   if (!ok) return toast("No se pudo copiar. Selecciona el texto y cópialo a mano.");
+  if (contexto) pedirOpinion(contexto);
   const prev = btn.dataset.label || btn.textContent;
   btn.dataset.label = prev;
   btn.textContent = "Copiado ✓";
@@ -1035,10 +1037,10 @@ function renderPerfil(data) {
   });
   $("sec-afondo").addEventListener("toggle", (e) => recordarAFondo(e.target.open));
   if (conEscucha) renderEscuchaFicha(data.provincia);
-  target.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = () => copiarBtn(b, b.dataset.copy)));
-  if ($("btnFrase")) $("btnFrase").onclick = (e) => copiarBtn(e.currentTarget, frase);
-  if ($("btnCita")) $("btnCita").onclick = (e) => copiarBtn(e.currentTarget, cita);
-  if ($("btnTodo")) $("btnTodo").onclick = (e) => copiarBtn(e.currentTarget, angulos.map((a) => `• ${a.copia}`).join("\n"));
+  target.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = () => copiarBtn(b, b.dataset.copy, "datos_nota")));
+  if ($("btnFrase")) $("btnFrase").onclick = (e) => copiarBtn(e.currentTarget, frase, "frase_ficha");
+  if ($("btnCita")) $("btnCita").onclick = (e) => copiarBtn(e.currentTarget, cita, "cita_ficha");
+  if ($("btnTodo")) $("btnTodo").onclick = (e) => copiarBtn(e.currentTarget, angulos.map((a) => `• ${a.copia}`).join("\n"), "datos_nota");
   if ($("btnEnlace")) $("btnEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);
   $("btnSolidez").onclick = () => openFicha("IVEI", data.provincia);
   if ($("btnFicha")) $("btnFicha").onclick = () => downloadFicha(data.provincia);
@@ -1481,7 +1483,7 @@ async function renderCmp() {
   <table><thead><tr><th>Indicador</th><th class="num">${esc(data.a.provincia)}</th>
   <th class="num">${esc(data.b.provincia)}</th><th class="num">Dif.</th><th class="num">País</th>
   <th>Unidad</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
-  $("btnCmpCopia").onclick = (e) => copiarBtn(e.currentTarget, copia);
+  $("btnCmpCopia").onclick = (e) => copiarBtn(e.currentTarget, copia, "comparacion");
   $("btnCmpEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);
 }
 
@@ -1909,6 +1911,158 @@ function initSolicitud() {
 }
 
 // ---------------------------------------------------------------------
+// Retroalimentación del medio: a one-tap «¿Te sirvió?» after copying, and a
+// short form where the newsroom says what it needs. Both are tagged with the
+// outlet (tenant) so each white-label client's needs can be read apart.
+// ---------------------------------------------------------------------
+const OPINA_KEY = "ovade.opina";
+const MOTIVOS_RETRO = [
+  ["falto_dato", "Faltó un dato"],
+  ["dificil_entender", "Difícil de entender"],
+  ["no_sirve_nota", "No encaja en mi nota"],
+  ["error_dato", "Creo que hay un error"],
+  ["otro", "Otro motivo"],
+];
+// Ask at most once per kind of copy per session, and stop after two dismissals:
+// a reporter on deadline must never feel interrogated.
+function opinaEstado() {
+  try {
+    return JSON.parse(sessionStorage.getItem(OPINA_KEY)) || { vistos: [], cerrados: 0 };
+  } catch (_) {
+    return { vistos: [], cerrados: 0 };
+  }
+}
+function opinaGuardar(st) {
+  try {
+    sessionStorage.setItem(OPINA_KEY, JSON.stringify(st));
+  } catch (_) {}
+}
+let opinaTimer;
+function opinaOcultar(ms = 0) {
+  clearTimeout(opinaTimer);
+  opinaTimer = setTimeout(() => ($("opina").hidden = true), ms);
+}
+async function enviarRetro(datos) {
+  return postJSON("/api/retroalimentacion", { medio: tenant().slug, web: "", ...datos });
+}
+function pedirOpinion(contexto) {
+  if (!flag("retroalimentacion")) return;
+  const st = opinaEstado();
+  if (st.vistos.includes(contexto) || st.cerrados >= 2) return;
+  st.vistos.push(contexto);
+  opinaGuardar(st);
+  const provincia = currentView === "perfil" ? perfilActual || "" : mapSel ? byKey()[mapSel]?.provincia || "" : "";
+  const box = $("opina");
+  const base = { tipo: "uso", contexto, provincia };
+  const gracias = (msg) => {
+    box.innerHTML = `<p class="op-q">${msg}</p>`;
+    opinaOcultar(2600);
+  };
+  const fallo = () => gracias("No pudimos enviar tu opinión. Tu texto ya está copiado.");
+
+  box.innerHTML = `<p class="op-q">¿Te sirvió lo que copiaste?</p>
+   <div class="op-acts"><button type="button" class="copybtn" data-op="si">Sí</button><button type="button" class="copybtn" data-op="no">No del todo</button>
+   <button type="button" class="op-x" data-op="x" aria-label="Cerrar sin responder">×</button></div>`;
+  box.hidden = false;
+  opinaOcultar(12000);
+
+  box.onmouseenter = box.onfocusin = () => clearTimeout(opinaTimer);
+  box.onclick = async (e) => {
+    const op = e.target.closest("[data-op]")?.dataset.op;
+    if (!op) return;
+    if (op === "x") {
+      st.cerrados++;
+      opinaGuardar(st);
+      return opinaOcultar();
+    }
+    if (op === "si") {
+      try {
+        await enviarRetro({ ...base, util: true });
+        gracias("Gracias. Nos ayuda a saber qué sirve en una redacción.");
+      } catch (_) {
+        fallo();
+      }
+      return;
+    }
+    if (op === "no") {
+      clearTimeout(opinaTimer);
+      box.innerHTML = `<p class="op-q">¿Qué faltó?</p>
+       <div class="op-mot" role="group" aria-label="Motivo">${MOTIVOS_RETRO.map(([v, l]) => `<button type="button" class="copybtn" aria-pressed="false" data-mot="${v}">${l}</button>`).join("")}</div>
+       <label class="sr" for="opCom">Comentario opcional</label>
+       <textarea id="opCom" rows="2" maxlength="600" placeholder="Opcional: cuéntanos qué esperabas"></textarea>
+       <div class="op-acts"><button type="button" class="btn" data-op="enviar">Enviar</button>${flag("retroalimentacion") ? `<button type="button" class="linkbtn" data-retro>Contarnos más sobre tu medio</button>` : ""}
+       <button type="button" class="op-x" data-op="x" aria-label="Cerrar sin responder">×</button></div>`;
+      box.querySelectorAll("[data-mot]").forEach(
+        (b) =>
+          (b.onclick = () => {
+            box.querySelectorAll("[data-mot]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+          })
+      );
+      box.querySelector("[data-mot]").focus();
+      return;
+    }
+    if (op === "enviar") {
+      const motivo = box.querySelector('[data-mot][aria-pressed="true"]')?.dataset.mot || "";
+      try {
+        await enviarRetro({ ...base, util: false, motivo, comentario: $("opCom").value.trim() });
+        gracias("Gracias. Lo revisamos para mejorar la herramienta.");
+      } catch (_) {
+        fallo();
+      }
+    }
+  };
+}
+
+function initRetro() {
+  const dlg = $("dlgRetro");
+  const form = $("formRetro");
+  const open = () => {
+    $("retOk").hidden = true;
+    form.hidden = false;
+    $("retErr").textContent = "";
+    opinaOcultar();
+    dlg.showModal();
+    $("retNombre").focus();
+  };
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("[data-retro]")) open();
+    if (e.target.closest("[data-cerrar-retro]")) dlg.close();
+  });
+  dlg.addEventListener("click", (e) => {
+    if (e.target === dlg) dlg.close();
+  });
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const send = $("retEnviar");
+    send.disabled = true;
+    send.textContent = "Enviando…";
+    $("retErr").textContent = "";
+    try {
+      await enviarRetro({
+        tipo: "medio",
+        nombre: $("retNombre").value,
+        organizacion: $("retOrg").value,
+        rol: $("retRol").value,
+        correo: $("retCorreo").value,
+        modulos: [...form.querySelectorAll('[name="retMod"]:checked')].map((c) => c.value),
+        necesidad: $("retNecesidad").value,
+        valoracion: Number(form.querySelector('[name="retVal"]:checked')?.value) || null,
+        web: $("retWeb").value,
+      });
+      form.hidden = true;
+      form.reset();
+      $("retOk").hidden = false;
+      $("retCerrarOk").focus();
+    } catch (err) {
+      $("retErr").textContent = err.status ? err.message : "No se pudo enviar. Revisa tu conexión e inténtalo de nuevo.";
+    } finally {
+      send.disabled = false;
+      send.textContent = "Enviar";
+    }
+  };
+}
+
+// ---------------------------------------------------------------------
 // Map selection: tap a province and its essentials appear beside the map,
 // without leaving it. The full profile is one more click away.
 // ---------------------------------------------------------------------
@@ -1953,7 +2107,7 @@ function renderPeek() {
     paintMap();
   };
   $("peekPerfil").onclick = () => goToPerfil(p.provincia);
-  if ($("peekCita")) $("peekCita").onclick = (e) => copiarBtn(e.currentTarget, citaDeRegistro(p));
+  if ($("peekCita")) $("peekCita").onclick = (e) => copiarBtn(e.currentTarget, citaDeRegistro(p), "cita_resumen");
 }
 
 function selectProvince(name) {
@@ -2157,7 +2311,7 @@ async function renderCmpMini() {
     const { frase, copia } = compareText(d);
     box.innerHTML = `<p class="cmp-frase">${esc(frase)}</p>${deltaTableHTML(d)}
     <div class="cita-act"><button class="btn" id="cmpCopia" type="button">Copiar comparación</button><button class="btn gh" id="cmpFull" type="button">Ver comparación completa</button></div>`;
-    $("cmpCopia").onclick = (e) => copiarBtn(e.currentTarget, copia);
+    $("cmpCopia").onclick = (e) => copiarBtn(e.currentTarget, copia, "comparacion");
     $("cmpFull").onclick = () => navigate(`comparar/${enc(a)}/${enc(b)}`);
   } catch (e) {
     errorBox(box, "No se pudo hacer la comparación.", renderCmpMini);
@@ -2428,7 +2582,7 @@ function initMapTools() {
   $("btnCitaMapa").onclick = (e) => {
     const p = mapSel ? byKey()[mapSel] : null;
     if (!p) return toast("Elige primero una provincia en el mapa para copiar su cita.");
-    copiarBtn(e.currentTarget, citaDeRegistro(p));
+    copiarBtn(e.currentTarget, citaDeRegistro(p), "cita_mapa");
   };
 }
 
@@ -2461,6 +2615,8 @@ function applyFlags() {
   setHidden("buscador", !flag("buscador_provincia"));
   if (!perfilActual && $("perfil").querySelector(".inicio-main")) renderInicio();
   document.querySelectorAll("[data-solicitar]").forEach((b) => (b.hidden = !flag("solicitar_informacion")));
+  document.querySelectorAll("[data-retro]").forEach((b) => (b.hidden = !flag("retroalimentacion")));
+  if (!flag("retroalimentacion")) $("opina").hidden = true;
   if (MAPA) {
     renderCapas();
     paintMap();
@@ -2485,6 +2641,7 @@ onTenant(applyFlags);
     initAsistente();
     initPalette();
     initSolicitud();
+    initRetro();
     initDatosNav();
     initExtras();
     initMapTools();

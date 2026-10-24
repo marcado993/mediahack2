@@ -69,6 +69,8 @@ FLAGS: list[dict] = [
      "detalle": "Formulario para pedir datos al observatorio. Cada solicitud la revisa una persona antes de enviar cifras."},
     {"key": "ficha_descargable", "grupo": "Herramientas para reportear", "nombre": "Descargar ficha de la provincia", "default": True, "locked": False,
      "detalle": "Documento autocontenido con todas las cifras y sus puestos."},
+    {"key": "retroalimentacion", "grupo": "Herramientas para reportear", "nombre": "Retroalimentación del medio", "default": True, "locked": False,
+     "detalle": "Pregunta «¿Te sirvió?» al copiar una cita y formulario para que la redacción cuente qué necesita. Llega al panel, separado por medio."},
 ]
 FLAG_KEYS = {f["key"] for f in FLAGS}
 FLAG_DEFAULTS = {f["key"]: f["default"] for f in FLAGS}
