@@ -16,6 +16,7 @@ import { initPalette, initProvLista } from "./mod/inicio.js";
 import { initExtras, initMapTools } from "./mod/descargas.js";
 import { applyFlags } from "./mod/flags.js";
 import { renderInventario } from "./mod/diccionario.js";
+import { initBorradores, initSubir } from "./mod/ayudas.js";
 
 addEventListener("popstate", applyRoute);
 
@@ -69,6 +70,8 @@ onTenant(applyFlags);
     initPalette();
     initSolicitud();
     initRetro();
+    initBorradores();
+    initSubir();
     initDatosNav();
     initExtras();
     initMapTools();

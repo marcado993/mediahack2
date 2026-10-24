@@ -294,6 +294,7 @@ export function renderPerfil(data) {
   ].filter(Boolean);
 
   target.innerHTML = `
+  <nav class="migas noprint" aria-label="Dónde estás"><button type="button" class="linkbtn" data-ruta="perfil">Inicio</button><span aria-hidden="true">›</span><span aria-current="page">${esc(data.provincia)}</span></nav>
   <div class="kit-head">
    <h2 class="prov-title">${esc(data.provincia)}</h2>
    ${provinceFlags({ isImputed, isBorderlineCase, compact: true })}
@@ -307,9 +308,9 @@ export function renderPerfil(data) {
     ${
       flag("cita_lista")
         ? `<div class="copiar">
-       <div class="cita-act"><button class="btn" id="btnCita" type="button">Copiar párrafo para tu nota</button><button class="btn gh" id="btnFrase" type="button">Copiar frase corta</button></div>
+       <p class="copiar-h">Para tu nota</p>
        <p class="frase" id="fraseTexto">${esc(frase)}</p>
-       <details class="ver"><summary>Ver el párrafo completo que se copia</summary><blockquote id="citaTexto">${esc(cita)}</blockquote></details>
+       <div class="cita-act"><button class="btn" id="btnFrase" type="button">Copiar para mi nota</button><button class="btn gh" id="btnCita" type="button">Copiar con más contexto</button></div>
       </div>`
         : ""
     }
@@ -327,9 +328,8 @@ export function renderPerfil(data) {
      </div>
     </div>
     ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
-    <p class="rel-aviso">${ICON.warn}<span><b>Índice relativo:</b> compara las 24 provincias entre sí. No es un nivel absoluto ni sirve para comparar con otros países o años. Describe el territorio, no a las personas.</span></p>
+    <p class="rel-aviso">${ICON.warn}<span><b>Índice relativo:</b> compara provincias entre sí, no mide un nivel absoluto. Describe territorios, no personas.</span></p>
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
-    <p class="gl-row noprint">¿Qué significa? ${gl("ivei", "IVEI")} ${gl("imputado", "valor imputado")} ${gl("factor", "factor")}</p>
    </section>
 
    ${
@@ -350,6 +350,7 @@ export function renderPerfil(data) {
    <select id="essComparar" ${flag("vista_comparar") ? "" : "hidden"}><option value="">Comparar con…</option>${E.PROVINCIAS.filter((p) => p !== data.provincia).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("")}</select>
    <button class="btn gh" type="button" id="btnVerMapa">Ver en el mapa</button>
    <button class="btn gh" type="button" id="btnEnlace">Copiar enlace</button>
+   ${typeof navigator !== "undefined" && navigator.share ? `<button class="btn gh" type="button" id="btnCompartir">Compartir</button>` : ""}
    <button class="btn gh" type="button" id="btnSeguir" aria-pressed="false"></button>
    ${flag("solicitar_informacion") ? `<button class="btn gh" type="button" data-solicitar>Pedir más información</button>` : ""}
   </div>
@@ -366,8 +367,15 @@ export function renderPerfil(data) {
   ${detalle("dieta", "Dieta informativa", "Qué plataformas usa la gente conectada", dieta)}
   ${detalle("resiliencia", "Capacidad de contrastar y clima electoral", "Educación, fuentes y ambiente", resiliencia)}
   ${detalle("contexto", "Contexto social", "Edad, etnia, pobreza y educación", contexto)}
-  </details>`;
+  </details>
+  ${flag("cita_lista") ? `<div class="copy-bar noprint"><button class="btn" id="btnFraseBar" type="button">Copiar para mi nota</button></div>` : ""}`;
 
+  const barra = target.querySelector(".copy-bar");
+  if (barra && $("btnFrase") && "IntersectionObserver" in window) {
+    // the bar only shows once the top button has scrolled out of sight
+    new IntersectionObserver(([en]) => barra.classList.toggle("on", !en.isIntersecting), { rootMargin: "0px 0px -90px 0px" }).observe($("btnFrase"));
+    $("btnFraseBar").onclick = (e) => copiarBtn(e.currentTarget, frase, "frase_ficha");
+  }
   target.querySelectorAll(".idx [data-sec]").forEach((b) => {
     b.onclick = () => {
       if (b.dataset.sec === "afondo") $("sec-afondo").open = true;
@@ -381,12 +389,21 @@ export function renderPerfil(data) {
   if ($("btnCita")) $("btnCita").onclick = (e) => copiarBtn(e.currentTarget, cita, "cita_ficha");
   if ($("btnTodo")) $("btnTodo").onclick = (e) => copiarBtn(e.currentTarget, angulos.map((a) => `• ${a.copia}`).join("\n"), "datos_nota");
   if ($("btnEnlace")) $("btnEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);
+  if ($("btnCompartir")) $("btnCompartir").onclick = () => navigator.share({ title: titular, text: `${frase} Fuente: Observatorio OVADE.`, url: location.href }).catch(() => {});
   bindVariables(target);
   pintarSeguir($("btnSeguir"), data.provincia);
   $("btnSeguir").onclick = (e) => {
     const on = alternarProvincia(data.provincia);
     pintarSeguir(e.currentTarget, data.provincia);
-    toast(on ? `Sigues ${data.provincia}. La verás en tu inicio.` : `Dejaste de seguir ${data.provincia}.`);
+    if (on) toast(`Sigues ${data.provincia}. La verás en tu inicio.`);
+    else
+      toast(`Dejaste de seguir ${data.provincia}.`, {
+        texto: "Deshacer",
+        fn: () => {
+          alternarProvincia(data.provincia);
+          pintarSeguir($("btnSeguir"), data.provincia);
+        },
+      });
   };
   $("btnSolidez").onclick = () => openFicha("IVEI", data.provincia);
   if ($("btnFicha")) $("btnFicha").onclick = () => downloadFicha(data.provincia);

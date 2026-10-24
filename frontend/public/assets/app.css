@@ -4686,3 +4686,123 @@ nav button {
     font-size: 11.5px;
   }
 }
+
+/* ---- simple-use helpers: undo in the toast, breadcrumb, back to top ---- */
+#toast:has(button) {
+  pointer-events: auto;
+}
+#toast button {
+  border: 0;
+  background: none;
+  color: #9cc3ff;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 6px 4px 6px 8px;
+  cursor: pointer;
+}
+.migas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--mut);
+}
+.migas .linkbtn {
+  font-size: 13px;
+}
+.subir {
+  position: fixed;
+  right: 14px;
+  bottom: 18px;
+  z-index: 80;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--acc);
+  box-shadow: var(--sh);
+  cursor: pointer;
+}
+.subir[hidden] {
+  display: none;
+}
+@media (max-width: 640px) {
+  .subir {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ---- fast mode: search first, one thing to copy, the copy button always in reach ---- */
+.copy-bar {
+  display: none;
+}
+.aside-buscar {
+  grid-column: 1 / -1;
+  margin-bottom: 14px;
+}
+.aside-buscar .aside-h {
+  display: block;
+  margin: 0 0 6px;
+}
+.aside-buscar .mod-input {
+  width: 100%;
+  font-size: 16px; /* 16 px keeps phones from zooming in when the field is focused */
+}
+.copiar-h {
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.copiar .frase {
+  margin: 0 0 12px;
+}
+@media (max-width: 640px) {
+  .cut {
+    display: none;
+  }
+  /* the copy button follows you down the sheet, just above the tab bar */
+  .copy-bar.on {
+    display: block;
+    position: sticky;
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    z-index: 20;
+    margin: 12px -4px 0;
+    padding: 10px 4px;
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+  }
+  .copy-bar .btn {
+    width: 100%;
+  }
+}
+.copiar {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+@media (max-width: 640px) {
+  /* "Datos para tu nota": the figure on the left, its copy button on the right (not stacked and centred) */
+  .angulos li {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 10px;
+  }
+  .angulos li > div {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .angulos .copybtn {
+    flex: none;
+    min-width: 76px;
+  }
+}
