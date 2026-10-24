@@ -7,6 +7,7 @@
 
 import { API_BASE, getJSON, postJSON } from "./api.js";
 import { loadTenant, flag, onTenant, tenant } from "./tenant.js";
+import { skLines, skTable, initEstadosRed, conBusy, countUp, stagger } from "./estados.js";
 import { esc, fmt, fmtInt, ICON, qualityBadge, importedTag, borderlineTag, provinceFlags, scoreRange } from "./ui.js";
 
 const $ = (id) => document.getElementById(id);
@@ -220,7 +221,7 @@ function applyRoute() {
     const p = PROVINCIAS.find((x) => provinceKey(x) === provinceKey(a));
     if (p && p !== perfilActual) loadPerfil(p);
   }
-  if (currentView === "perfil" && !a && PROVINCIAS.length && (perfilActual || !$("perfil").innerHTML.trim())) renderInicio();
+  if (currentView === "perfil" && !a && PROVINCIAS.length && (perfilActual || $("perfil").querySelector(".sk") || !$("perfil").innerHTML.trim())) renderInicio();
   if (currentView === "comparar" && a && b && PROVINCIAS.length) {
     const pa = PROVINCIAS.find((x) => provinceKey(x) === provinceKey(a));
     const pb = PROVINCIAS.find((x) => provinceKey(x) === provinceKey(b));
@@ -1105,7 +1106,7 @@ async function renderEscuchaFicha(provincia) {
   const box = $("sec-escucha");
   if (!box) return;
   const head = `<div class="sec-h"><h2>Qué se está diciendo en ${esc(provincia)}</h2><span class="esc-tag">Escucha digital · contexto</span></div>`;
-  box.innerHTML = `${head}<p class="note"><span class="tend-spinner"></span> Leyendo X y medios sobre ${esc(provincia)}…</p>`;
+  box.innerHTML = `${head}<p class="note" style="margin-bottom:6px">Leyendo X y medios sobre ${esc(provincia)}…</p>${skLines(3)}`;
   let res;
   try {
     res = await getTendencias(provincia);
@@ -1163,6 +1164,8 @@ async function loadPerfil(provincia) {
     recordarReciente(provincia);
     renderPerfil(data);
     renderProvLista();
+    stagger(box);
+    countUp(box.querySelector(".kit-main .big"), data.ivei.indice);
     const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (innerWidth < 900) requestAnimationFrame(() => box.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" }));
   } catch (e) {
@@ -1438,7 +1441,7 @@ async function renderCmp() {
     target.innerHTML = `<div class="warn" role="status">Elegiste la misma provincia dos veces. Cambia una de las dos para ver las diferencias.</div>`;
     return;
   }
-  target.innerHTML = `<div class="asis-loading"><span class="tend-spinner"></span> Comparando ${esc(a)} y ${esc(b)}…</div>`;
+  target.innerHTML = `<p class="note">Comparando ${esc(a)} y ${esc(b)}…</p>${skTable(6)}`;
   let data;
   try {
     data = await getJSON(`/api/segmentadores/comparar?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`);
@@ -1495,7 +1498,9 @@ let sortKey = "rank",
   sortDir = 1;
 
 async function initDatos() {
+  $("tablaCarga").innerHTML = skTable(10);
   TABLA_DATA = await getJSON("/api/segmentadores/tabla");
+  $("tablaCarga").remove();
   document.getElementById("buscarDatos").oninput = renderTabla;
   renderTabla();
 }
@@ -1576,7 +1581,7 @@ async function runTendencias(province) {
     box.innerHTML = "";
     return;
   }
-  box.innerHTML = `<div class="asis-loading"><span class="tend-spinner"></span> Leyendo X y medios sobre ${esc(province)}…</div>`;
+  box.innerHTML = `<p class="note">Leyendo X y medios sobre ${esc(province)}…</p>${skLines(4)}`;
   try {
     // shared cache with the sheet's "Qué se está diciendo"; post text comes
     // from X and outlets, so every field is escaped and links must be http(s)
@@ -2212,6 +2217,14 @@ function initProvLista() {
 }
 
 // Nothing chosen yet: the two other tasks, open, plus what the index can and cannot back.
+// What the index backs and what it does not, one decision per row: readable at any width.
+function criterioLista() {
+  return `<ul class="criterio">${DECISIONES.map(([d, si, no]) => {
+    const apoya = !/^No\b/.test(si);
+    return `<li><b>${esc(d)}</b>${apoya ? `<p class="c-si">${ICON.check}<span>${esc(si)}</span></p>` : si !== "No." ? `<p class="c-nota">${esc(si)}</p>` : ""}<p class="c-no">${ICON.cross}<span>${esc(no)}</span></p></li>`;
+  }).join("")}</ul>`;
+}
+
 function renderInicio() {
   perfilActual = null;
   PERFIL_DATA = null;
@@ -2223,9 +2236,8 @@ function renderInicio() {
     tareas
       ? `<div class="grid g2" style="margin-top:16px">
    <section class="card"><h2>Comparo dos territorios</h2><div style="margin-top:10px">${modCmpHTML()}</div></section>
-   <section class="card"><h2>¿Para qué sirve este dato?</h2><div style="margin-top:10px">${metodoTabla(["Decisión", "El índice puede apoyarla", "El índice no puede apoyarla"], DECISIONES)}</div></section>
-  </div>
-  <section class="card" style="margin-top:16px"><h2>Qué puedes afirmar y qué no</h2><div style="margin-top:10px">${decisionBlock()}</div></section>`
+   <section class="card"><h2>¿Para qué sirve este dato?</h2><div style="margin-top:10px">${criterioLista()}</div></section>
+  </div>`
       : ""
   }`;
   if (tareas) modCmpBind();
@@ -2305,7 +2317,7 @@ async function renderCmpMini() {
     box.innerHTML = `<p class="note">Elige dos territorios distintos.</p>`;
     return;
   }
-  box.innerHTML = `<div class="asis-loading"><span class="tend-spinner"></span> Comparando…</div>`;
+  box.innerHTML = `<p class="note">Comparando…</p>${skTable(6)}`;
   try {
     const d = await getJSON(`/api/segmentadores/comparar?a=${enc(a)}&b=${enc(b)}`);
     const { frase, copia } = compareText(d);
@@ -2570,7 +2582,7 @@ function initMapTools() {
   // downloads live in a menu: close it once a choice is made, and say what happened
   const tras = (fn) => (e) => {
     $("dlMenu").open = false;
-    return fn(e);
+    return conBusy($("dlMenu").querySelector("summary"), "Preparando…", () => fn(e));
   };
   $("btnSvg").onclick = tras(() => {
     descargarSVG();
@@ -2631,10 +2643,13 @@ onTenant(applyFlags);
 // Boot
 // ---------------------------------------------------------------------
 (async function init() {
+  initEstadosRed();
   const tenantReady = loadTenant();
   try {
     await initMapas();
     initProvLista();
+    document.querySelectorAll("[data-loading]").forEach((e) => e.removeAttribute("data-loading"));
+    $("provLista")?.removeAttribute("aria-busy");
     initComparar();
     initDatos();
     initMeto();
@@ -2651,9 +2666,9 @@ onTenant(applyFlags);
     applyFlags();
     applyRoute();
   } catch (e) {
-    document.querySelector(".wrap").insertAdjacentHTML(
-      "afterbegin",
-      `<div class="err" role="alert"><span>No se pudo conectar con el servidor de datos. ${esc(e.message)}</span><button class="btn gh" type="button" onclick="location.reload()">Reintentar</button></div>`
-    );
+    // nothing drew: replace the grey placeholders by what happened and the next step
+    document.querySelectorAll("[data-loading]").forEach((x) => x.removeAttribute("data-loading"));
+    $("provLista").innerHTML = "";
+    errorBox($("perfil"), "No pudimos cargar los datos del observatorio. Puede ser tu conexión o que el servidor esté despertando.", () => location.reload());
   }
 })();
