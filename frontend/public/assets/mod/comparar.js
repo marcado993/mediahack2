@@ -2,13 +2,15 @@
 
 import { getJSON } from "../api.js";
 import { skTable } from "../estados.js";
-import { esc, fmt } from "../ui.js";
+import { ICON, esc, fmt, provinceFlags, scoreRange } from "../ui.js";
 import { E } from "./estado.js";
 import { $ } from "./util.js";
-import { enc, perfilColor, perfilPlano } from "./datos.js";
+import { enc, esLimite, perfilColor, perfilPlano } from "./datos.js";
 import { col, inkFor } from "./color.js";
 import { copiarBtn, errorBox, navigate } from "./nav.js";
 import { dimRow } from "./kit.js";
+import { bindVariables, enlaceVariable } from "./diccionario.js";
+import { textoRangoPuesto } from "./sensibilidad.js";
 
 // ---------------------------------------------------------------------
 // Comparar
@@ -62,6 +64,9 @@ export function compareText(d) {
   return { frase, detalle, copia };
 }
 
+// n_lb of a province, from the map data already loaded (0 = no sample of its own)
+const nLb = (provincia) => E.MAPA?.provincias.find((p) => p.provincia === provincia)?.n_lb;
+
 export async function renderCmp() {
   const a = document.getElementById("cmpA").value,
     b = document.getElementById("cmpB").value;
@@ -85,7 +90,7 @@ export async function renderCmp() {
       if (row.diferencia != null) {
         cls = row.direction === 1 ? (row.diferencia > 0 ? "up" : row.diferencia < 0 ? "dn" : "eq") : row.direction === -1 ? (row.diferencia > 0 ? "dn" : row.diferencia < 0 ? "up" : "eq") : "eq";
       }
-      return `<tr><td>${row.label}<div class="srcline">${row.source} · ${row.unit}</div></td>
+      return `<tr><td>${row.label}${enlaceVariable(row.label)}<div class="srcline">${row.source} · ${row.unit}</div></td>
       <td class="num"><b>${fmt(row.a)}</b></td><td class="num"><b>${fmt(row.b)}</b></td>
       <td class="num ${cls}">${row.diferencia == null ? "" : (row.diferencia >= 0 ? "+" : "−") + fmt(Math.abs(row.diferencia))}</td>
       <td class="num" style="color:var(--mut)">${fmt(row.nacional)}</td>
@@ -98,14 +103,17 @@ export async function renderCmp() {
    <h2>${esc(frase)}</h2>
    ${detalle ? `<p class="pais" style="margin:6px 0 0;font-size:14px">${esc(detalle)}</p>` : ""}
    <div class="cita-act" style="margin-top:12px"><button class="btn" id="btnCmpCopia" type="button">Copiar comparación</button><button class="btn gh" id="btnCmpEnlace" type="button">Copiar enlace</button></div>
+   <p class="rel-aviso">${ICON.warn}<span><b>Solo entre provincias de Ecuador:</b> el índice es relativo. No lo uses para comparar con otro país ni con otro año sin fijar anclajes.</span></p>
   </section>
   <section class="card" style="margin-top:16px"><h3>Diferencia por factor</h3>${deltaTableHTML(data)}</section>
   <section class="card" style="margin-top:16px"><h2>Las dos provincias lado a lado</h2><div class="grid g2" style="margin-top:10px">
    ${[data.a, data.b]
      .map(
        (p) => `<div><h3>${esc(p.provincia)}</h3>
-    <div style="display:flex;align-items:baseline;gap:10px"><div class="big" style="font-size:34px">${fmt(p.ivei)}</div>
-     <span class="pill" style="background:${col("IVEI", p.ivei)};color:${inkFor(col("IVEI", p.ivei))}">${esc(p.nivel)}</span></div>
+    <div class="ptags">${provinceFlags({ isImputed: nLb(p.provincia) === 0, isBorderlineCase: esLimite(p.provincia), compact: true })}</div>
+    <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap"><div class="big" style="font-size:34px">${fmt(p.ivei)}</div>
+     <span class="pill" style="background:${col("IVEI", p.ivei)};color:${inkFor(col("IVEI", p.ivei))}">${esc(p.nivel)}</span>${scoreRange({ confidenceRange: p.rango ?? null })}</div>
+    <p class="pais" style="margin:4px 0 0;font-size:13px">${esc(textoRangoPuesto(p.provincia))}</p>
     <div style="margin-top:12px">${p.dimensiones.map((d) => dimRow(d.nombre, d.valor, null, d.color)).join("")}</div>
     <p class="note"><span class="pdot" style="background:${perfilColor(p.perfil)}"></span><b>${esc(perfilPlano(p.perfil))}.</b></p></div>`
      )
@@ -115,6 +123,7 @@ export async function renderCmp() {
   <table><thead><tr><th>Indicador</th><th class="num">${esc(data.a.provincia)}</th>
   <th class="num">${esc(data.b.provincia)}</th><th class="num">Dif.</th><th class="num">País</th>
   <th>Unidad</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+  bindVariables(target);
   $("btnCmpCopia").onclick = (e) => copiarBtn(e.currentTarget, copia, "comparacion");
   $("btnCmpEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);
 }

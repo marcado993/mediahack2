@@ -1,11 +1,33 @@
 // Module: metodologia. Part of the app.js split into native ES modules (no build step).
 
 import { esc } from "../ui.js";
+import { RUIDO, sensibilidadHTML } from "./sensibilidad.js";
 import { E } from "./estado.js";
 import { $ } from "./util.js";
 import { CORTE_FRASE, DECISIONES, GLOSARIO, GL_TERMS, MUESTRA_DEBIL, SEIS_PREGUNTAS } from "./datos.js";
 import { navigate, toast } from "./nav.js";
 import { paintMap } from "./mapa.js";
+
+const CASOS = [
+  [
+    "Un rumor de fraude llega a una provincia con poca conexión (por ejemplo, Bolívar)",
+    "Priorizas por lo que ves circular en redes y quizá lo ignoras porque allí hay poco volumen.",
+    "Ves que la gente depende del boca a boca y de la radio. Subes la verificación y sales por radio local y aliados del territorio.",
+    "El índice no mide radio ni conversación familiar. Confírmalo con tus contactos locales.",
+  ],
+  [
+    "Un video falso se mueve por WhatsApp y TikTok en una provincia muy conectada",
+    "Lo tratas igual que cualquier otro rumor y publicas en tu canal de siempre.",
+    "Si pesa la saturación de redes, respondes en las mismas plataformas y con fuentes con credibilidad que la gente ya sigue.",
+    "El índice dice dónde el mensaje encuentra terreno frágil, no si el video es falso.",
+  ],
+  [
+    "Quieres citar qué opina la gente de Napo sobre el fraude",
+    "Usas la cifra de opinión como si fuera de la provincia.",
+    "Ves la marca de valor imputado: Napo no tiene muestra propia y usa el promedio del país. Lo dices, o no citas la cifra como propia.",
+    "Pasa igual en Galápagos, Pastaza y Zamora Chinchipe.",
+  ],
+];
 
 function solidezResumen() {
   const todas = E.MAPA?.provincias ?? [];
@@ -99,7 +121,9 @@ export function renderMetodoExtra() {
   $("metoExtra").innerHTML = `
   <nav class="jump noprint" aria-label="Ir a una sección">
    <button type="button" data-j="decisiones">Qué puedo afirmar</button>
+   <button type="button" data-j="casos">Casos de uso</button>
    <button type="button" data-j="solidez">Qué tan firme es</button>
+   <button type="button" data-j="sensibilidad">Qué tan estable es</button>
    <button type="button" data-j="glosario">Glosario</button>
    <button type="button" data-j="ficha-indice">Seis preguntas</button>
    <button type="button" data-j="meto">Nota técnica</button>
@@ -108,6 +132,12 @@ export function renderMetodoExtra() {
    <h2>Qué puedes afirmar con el índice y qué no</h2>
    <p class="fintro" style="margin-bottom:12px">El índice dice dónde un mensaje encuentra un terreno más frágil. No reemplaza el criterio editorial.</p>
    ${metodoTabla(["Decisión", "El índice puede apoyarla", "El índice no puede apoyarla"], DECISIONES.map(([d, si, no]) => [d, si, no]))}
+  </div>
+
+  <div class="card" id="casos" style="margin-bottom:16px">
+   <h2>Tres casos para aplicarlo</h2>
+   <p class="fintro" style="margin-bottom:12px">Una alerta llega a tu mesa. Así cambia la respuesta con el índice. <span class="ptag ej">Ejemplo</span> Borrador del equipo, pendiente de validar con Lupa Media.</p>
+   <div class="casos">${CASOS.map(([titulo, sin, con, limite]) => `<article class="caso"><h3>${esc(titulo)}</h3><p><b>Sin el índice:</b> ${esc(sin)}</p><p><b>Con el índice:</b> ${esc(con)}</p><p class="c-nota"><b>Ojo:</b> ${esc(limite)}</p></article>`).join("")}</div>
   </div>
 
   <div class="card" id="solidez" style="margin-bottom:16px">
@@ -125,6 +155,13 @@ export function renderMetodoExtra() {
      r.sinMuestra.length ? `${r.sinMuestra.length} no tienen ninguno (${r.sinMuestra.join(", ")}) y reciben el valor nacional; en el mapa se marcan con borde punteado.` : ""
    } El umbral de ${MUESTRA_DEBIL} casos es el criterio de trabajo y se está confirmando con los microdatos.</p>
    <p class="fnote" style="border:0;margin-top:4px;padding-top:0">${CORTE_FRASE}</p>
+  </div>
+
+  <div class="card" id="sensibilidad" style="margin-bottom:16px">
+   <h2>Qué tan estable es el puesto de cada provincia</h2>
+   <p class="fintro" style="margin-bottom:12px">Si cada puntaje se moviera hasta ±${RUIDO} puntos (la prueba de ruido del método), ¿cuánto cambiaría el puesto? Las provincias con un rango amplio están pegadas a otras: no las cites como «la primera» o «la última» sin matizar.</p>
+   ${sensibilidadHTML()}
+   <p class="fnote"><b>Qué cubre esta tabla:</b> solo la prueba de ruido. La prueba con pesos de 10 % a 20 %, sin variables débiles o imputadas y con una fuente alternativa está en preparación. En la prueba de ruido, 20 de las 24 provincias conservan su perfil; las cuatro que pueden cambiar son los casos limítrofes.</p>
   </div>
 
   <div class="card" id="glosario" style="margin-bottom:16px">

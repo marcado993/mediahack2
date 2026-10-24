@@ -94,7 +94,7 @@ function paintBrand(cfg) {
     // Not editable on purpose: whoever publishes the map, the data keeps its credit.
     const credit = document.createElement("p");
     credit.className = "pie-datos";
-    credit.textContent = "Datos y metodología: Observatorio de Vulnerabilidad ante la Desinformación Electoral. Fuentes: Censo 2022 y ENEMDU 2024 (INEC), Latinobarómetro 2024, MINTEL 2023. Datos con corte a la última publicación de cada fuente, sujetos a actualización. El índice describe territorios, no personas, medios ni candidatos.";
+    credit.textContent = "Datos y metodología: Observatorio de Vulnerabilidad ante la Desinformación Electoral. Fuentes: Censo 2022 y ENEMDU 2024 (INEC), Latinobarómetro 2024, MINTEL 2023. Datos con corte a la última publicación de cada fuente, sujetos a actualización. El índice describe territorios, no personas, medios ni candidatos. La resolución provincial es una salvaguarda deliberada: ninguna vista ni descarga baja de provincia. Uso ético: los datos son abiertos y se usan para proteger y fortalecer la democracia.";
     foot.append(credit);
     // Methodology, open data and sources are reference material: reachable from
     // every page footer instead of crowding the main tabs.
@@ -111,6 +111,14 @@ function paintBrand(cfg) {
       datos.append(b);
     });
     foot.append(datos);
+    const guia = document.createElement("p");
+    const gb = document.createElement("button");
+    gb.type = "button";
+    gb.className = "linkbtn";
+    gb.dataset.ruta = "perfil";
+    gb.textContent = "Cómo empezar";
+    guia.append(gb);
+    foot.append(guia);
     if (cfg.flags.solicitar_informacion !== false) {
       const ask = document.createElement("p");
       const btn = document.createElement("button");

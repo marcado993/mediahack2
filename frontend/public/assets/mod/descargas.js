@@ -6,7 +6,8 @@ import { esc } from "../ui.js";
 import { E } from "./estado.js";
 import { $ } from "./util.js";
 import { scaleFor } from "./color.js";
-import { CALCULO_CAPA, CAPA_DESC, CAPA_LG, FACTORES, FALLA_FACTOR, FUENTE_VAR, PERFILES, VARIABLES_CAPA } from "./datos.js";
+import { pedirAcuerdo, NOTA_DESCARGA } from "./etica.js";
+import { CALCULO_CAPA, CAPA_DESC, CORTE_FRASE, CAPA_LG, FACTORES, FALLA_FACTOR, FUENTE_VAR, PERFILES, VARIABLES_CAPA } from "./datos.js";
 import { copiarBtn, navigate, toast } from "./nav.js";
 import { byKey, capasAll, factorNombre } from "./mapa.js";
 import { citaDeRegistro, reliability } from "./kit.js";
@@ -67,11 +68,13 @@ const csvCell = (v) => {
 };
 
 async function descargarCSV() {
+  if (!(await pedirAcuerdo())) return;
   try {
     const t = E.TABLA_DATA ?? (E.TABLA_DATA = await getJSON("/api/segmentadores/tabla"));
     const head = ["Puesto", "Provincia", "Nivel", ...t.columnas.map((c) => `${c.label} (${c.unit})`)];
     const rows = t.filas.map((f) => [f.rank != null ? Math.round(f.rank) : "", f.provincia, f.nivel, ...t.columnas.map((c) => f[c.key] ?? "")]);
     rows.push(["", "Promedio del país", "", ...t.columnas.map((c) => t.nacional[c.key] ?? "")]);
+    rows.push([], ["", "Nota: " + CORTE_FRASE], ["", "Nota: " + NOTA_DESCARGA]);
     const csv = "﻿" + [head, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
     descargar(new Blob([csv], { type: "text/csv;charset=utf-8" }), "OVADE_datos_provincias.csv");
     toast("Datos descargados. Cita la fuente: Observatorio OVADE.");
@@ -153,6 +156,7 @@ export function initMapTools() {
   $("btnPng").onclick = tras(descargarPNG);
   $("btnLeerCapa").onclick = () => openFicha(E.capa);
   $("btnCsv").onclick = tras(descargarCSV);
+  if ($("btnCsvDatos")) $("btnCsvDatos").onclick = (e) => conBusy(e.currentTarget, "Preparando…", descargarCSV);
   $("btnCitaMapa").onclick = (e) => {
     const p = E.mapSel ? byKey()[E.mapSel] : null;
     if (!p) return toast("Elige primero una provincia en el mapa para copiar su cita.");

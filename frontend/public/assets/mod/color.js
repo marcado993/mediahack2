@@ -54,5 +54,9 @@ export function inkFor(color) {
   if (!rgb) return "#131a24";
   const [r, g, b] = rgb.map((c) => ((c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
   const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-  return 1.05 / (L + 0.05) >= (L + 0.05) / 0.06 ? "#ffffff" : "#131a24";
+  const blanco = 1.05 / (L + 0.05);
+  const tinta = (L + 0.05) / 0.06;
+  // mid tones reach neither 4.5:1 with white nor with our ink: pure black does
+  if (Math.max(blanco, tinta) < 4.5) return "#000000";
+  return blanco >= tinta ? "#ffffff" : "#131a24";
 }

@@ -9,13 +9,16 @@ import { E } from "./estado.js";
 import { $, provinceKey } from "./util.js";
 import { AFONDO_KEY, DRIVER_MIN, ETNIA_COLOR, FACTORES, FUENTE_OVADE, NO_APOYA, SI_APOYA, TEND_CACHE, TEND_TTL, enc, esLimite, perfilColor, perfilPlano, solBadge } from "./datos.js";
 import { col, inkFor } from "./color.js";
-import { copiarBtn, errorBox, navigate, viewEnabled } from "./nav.js";
+import { copiarBtn, errorBox, navigate, toast, viewEnabled } from "./nav.js";
 import { byKey, factorNombre, puestoFactor } from "./mapa.js";
 import { downloadFicha } from "./fichadoc.js";
 import { paintTendMap, runTendencias } from "./escucha.js";
 import { gl } from "./metodologia.js";
 import { escalaHTML, recordarReciente, renderProvLista, skeletonKit } from "./inicio.js";
 import { openFicha } from "./descargas.js";
+import { bindVariables, enlaceVariable } from "./diccionario.js";
+import { textoRangoPuesto } from "./sensibilidad.js";
+import { alternarProvincia, sigue } from "./seguimiento.js";
 
 // ---------------------------------------------------------------------
 // Perfil
@@ -191,9 +194,9 @@ function datosClave(data) {
   const add = (m, frase) => {
     if (m && m.valor != null) out.push({ ...frase(m), source: m.source });
   };
-  add(metaOf(data, "uso_internet"), (m) => ({ texto: `En ${prov}, ${fmt(m.valor)} % de las personas de 5 años y más usó internet (promedio del país: ${fmt(m.nacional)} %).`, corto: `<b>Usó internet</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>` }));
-  add(metaOf(data, "analf_digital"), (m) => ({ texto: `El analfabetismo digital en ${prov} es de ${fmt(m.valor)} % (país: ${fmt(m.nacional)} %).`, corto: `<b>Analfabetismo digital</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>` }));
-  add(metaOf(data, "pobreza_ingresos"), (m) => ({ texto: `La pobreza por ingresos en ${prov} es de ${fmt(m.valor)} % (país: ${fmt(m.nacional)} %).`, corto: `<b>Pobreza por ingresos</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>` }));
+  add(metaOf(data, "uso_internet"), (m) => ({ texto: `En ${prov}, ${fmt(m.valor)} % de las personas de 5 años y más usó internet (promedio del país: ${fmt(m.nacional)} %).`, corto: `<b>Usó internet</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>`, variable: "Usó internet" }));
+  add(metaOf(data, "analf_digital"), (m) => ({ texto: `El analfabetismo digital en ${prov} es de ${fmt(m.valor)} % (país: ${fmt(m.nacional)} %).`, corto: `<b>Analfabetismo digital</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>`, variable: "Analfabetismo digital" }));
+  add(metaOf(data, "pobreza_ingresos"), (m) => ({ texto: `La pobreza por ingresos en ${prov} es de ${fmt(m.valor)} % (país: ${fmt(m.nacional)} %).`, corto: `<b>Pobreza por ingresos</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>`, variable: "Pobreza por ingresos" }));
   if (data.identificacion.pct_rural != null) {
     out.push({ texto: `El ${fmt(data.identificacion.pct_rural)} % de la población de ${prov} vive en el área rural (país: ${fmt(E.MAPA.nacional.pct_rural)} %).`, corto: `<b>Vive en área rural</b> ${fmt(data.identificacion.pct_rural)} % <span class="pais">país ${fmt(E.MAPA.nacional.pct_rural)} %</span>`, source: "Censo 2022 (INEC)" });
   }
@@ -220,7 +223,7 @@ export function renderPerfil(data) {
   // quotable lines: short on screen, a full sentence with its source when copied
   const angulos = [
     ...drivers(rec).map((d) => ({ html: d.html, copia: `${d.plain} ${FUENTE_OVADE}` })),
-    ...datosClave(data).map((c) => ({ html: `${c.corto}${solBadge(c.source)}`, copia: `${c.texto} Fuente: ${c.source}.` })),
+    ...datosClave(data).map((c) => ({ variable: c.variable, html: `${c.corto}${solBadge(c.source)}`, copia: `${c.texto} Fuente: ${c.source}.` })),
   ].slice(0, 5);
   const frase = fraseCorta({ provincia: data.provincia, indice: data.ivei.indice, puesto: data.ivei.puesto, nLb: data.n_lb });
   const aviso = precaucion(data.n_lb, data.provincia);
@@ -318,11 +321,13 @@ export function renderPerfil(data) {
      </div>
      <div class="km-txt">
       <p class="ess-lead"><b>Puesto ${data.ivei.puesto} de 24</b> <span class="pais">1 = la más vulnerable · país ${fmt(data.ivei.nacional)}</span></p>
+      <p class="pais" style="margin:0 0 6px;font-size:13px">${esc(textoRangoPuesto(data.provincia))}</p>
       <p class="ess-tipo"><span class="pdot" style="background:${perfilColor(data.perfil_territorial.tipo)}"></span><b>${esc(perfilPlano(data.perfil_territorial.tipo))}</b></p>
       <p class="note" style="margin:0">${esc(primeraFrase(data.perfil_territorial.descripcion))}</p>
      </div>
     </div>
     ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
+    <p class="rel-aviso">${ICON.warn}<span><b>Índice relativo:</b> compara las 24 provincias entre sí. No es un nivel absoluto ni sirve para comparar con otros países o años. Describe el territorio, no a las personas.</span></p>
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
     <p class="gl-row noprint">¿Qué significa? ${gl("ivei", "IVEI")} ${gl("imputado", "valor imputado")} ${gl("factor", "factor")}</p>
    </section>
@@ -331,7 +336,7 @@ export function renderPerfil(data) {
      showGuide
        ? `<section class="card" id="sec-angulos">
     <div class="sec-h"><h2>Datos para tu nota</h2><button type="button" class="copybtn noprint" id="btnTodo">Copiar todo</button></div>
-    <ul class="angulos">${angulos.map((a) => `<li><div>${a.html}</div><button type="button" class="copybtn noprint" data-copy="${esc(a.copia)}">Copiar</button></li>`).join("")}</ul>
+    <ul class="angulos">${angulos.map((a) => `<li><div>${a.html}${a.variable ? enlaceVariable(a.variable) : ""}</div><button type="button" class="copybtn noprint" data-copy="${esc(a.copia)}">Copiar</button></li>`).join("")}</ul>
    </section>`
        : ""
    }
@@ -345,6 +350,7 @@ export function renderPerfil(data) {
    <select id="essComparar" ${flag("vista_comparar") ? "" : "hidden"}><option value="">Comparar con…</option>${E.PROVINCIAS.filter((p) => p !== data.provincia).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("")}</select>
    <button class="btn gh" type="button" id="btnVerMapa">Ver en el mapa</button>
    <button class="btn gh" type="button" id="btnEnlace">Copiar enlace</button>
+   <button class="btn gh" type="button" id="btnSeguir" aria-pressed="false"></button>
    ${flag("solicitar_informacion") ? `<button class="btn gh" type="button" data-solicitar>Pedir más información</button>` : ""}
   </div>
 
@@ -375,6 +381,13 @@ export function renderPerfil(data) {
   if ($("btnCita")) $("btnCita").onclick = (e) => copiarBtn(e.currentTarget, cita, "cita_ficha");
   if ($("btnTodo")) $("btnTodo").onclick = (e) => copiarBtn(e.currentTarget, angulos.map((a) => `• ${a.copia}`).join("\n"), "datos_nota");
   if ($("btnEnlace")) $("btnEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);
+  bindVariables(target);
+  pintarSeguir($("btnSeguir"), data.provincia);
+  $("btnSeguir").onclick = (e) => {
+    const on = alternarProvincia(data.provincia);
+    pintarSeguir(e.currentTarget, data.provincia);
+    toast(on ? `Sigues ${data.provincia}. La verás en tu inicio.` : `Dejaste de seguir ${data.provincia}.`);
+  };
   $("btnSolidez").onclick = () => openFicha("IVEI", data.provincia);
   if ($("btnFicha")) $("btnFicha").onclick = () => downloadFicha(data.provincia);
   if ($("essComparar"))
@@ -386,6 +399,12 @@ export function renderPerfil(data) {
     navigate(`mapas/${E.capa}`);
     requestAnimationFrame(() => $("peek")?.scrollIntoView({ block: "nearest" }));
   };
+}
+
+function pintarSeguir(btn, provincia) {
+  const on = sigue(provincia);
+  btn.setAttribute("aria-pressed", String(on));
+  btn.textContent = on ? "Siguiendo ✓" : "Seguir esta provincia";
 }
 
 function aFondoAbierto() {
@@ -429,7 +448,7 @@ function irAEscucha(provincia) {
 async function renderEscuchaFicha(provincia) {
   const box = $("sec-escucha");
   if (!box) return;
-  const head = `<div class="sec-h"><h2>Qué se está diciendo en ${esc(provincia)}</h2><span class="esc-tag">Escucha digital · contexto</span></div>`;
+  const head = `<div class="sec-h"><h2>Qué se está diciendo en ${esc(provincia)}</h2><span class="esc-tag">Escucha digital · insumo para decisión humana</span></div>`;
   box.innerHTML = `${head}<p class="note" style="margin-bottom:6px">Leyendo X y medios sobre ${esc(provincia)}…</p>${skLines(3)}`;
   let res;
   try {
@@ -471,7 +490,7 @@ function dataOr(list, key) {
 
 function stackChart(etnias) {
   const items = etnias.filter((e) => (e.valor ?? 0) > 0.5);
-  const bars = items.map((e) => `<div style="width:${e.valor}%;background:${ETNIA_COLOR[e.key]}" title="${e.label}: ${fmt(e.valor)}%">${e.valor > 9 ? fmt(e.valor, 0) + "%" : ""}</div>`).join("");
+  const bars = items.map((e) => `<div style="width:${e.valor}%;background:${ETNIA_COLOR[e.key]};color:${inkFor(ETNIA_COLOR[e.key])}" title="${e.label}: ${fmt(e.valor)}%">${e.valor > 9 ? fmt(e.valor, 0) + "%" : ""}</div>`).join("");
   const legend = etnias
     .filter((e) => (e.valor ?? 0) > 0.4)
     .map((e) => `<span class="sw" style="background:${ETNIA_COLOR[e.key]}"></span>${e.label} ${fmt(e.valor)}%&nbsp;&nbsp;`)
