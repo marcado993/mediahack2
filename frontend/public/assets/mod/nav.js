@@ -46,6 +46,8 @@ export function initDatosNav() {
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-ir]");
     if (b) navigate(pathFor(b.dataset.ir));
+    const r = e.target.closest("[data-ruta]");
+    if (r) navigate(r.dataset.ruta);
   });
 }
 

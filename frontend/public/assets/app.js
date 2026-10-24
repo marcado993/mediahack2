@@ -15,6 +15,7 @@ import { initRetro, initSolicitud } from "./mod/formularios.js";
 import { initPalette, initProvLista } from "./mod/inicio.js";
 import { initExtras, initMapTools } from "./mod/descargas.js";
 import { applyFlags } from "./mod/flags.js";
+import { renderInventario } from "./mod/diccionario.js";
 
 addEventListener("popstate", applyRoute);
 
@@ -73,6 +74,7 @@ onTenant(applyFlags);
     initMapTools();
     initAtajos(initGlosario());
     renderMetodoExtra();
+    renderInventario();
     await tenantReady;
     applyFlags();
     applyRoute();

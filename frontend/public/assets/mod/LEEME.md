@@ -21,6 +21,11 @@ vive aquí como módulos ES nativos: no hay build, el navegador los carga tal cu
 | `metodologia.js` | Metodología, glosario y atajos de teclado |
 | `formularios.js` | «Solicitar información» y «¿Te sirvió?» |
 | `inicio.js` | Resumen del mapa, inicio, lista de provincias y paleta de comandos |
+| `efectos.js` | Movimiento con GSAP (con respaldo CSS y `prefers-reduced-motion`) |
+| `diccionario.js` | Inventario de las cinco bases (corte y solidez) y entrada por variable |
+| `sensibilidad.js` | Rango de puesto con ±2 puntos de ruido y tabla de estabilidad |
+| `seguimiento.js` | Provincias y temas que sigue el periodista (en su navegador) |
+| `etica.js` | Compromiso de uso ético al descargar los datos |
 | `descargas.js` | Ayuda por capa y descargas (SVG, PNG, CSV) |
 | `flags.js` | Aplica los feature flags de cada medio |
 

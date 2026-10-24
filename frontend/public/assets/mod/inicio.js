@@ -3,7 +3,7 @@
 import { getJSON } from "../api.js";
 import { flag } from "../tenant.js";
 import { skTable } from "../estados.js";
-import { esc, fmt, ICON, provinceFlags, scoreRange } from "../ui.js";
+import { MARGEN_GENERAL, esc, fmt, ICON, provinceFlags, scoreRange } from "../ui.js";
 import { E } from "./estado.js";
 import { $, provinceKey } from "./util.js";
 import { DECISIONES, RAMP, RECIENTES_KEY, SIN_RESULTADOS, enc, esLimite, perfilColor, perfilPlano } from "./datos.js";
@@ -14,6 +14,7 @@ import { byKey, paintMap } from "./mapa.js";
 import { citaDeRegistro, driversHTML, goToPerfil, reliability } from "./kit.js";
 import { compareText, deltaTableHTML } from "./comparar.js";
 import { entradaKit } from "./efectos.js";
+import { LIMITE_TEMAS, agregarTema, provinciasQueSigo, quitarTema, temasQueSigo } from "./seguimiento.js";
 
 // ---------------------------------------------------------------------
 // Map selection: tap a province and its essentials appear beside the map,
@@ -169,6 +170,52 @@ function criterioLista() {
   }).join("")}</ul>`;
 }
 
+// What a reporter can do here, as three tasks they can start with one tap.
+const TAREAS = [
+  ["Encuentra por qué Bolívar es vulnerable", "perfil/" + enc("Bolívar")],
+  ["Compara Guayas y Pichincha", "comparar/" + enc("Guayas") + "/" + enc("Pichincha")],
+  ["Revisa qué tan firme es una cifra", "meto"],
+];
+
+function guiaHTML() {
+  return `<section class="card guia" aria-labelledby="guiaTit"><h2 id="guiaTit">Empieza por aquí</h2>
+   <p class="guia-lee"><b>Cómo leer un puntaje:</b> va de 0 a 100 y más alto es más vulnerable. Compara provincias entre sí y puede variar ${esc(MARGEN_GENERAL)}.</p>
+   <ul class="guia-tareas">${TAREAS.map(([t, ruta]) => `<li><button type="button" class="btn gh" data-ruta="${esc(ruta)}">${esc(t)}</button><span class="ptag ej">Ejemplo</span></li>`).join("")}</ul>
+   <p class="note" style="margin:10px 0 0">También puedes: copiar un párrafo para tu nota, descargar el mapa, pedir información al observatorio y contarnos qué falta.</p>
+  </section>`;
+}
+
+function siguiendoHTML() {
+  const provs = provinciasQueSigo();
+  const temas = temasQueSigo();
+  const vacio = !provs.length && !temas.length;
+  return `<section class="card sigo" aria-labelledby="sigoTit"><h2 id="sigoTit">Lo que sigues</h2>
+   ${vacio ? `<p class="note" style="margin:4px 0 10px">Aún no sigues nada. Abre una provincia y pulsa «Seguir esta provincia», o escribe un tema.</p>` : ""}
+   <div class="sigo-chips">${provs.map((p) => `<a class="chip" href="#perfil/${enc(p)}">${esc(p)}</a>`).join("")}${temas
+     .map((t) => `<span class="chip tema">${esc(t)}<button type="button" class="chip-x" data-quitar="${esc(t)}" aria-label="Dejar de seguir ${esc(t)}">×</button></span>`)
+     .join("")}</div>
+   <form class="sigo-form" id="formTema"><label class="sr" for="temaNuevo">Tema o narrativa que sigues</label>
+    <input id="temaNuevo" type="text" maxlength="60" placeholder="Un tema o narrativa, por ejemplo: fraude" autocomplete="off"${temas.length >= LIMITE_TEMAS ? " disabled" : ""}>
+    <button class="btn gh" type="submit"${temas.length >= LIMITE_TEMAS ? " disabled" : ""}>Seguir tema</button></form>
+   <p class="note" style="margin:8px 0 0">Se guarda en este navegador.</p>
+  </section>`;
+}
+
+function bindInicio() {
+  const raiz = $("perfil");
+  raiz.querySelectorAll("[data-quitar]").forEach((b) => (b.onclick = () => (quitarTema(b.dataset.quitar), refrescarSigo())));
+  const f = $("formTema");
+  if (f) f.onsubmit = (e) => (e.preventDefault(), agregarTema($("temaNuevo").value), refrescarSigo());
+}
+
+function refrescarSigo() {
+  const caja = document.querySelector("#perfil .sigo");
+  if (!caja) return;
+  caja.outerHTML = siguiendoHTML();
+  bindInicio();
+  $("temaNuevo")?.focus();
+}
+
 export function renderInicio() {
   E.perfilActual = null;
   E.PERFIL_DATA = null;
@@ -176,6 +223,7 @@ export function renderInicio() {
   $("perfil").innerHTML = `
   <section class="card inicio-main"><h2>¿Sobre qué provincia escribes?</h2>
    <p class="inicio-lead">Este observatorio mide qué tan fértil es cada provincia para que la desinformación electoral llegue y prospere. <b>Toca tu provincia en el mapa</b> y te llevas una frase lista para tu nota, datos para citar y qué puedes afirmar.</p></section>
+  <div class="grid g2" style="margin-top:16px">${guiaHTML()}${siguiendoHTML()}</div>
   ${
     tareas
       ? `<div class="grid g2" style="margin-top:16px">
@@ -185,6 +233,7 @@ export function renderInicio() {
       : ""
   }`;
   entradaKit($("perfil"));
+  bindInicio();
   if (tareas) modCmpBind();
   renderProvLista();
 }
@@ -214,7 +263,7 @@ function drawSelMap(svgEl, pathsMap) {
     path.setAttribute("tabindex", "0");
     path.setAttribute("aria-label", p ? `${p.provincia}: abrir la nota` : key);
     path.setAttribute("fill", col("IVEI", p?.IVEI));
-    path.addEventListener("mouseenter", (e) => p && tipShow(e.clientX, e.clientY, `<b>${esc(p.provincia)}</b><br>Vulnerabilidad ${esc((p.nivel || "").toLowerCase())} · puesto ${Math.round(p.rank)} de 24`));
+    path.addEventListener("mouseenter", (e) => p && tipShow(e.clientX, e.clientY, `<b>${esc(p.provincia)}</b><br>Vulnerabilidad ${esc((p.nivel || "").toLowerCase())} · puesto ${Math.round(p.rank)} de 24<br>Puede variar ${esc(MARGEN_GENERAL)}`));
     path.addEventListener("mousemove", (e) => tipMove(e.clientX, e.clientY));
     path.addEventListener("mouseleave", tipHide);
     path.addEventListener("click", () => p && goToPerfil(p.provincia));

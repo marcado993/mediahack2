@@ -2,7 +2,7 @@
 
 import { getJSON } from "../api.js";
 import { flag } from "../tenant.js";
-import { esc, fmt, fmtInt, importedTag, borderlineTag } from "../ui.js";
+import { MARGEN_GENERAL, esc, fmt, fmtInt, importedTag, borderlineTag } from "../ui.js";
 import { E } from "./estado.js";
 import { $, provinceKey } from "./util.js";
 import { col, inkFor, isPositiveKey, scaleFor } from "./color.js";
@@ -140,7 +140,7 @@ export function paintMap() {
         e.clientX,
         e.clientY,
         `<b>${p.provincia}</b><br>${active.nombre}: ${capaValueText(p)}<br>
-        <span class="r">IVEI</span> ${fmt(p.IVEI)} · <span class="r">Puesto</span> ${p.rank}/24<br>
+        <span class="r">IVEI</span> ${fmt(p.IVEI)} <span class="r">(puede variar ${MARGEN_GENERAL})</span> · <span class="r">Puesto</span> ${p.rank}/24<br>
         ${fmtInt(p.poblacion)} hab.${p.n_lb === 0 ? '<br><span class="r">Sin muestra propia: valor nacional imputado</span>' : ""}`
       );
     };
@@ -174,7 +174,7 @@ function drawMapSVG(svgEl, pathsMap, scaleX = 1, scaleY = 1) {
           e.clientX,
           e.clientY,
           `<b>${p.provincia}</b><br>${capasAll().find((c) => c.codigo === E.capa).nombre}: ${capaValueText(p)}<br>
-          Puesto ${p.rank}/24 · ${p.nivel}${p.n_lb === 0 ? '<br><span class="r">Sin muestra propia: valor nacional</span>' : ""}`
+          Puesto ${p.rank}/24 · ${p.nivel}${E.capa === "IVEI" ? `<br><span class="r">Puede variar ${MARGEN_GENERAL}</span>` : ""}${p.n_lb === 0 ? '<br><span class="r">Sin muestra propia: valor nacional</span>' : ""}`
         );
       }
     });

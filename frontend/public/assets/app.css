@@ -4380,3 +4380,187 @@ th,
 .gsap .esc-mark {
   animation: none;
 }
+
+/* ---- user stories pass: notices, guide, follow list, cases, sensitivity ---- */
+.rel-aviso,
+.insumo {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 12px 0 0;
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: #26313f;
+  background: var(--acc-soft);
+  border: 1px solid #d3dfec;
+}
+.rel-aviso .ic {
+  flex: none;
+  margin-top: 2px;
+  color: var(--acc);
+}
+.insumo {
+  display: block;
+  margin: 0 0 14px;
+}
+.ptag.ej {
+  color: #4a5666;
+  background: #f1f4f8;
+  border-color: #cfd8e2;
+  margin-left: 8px;
+}
+.qes {
+  margin-left: 8px;
+  font-size: 12.5px;
+}
+.guia-lee {
+  margin: 6px 0 12px;
+  font-size: 14px;
+  color: #26313f;
+}
+.guia-tareas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.guia-tareas li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.sigo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 12px;
+}
+.sigo-chips .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.chip-x {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px 6px;
+  margin: -4px -6px -4px 0;
+  cursor: pointer;
+  color: var(--mut);
+}
+.sigo-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.sigo-form input {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.casos {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.caso {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #fbfcfe;
+}
+.caso h3 {
+  margin: 0 0 8px;
+  font-size: 14.5px;
+}
+.caso p {
+  margin: 0 0 8px;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.caso .c-nota {
+  margin: 0;
+  color: #4a5666;
+}
+.sens .amp {
+  font-size: 12px;
+  font-weight: 600;
+  color: #7a4a05;
+  background: #fff6e5;
+  border: 1px solid #ecc98a;
+  border-radius: 6px;
+  padding: 1px 6px;
+  margin-left: 4px;
+}
+.sens a {
+  color: var(--acc);
+}
+dialog .chk {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.5;
+}
+dialog .chk input {
+  margin-top: 3px;
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+/* ---- touch targets: 44 px for everything you press on a phone or touch screen ---- */
+@media (pointer: coarse), (max-width: 640px) {
+  .finder-btn,
+  .btn-datos,
+  .btn-req,
+  .pl-item,
+  .fbtn,
+  .fhelp,
+  .mod-input,
+  .skip,
+  .chip,
+  .copybtn,
+  .trend-chip,
+  .jump button,
+  .idx button,
+  summary {
+    min-height: 44px;
+  }
+  .fhelp,
+  .chip-x,
+  .btn-datos,
+  .sens a {
+    min-width: 44px;
+  }
+  .gl {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  #rk tr {
+    height: 44px;
+  }
+  .linkbtn,
+  .qes {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 6px;
+  }
+  .sens a,
+  td a {
+    display: inline-block;
+    padding: 14px 0;
+  }
+  .chip-x {
+    margin: -4px -10px -4px 0;
+  }
+}

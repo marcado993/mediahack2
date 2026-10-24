@@ -18,7 +18,8 @@ const MODULOS = [
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
+    // the app adds classes to <html> (gsap, theme) before React hydrates: React must not compare them
+    <html lang="es" suppressHydrationWarning>
       <head>
         <link rel="stylesheet" href="/assets/app.css" />
         {MODULOS.map((m) => (
