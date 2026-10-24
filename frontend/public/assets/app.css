@@ -4372,3 +4372,11 @@ th,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* GSAP drives these motions now; the CSS versions above remain as the fallback
+   when the script is missing (the `gsap` class is only added if it loaded). */
+.gsap .view.on,
+.gsap #perfil > *,
+.gsap .esc-mark {
+  animation: none;
+}

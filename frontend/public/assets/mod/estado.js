@@ -1,0 +1,23 @@
+// Shared mutable state of the page. One object, so every module reads and writes the same values.
+export const E = {
+  SOL_NLB: null,
+  currentView: "perfil",
+  enVuelo: 0,
+  barTimer: undefined,
+  toastTimer: undefined,
+  MAPA: null,
+  PATHS: null,
+  PROVINCIAS: [],
+  capa: "IVEI",
+  mapSel: null,
+  perfilActual: null,
+  PERFIL_DATA: null,
+  masCapas: false,
+  ALL_PERFILES_CACHE: null,
+  TABLA_DATA: null,
+  sortKey: "rank",
+  sortDir: 1,
+  tendSel: null,
+  tendOpenTerm: null,
+  opinaTimer: undefined,
+};

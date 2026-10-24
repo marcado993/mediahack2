@@ -16,18 +16,21 @@ Optimizar la interfaz gráfica y la experiencia de usuario (UI/UX) del prototipo
 ## 📂 Arquitectura del Proyecto
 
 ```text
-├── frontend/                  # Aplicación web estática desplegada en Vercel
-│   ├── index.html            # Markup semántico, vistas y modales
-│   ├── assets/
+├── frontend/                  # Next.js (App Router) desplegado en Vercel; sirve la app tal cual, sin React en las vistas
+│   ├── app/
+│   │   ├── layout.js         # <head>, metadatos y carga de GSAP + app.js
+│   │   ├── page.js           # Entrega cuerpo.html sin que React lo toque
+│   │   └── cuerpo.html       # Markup semántico, vistas y modales
+│   ├── public/assets/        # Se sirve en /assets/ (sin build)
 │   │   ├── app.css           # Sistema de diseño, tokens, componentes y responsive
-│   │   ├── app.js            # Lógica cliente, navegación, renderizado de mapas/datos
+│   │   ├── app.js            # Punto de entrada (arranque); el resto está en assets/mod/ (ver mod/LEEME.md)
+│   │   ├── mod/              # Módulos ES nativos: estado, nav, mapa, kit, comparar, formularios…
 │   │   ├── ui.js             # Componentes compartidos de certeza y presentación
 │   │   ├── api.js            # Cliente fetch para el backend FastAPI
 │   │   ├── tenant.js         # Personalización de marca y temas
 │   │   └── ecuador_paths.json # Geometrías SVG precalculadas de las 24 provincias
-│   └── public/               # Logotipos, favicons e iconos SVG
+│   └── public/               # También aquí: logotipos, favicons e iconos SVG (se sirven en /)
 ├── backend/                  # API REST en Python / FastAPI (app.main:app)
-├── vercel.json               # Configuración de despliegue estático en Vercel
 └── .claude/
     ├── skills/
     │   ├── nielsen-ux-auditor/       # Skill de auditoría heurística (NN/g)
@@ -73,7 +76,7 @@ Cuando trabajes en este repositorio, puedes invocar o adoptar los siguientes rol
 
 - **Levantar Frontend Localmente (puerto 5173):**
   ```powershell
-  python -c "import http.server,os; os.chdir('frontend'); http.server.ThreadingHTTPServer(('0.0.0.0',5173),http.server.SimpleHTTPRequestHandler).serve_forever()"
+  cd frontend; npm install; npm run dev
   ```
 - **Levantar Backend Localmente (puerto 8000):**
   ```powershell
