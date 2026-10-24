@@ -1,0 +1,143 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap");
+
+/* Palette of a newsroom: newsprint, ink, proofreader's red, highlighter. */
+:root {
+  --paper: #f2f1ed;
+  --card: #fff;
+  --ink: #14161a;
+  --mut: #5d636c;
+  --line: #d9d8d2;
+  --red: #b3141f;
+  --red-ink: #8f0f19;
+  --hl: #fff1a8;
+  --ok: #1f6b4a;
+  --display: "Source Serif 4", Georgia, serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--paper);
+}
+body {
+  color: var(--ink);
+  font: 14px/1.5 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 2.5px solid var(--ink);
+  outline-offset: 2px;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--display);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.btn {
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 9px 16px;
+  border-radius: 6px;
+  border: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) {
+  background: #000;
+}
+.btn.red {
+  background: var(--red);
+  border-color: var(--red);
+}
+.btn.red:hover:not(:disabled) {
+  background: var(--red-ink);
+  border-color: var(--red-ink);
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--ink);
+}
+.btn.ghost:hover:not(:disabled) {
+  background: var(--card);
+}
+.btn.danger {
+  background: transparent;
+  color: var(--red);
+  border-color: var(--red);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.field {
+  display: block;
+  margin-bottom: 16px;
+}
+.field > span,
+.field > legend {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.field small {
+  display: block;
+  font-size: 12px;
+  color: var(--mut);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+.field input[type="text"],
+.field input[type="url"],
+.field input[type="password"],
+.field textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+}
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--ink);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--hl);
+}
+.field textarea {
+  resize: vertical;
+  min-height: 70px;
+}
+.mono {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+.msg-err {
+  color: var(--red-ink);
+  font-size: 13px;
+  font-weight: 500;
+}

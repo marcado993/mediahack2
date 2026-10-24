@@ -43,9 +43,9 @@ def mapa():
             }
         )
     return {"capas": [{"codigo": c, "nombre": n, "color": col} for c, n, col in ivei.DIMENSIONS] + [
-        {"codigo": "IVEI", "nombre": "Vulnerabilidad electoral integrada", "color": "#b23a2e"},
-        {"codigo": "EXCLUSION", "nombre": "Exclusión digital", "color": "#1d6a96"},
-        {"codigo": "HIPEREXP", "nombre": "Hiperexposición digital", "color": "#b3541e"},
+        {"codigo": "IVEI", "nombre": "Nivel de vulnerabilidad", "color": "#b23a2e"},
+        {"codigo": "EXCLUSION", "nombre": "Sin conexión", "color": "#1d6a96"},
+        {"codigo": "HIPEREXP", "nombre": "Saturación de redes", "color": "#b3541e"},
         {"codigo": "HABDIG", "nombre": "Habilidades digitales", "color": "#0e7c86"},
     ], "provincias": provincias, "nacional": ivei.get_national()}
 
@@ -80,14 +80,14 @@ def metodologia():
             "informativa, resiliencia informativa y presión coyuntural."
         ),
         "dimensiones": {
-            "Vulnerabilidad estructural": "Condiciones socioeconómicas, educativas y de acceso digital de base (INEC).",
-            "Exposición informativa": "Uso de plataformas digitales y de circulación rápida (Facebook, WhatsApp, TikTok).",
-            "Resiliencia informativa": "Escolaridad, alfabetización digital, percepción del riesgo informativo y diversidad de fuentes - medida como dimensión propia, no como el inverso de la vulnerabilidad.",
-            "Presión coyuntural": "Victimización, temor al delito, percepción de fraude electoral, narcotráfico, corrupción y polarización (Latinobarómetro 2024) - la capa más dinámica, pensada para actualizarse ante cada elección.",
+            "Carencias de base (vulnerabilidad estructural)": "Condiciones socioeconómicas, educativas y de acceso digital de base (INEC).",
+            "Dependencia de redes (exposición informativa)": "Uso de plataformas digitales y de circulación rápida (Facebook, WhatsApp, TikTok).",
+            "Capacidad de contrastar (resiliencia informativa)": "Escolaridad, alfabetización digital, percepción del riesgo informativo y diversidad de fuentes - medida como dimensión propia, no como el inverso de la vulnerabilidad.",
+            "Clima electoral (presión coyuntural)": "Victimización, temor al delito, percepción de fraude electoral, narcotráfico, corrupción y polarización (Latinobarómetro 2024) - la capa más dinámica, pensada para actualizarse ante cada elección.",
         },
         "mecanismos_digitales": {
-            "Exclusión digital": "Provincias donde la vulnerabilidad viene sobre todo de la falta de acceso.",
-            "Hiperexposición digital": "Provincias con alto consumo de plataformas de circulación rápida y baja capacidad de contraste. Son mecanismos independientes: una provincia puede puntuar alto en ambos, en uno o en ninguno.",
+            "Sin conexión (exclusión digital)": "Provincias donde la vulnerabilidad viene sobre todo de la falta de acceso.",
+            "Saturación de redes (hiperexposición digital)": "Provincias con alto consumo de plataformas de circulación rápida y baja capacidad de contraste. Son mecanismos independientes: una provincia puede puntuar alto en ambos, en uno o en ninguno.",
         },
         "fuentes": [
             "Censo de Población y Vivienda 2022 (INEC)",
