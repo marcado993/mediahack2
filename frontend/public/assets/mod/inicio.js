@@ -179,9 +179,8 @@ const TAREAS = [
 
 function guiaHTML() {
   return `<section class="card guia" aria-labelledby="guiaTit"><h2 id="guiaTit">Empieza por aquí</h2>
-   <p class="guia-lee"><b>Cómo leer un puntaje:</b> va de 0 a 100 y más alto es más vulnerable. Compara provincias entre sí y puede variar ${esc(MARGEN_GENERAL)}.</p>
+   <p class="guia-lee">El puntaje va de 0 a 100: más alto, más vulnerable. Compara provincias entre sí y puede variar ${esc(MARGEN_GENERAL)}.</p>
    <ul class="guia-tareas">${TAREAS.map(([t, ruta]) => `<li><button type="button" class="btn gh" data-ruta="${esc(ruta)}">${esc(t)}</button><span class="ptag ej">Ejemplo</span></li>`).join("")}</ul>
-   <p class="note" style="margin:10px 0 0">También puedes: copiar un párrafo para tu nota, descargar el mapa, pedir información al observatorio y contarnos qué falta.</p>
   </section>`;
 }
 
@@ -227,7 +226,7 @@ export function renderInicio() {
   const tareas = flag("inicio_guiado");
   $("perfil").innerHTML = `
   <section class="card inicio-main"><h2>¿Sobre qué provincia escribes?</h2>
-   <p class="inicio-lead">Este observatorio mide qué tan fértil es cada provincia para que la desinformación electoral llegue y prospere. <b>Toca tu provincia en el mapa</b> y te llevas una frase lista para tu nota, datos para citar y qué puedes afirmar.</p></section>
+   <p class="inicio-lead"><b>Elige tu provincia</b> y te llevas una frase lista para tu nota, con su fuente y su advertencia.</p></section>
   <div class="grid g2" style="margin-top:16px">${guiaHTML()}${siguiendoHTML()}</div>
   ${
     tareas

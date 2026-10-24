@@ -57,7 +57,7 @@ FLAGS: list[dict] = [
     {"key": "grafico_dispersion", "grupo": "Capas del mapa", "nombre": "Gráfico exclusión vs. hiperexposición", "default": True, "locked": False,
      "detalle": "Dispersión bajo el mapa que compara los dos mecanismos."},
 
-    {"key": "inicio_guiado", "grupo": "Herramientas para reportear", "nombre": "Comparar y criterio en el inicio", "default": True, "locked": False,
+    {"key": "inicio_guiado", "grupo": "Herramientas para reportear", "nombre": "Comparar y criterio en el inicio", "default": False, "locked": False,
      "detalle": "Panel de inicio con la comparación rápida y la tabla de criterio editorial."},
     {"key": "buscador_provincia", "grupo": "Herramientas para reportear", "nombre": "Buscador rápido «¿Qué provincia cubres?»", "default": True, "locked": False,
      "detalle": "Campo en el encabezado para saltar directo a una provincia."},

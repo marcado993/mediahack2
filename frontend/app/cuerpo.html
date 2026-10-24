@@ -86,8 +86,12 @@
 <section class="view on" id="v-perfil">
  <div class="notes-layout">
   <aside class="prov-aside noprint" aria-label="Elegir provincia">
+   <div class="aside-buscar">
+   <label class="aside-h" for="provFiltro">Escribe tu provincia</label>
+   <input id="provFiltro" class="mod-input" type="text" placeholder="Ej. Guayas, Pichincha…" autocomplete="off" spellcheck="false">
+   </div>
    <div class="aside-map">
-   <p class="aside-h">Toca tu provincia en el mapa</p>
+   <p class="aside-h">O tócala en el mapa</p>
    <div class="map-canvas sel-map" data-loading="1">
     <svg id="map-sel" viewBox="0 0 560 640" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Mapa de Ecuador"></svg>
     <div class="inset-gal inset-sel"><span class="inset-gal-label">GALÁPAGOS</span><svg id="map-sel-gal" viewBox="0 0 110 110"></svg></div>
@@ -95,8 +99,6 @@
    <p class="pais" style="margin:6px 2px 12px">Más oscuro = más vulnerable.</p>
    </div>
    <div class="aside-find">
-   <label class="aside-h" for="provFiltro">O búscala por nombre</label>
-   <input id="provFiltro" class="mod-input" type="text" placeholder="Pichincha, Guayas…" autocomplete="off" spellcheck="false">
    <div id="provRecientes" class="recent"></div>
    <div id="provLista" class="prov-list" role="list" aria-busy="true"><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div></div>
    <button type="button" class="pl-item pl-home" id="btnInicio"><span class="pl-n">← Volver al inicio</span></button>

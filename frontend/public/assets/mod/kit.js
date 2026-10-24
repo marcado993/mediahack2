@@ -308,9 +308,9 @@ export function renderPerfil(data) {
     ${
       flag("cita_lista")
         ? `<div class="copiar">
-       <div class="cita-act"><button class="btn" id="btnCita" type="button">Copiar párrafo para tu nota</button><button class="btn gh" id="btnFrase" type="button">Copiar frase corta</button></div>
+       <p class="copiar-h">Para tu nota</p>
        <p class="frase" id="fraseTexto">${esc(frase)}</p>
-       <details class="ver"><summary>Ver el párrafo completo que se copia</summary><blockquote id="citaTexto">${esc(cita)}</blockquote></details>
+       <div class="cita-act"><button class="btn" id="btnFrase" type="button">Copiar para mi nota</button><button class="btn gh" id="btnCita" type="button">Copiar con más contexto</button></div>
       </div>`
         : ""
     }
@@ -328,9 +328,8 @@ export function renderPerfil(data) {
      </div>
     </div>
     ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
-    <p class="rel-aviso">${ICON.warn}<span><b>Índice relativo:</b> compara las 24 provincias entre sí. No es un nivel absoluto ni sirve para comparar con otros países o años. Describe el territorio, no a las personas.</span></p>
+    <p class="rel-aviso">${ICON.warn}<span><b>Índice relativo:</b> compara provincias entre sí, no mide un nivel absoluto. Describe territorios, no personas.</span></p>
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
-    <p class="gl-row noprint">¿Qué significa? ${gl("ivei", "IVEI")} ${gl("imputado", "valor imputado")} ${gl("factor", "factor")}</p>
    </section>
 
    ${
@@ -368,8 +367,15 @@ export function renderPerfil(data) {
   ${detalle("dieta", "Dieta informativa", "Qué plataformas usa la gente conectada", dieta)}
   ${detalle("resiliencia", "Capacidad de contrastar y clima electoral", "Educación, fuentes y ambiente", resiliencia)}
   ${detalle("contexto", "Contexto social", "Edad, etnia, pobreza y educación", contexto)}
-  </details>`;
+  </details>
+  ${flag("cita_lista") ? `<div class="copy-bar noprint"><button class="btn" id="btnFraseBar" type="button">Copiar para mi nota</button></div>` : ""}`;
 
+  const barra = target.querySelector(".copy-bar");
+  if (barra && $("btnFrase") && "IntersectionObserver" in window) {
+    // the bar only shows once the top button has scrolled out of sight
+    new IntersectionObserver(([en]) => barra.classList.toggle("on", !en.isIntersecting), { rootMargin: "0px 0px -90px 0px" }).observe($("btnFrase"));
+    $("btnFraseBar").onclick = (e) => copiarBtn(e.currentTarget, frase, "frase_ficha");
+  }
   target.querySelectorAll(".idx [data-sec]").forEach((b) => {
     b.onclick = () => {
       if (b.dataset.sec === "afondo") $("sec-afondo").open = true;
