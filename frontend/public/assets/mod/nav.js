@@ -114,12 +114,24 @@ function pulsoBarra() {
   setTimeout(() => !E.enVuelo && barraOff(), 220);
 }
 
-export function toast(msg) {
+// `accion` = { texto, fn }: a way back for something that was just done ("Deshacer").
+export function toast(msg, accion) {
   const t = $("toast");
   t.textContent = msg;
+  if (accion) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = accion.texto;
+    b.onclick = () => {
+      clearTimeout(E.toastTimer);
+      t.classList.remove("on");
+      accion.fn();
+    };
+    t.append(" ", b);
+  }
   t.classList.add("on");
   clearTimeout(E.toastTimer);
-  E.toastTimer = setTimeout(() => t.classList.remove("on"), 3200);
+  E.toastTimer = setTimeout(() => t.classList.remove("on"), accion ? 6500 : 3200);
 }
 
 // Copy with feedback where the eyes already are: the button says "Copiado".

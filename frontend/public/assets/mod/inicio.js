@@ -8,7 +8,7 @@ import { E } from "./estado.js";
 import { $, provinceKey } from "./util.js";
 import { DECISIONES, RAMP, RECIENTES_KEY, SIN_RESULTADOS, enc, esLimite, perfilColor, perfilPlano } from "./datos.js";
 import { col, indicatorRange, inkFor } from "./color.js";
-import { applyRoute, copiarBtn, errorBox, navigate } from "./nav.js";
+import { applyRoute, copiarBtn, errorBox, navigate, toast } from "./nav.js";
 import { tipHide, tipMove, tipShow } from "./tooltip.js";
 import { byKey, paintMap } from "./mapa.js";
 import { citaDeRegistro, driversHTML, goToPerfil, reliability } from "./kit.js";
@@ -203,7 +203,12 @@ function siguiendoHTML() {
 
 function bindInicio() {
   const raiz = $("perfil");
-  raiz.querySelectorAll("[data-quitar]").forEach((b) => (b.onclick = () => (quitarTema(b.dataset.quitar), refrescarSigo())));
+  raiz.querySelectorAll("[data-quitar]").forEach((b) => (b.onclick = () => {
+      const t = b.dataset.quitar;
+      quitarTema(t);
+      refrescarSigo();
+      toast(`Dejaste de seguir «${t}».`, { texto: "Deshacer", fn: () => (agregarTema(t), refrescarSigo()) });
+    }));
   const f = $("formTema");
   if (f) f.onsubmit = (e) => (e.preventDefault(), agregarTema($("temaNuevo").value), refrescarSigo());
 }

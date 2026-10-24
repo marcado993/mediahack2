@@ -294,6 +294,7 @@ export function renderPerfil(data) {
   ].filter(Boolean);
 
   target.innerHTML = `
+  <nav class="migas noprint" aria-label="Dónde estás"><button type="button" class="linkbtn" data-ruta="perfil">Inicio</button><span aria-hidden="true">›</span><span aria-current="page">${esc(data.provincia)}</span></nav>
   <div class="kit-head">
    <h2 class="prov-title">${esc(data.provincia)}</h2>
    ${provinceFlags({ isImputed, isBorderlineCase, compact: true })}
@@ -350,6 +351,7 @@ export function renderPerfil(data) {
    <select id="essComparar" ${flag("vista_comparar") ? "" : "hidden"}><option value="">Comparar con…</option>${E.PROVINCIAS.filter((p) => p !== data.provincia).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("")}</select>
    <button class="btn gh" type="button" id="btnVerMapa">Ver en el mapa</button>
    <button class="btn gh" type="button" id="btnEnlace">Copiar enlace</button>
+   ${typeof navigator !== "undefined" && navigator.share ? `<button class="btn gh" type="button" id="btnCompartir">Compartir</button>` : ""}
    <button class="btn gh" type="button" id="btnSeguir" aria-pressed="false"></button>
    ${flag("solicitar_informacion") ? `<button class="btn gh" type="button" data-solicitar>Pedir más información</button>` : ""}
   </div>
@@ -381,12 +383,21 @@ export function renderPerfil(data) {
   if ($("btnCita")) $("btnCita").onclick = (e) => copiarBtn(e.currentTarget, cita, "cita_ficha");
   if ($("btnTodo")) $("btnTodo").onclick = (e) => copiarBtn(e.currentTarget, angulos.map((a) => `• ${a.copia}`).join("\n"), "datos_nota");
   if ($("btnEnlace")) $("btnEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);
+  if ($("btnCompartir")) $("btnCompartir").onclick = () => navigator.share({ title: titular, text: `${frase} Fuente: Observatorio OVADE.`, url: location.href }).catch(() => {});
   bindVariables(target);
   pintarSeguir($("btnSeguir"), data.provincia);
   $("btnSeguir").onclick = (e) => {
     const on = alternarProvincia(data.provincia);
     pintarSeguir(e.currentTarget, data.provincia);
-    toast(on ? `Sigues ${data.provincia}. La verás en tu inicio.` : `Dejaste de seguir ${data.provincia}.`);
+    if (on) toast(`Sigues ${data.provincia}. La verás en tu inicio.`);
+    else
+      toast(`Dejaste de seguir ${data.provincia}.`, {
+        texto: "Deshacer",
+        fn: () => {
+          alternarProvincia(data.provincia);
+          pintarSeguir($("btnSeguir"), data.provincia);
+        },
+      });
   };
   $("btnSolidez").onclick = () => openFicha("IVEI", data.provincia);
   if ($("btnFicha")) $("btnFicha").onclick = () => downloadFicha(data.provincia);
