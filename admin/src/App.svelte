@@ -5,6 +5,7 @@
   import Editor from "./Editor.svelte";
   import Preview from "./Preview.svelte";
   import Requests from "./Requests.svelte";
+  import Feedback from "./Feedback.svelte";
   import { newTenant, payload, toPublic } from "./lib.js";
 
   const store = {
@@ -38,6 +39,7 @@
   let saveError = $state("");
   let view = $state("medios");
   let nuevas = $state(0);
+  let retroPend = $state(0);
   let notice = $state("");
   let noticeTimer;
 
@@ -175,12 +177,17 @@
         <button type="button" class:on={view === "solicitudes"} aria-current={view === "solicitudes" ? "page" : undefined} onclick={() => (view = "solicitudes")}>
           Solicitudes{#if nuevas}<mark>{nuevas}</mark>{/if}
         </button>
+        <button type="button" class:on={view === "retro"} aria-current={view === "retro" ? "page" : undefined} onclick={() => (view = "retro")}>
+          Retroalimentación{#if retroPend}<mark>{retroPend}</mark>{/if}
+        </button>
       </nav>
       <span class="sub"></span>
       <button class="btn ghost out" type="button" onclick={logout}>Salir</button>
     </header>
     {#if view === "solicitudes"}
       <div class="scroll"><Requests {call} oncount={(n) => (nuevas = n)} /></div>
+    {:else if view === "retro"}
+      <div class="scroll"><Feedback {call} {tenants} oncount={(n) => (retroPend = n)} /></div>
     {:else}
     <div class="cols">
       <aside><Sidebar {tenants} {selected} {dirty} oncreate={create} onselect={select} /></aside>
