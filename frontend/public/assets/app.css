@@ -5193,3 +5193,50 @@ nav button.nuevo::after {
   height: 4px;
   background: linear-gradient(90deg, var(--cmp-a) 0 50%, var(--cmp-b) 50% 100%);
 }
+
+/* ---- less scrolling ---- */
+.idx button.on {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: var(--on-acc);
+  font-weight: 700;
+}
+[id^="sec-"] {
+  scroll-margin-top: 64px;
+}
+.copiar-nota {
+  margin: -6px 0 12px;
+  font-size: 12.5px;
+  color: var(--mut);
+}
+@media (max-width: 640px) {
+  .card {
+    padding: 14px;
+  }
+  .kit-grid,
+  .notes-main .grid {
+    gap: 12px;
+  }
+  /* with a province open, the map and the 24-name list would add ~1,500 px at the end of the page: the header search and the breadcrumb already cover "another province" */
+  .notes-layout:has(.kit-head) .prov-aside {
+    display: none;
+  }
+  /* map layers in one swipeable row instead of a 400 px block of chips */
+  #capas {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    margin-right: -16px;
+    padding-right: 16px;
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, #000 88%, transparent);
+  }
+  #capas::-webkit-scrollbar {
+    display: none;
+  }
+  #capas > * {
+    flex: none;
+    scroll-snap-align: start;
+  }
+}

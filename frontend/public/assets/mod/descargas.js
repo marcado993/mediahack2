@@ -5,7 +5,7 @@ import { conBusy } from "../estados.js";
 import { esc } from "../ui.js";
 import { E } from "./estado.js";
 import { $ } from "./util.js";
-import { scaleFor } from "./color.js";
+import { isPositiveKey, scaleFor } from "./color.js";
 import { pedirAcuerdo, NOTA_DESCARGA } from "./etica.js";
 import { CALCULO_CAPA, CAPA_DESC, CORTE_FRASE, CAPA_LG, FACTORES, FALLA_FACTOR, FUENTE_VAR, PERFILES, VARIABLES_CAPA } from "./datos.js";
 import { copiarBtn, navigate, toast } from "./nav.js";
@@ -31,7 +31,7 @@ export function openFicha(code, provincia) {
   const lectura =
     code === "PERFIL"
       ? "Los colores son tipos, no niveles: ninguno es «mejor» que otro. Sirven para agrupar provincias que llegan a la desinformación por caminos parecidos."
-      : `${f.lectura} Claro = ${lo}; oscuro = ${hi}. Compara provincias entre sí: no es un nivel absoluto, y describe el territorio, no a sus habitantes.`;
+      : `${f.lectura} ${isPositiveKey(code) ? "Rojo" : "Verde"} = ${lo}; ${isPositiveKey(code) ? "verde" : "rojo"} = ${hi}. Compara provincias entre sí: no es un nivel absoluto, y describe el territorio, no a sus habitantes.`;
   $("fichaTitulo").textContent = `Cómo leer: ${nombre}`;
   const conf = provincia ? reliability(E.PERFIL_DATA?.provincia === provincia ? E.PERFIL_DATA.n_lb : null) : null;
   $("fichaSub").textContent = conf ? `Para ${provincia}: ${conf.label.toLowerCase()}${conf.detail ? `. ${conf.detail}` : ""}` : "Lo que mide este mapa, con qué datos y cómo citarlo bien.";
