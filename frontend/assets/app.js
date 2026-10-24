@@ -157,13 +157,37 @@ function showView(v) {
   if (!viewEnabled(v)) v = "perfil";
   if (v !== currentView) pulsoBarra();
   currentView = v;
-  document.querySelectorAll("nav button").forEach((b) => {
+  document.querySelectorAll("header nav button").forEach((b) => {
     const on = b.dataset.v === v;
     b.classList.toggle("on", on);
     b.setAttribute("aria-selected", String(on));
     b.tabIndex = on ? 0 : -1;
   });
+  // "Sobre los datos" lives outside the main tabs: it is consulted, not worked in
+  $("btnSobreDatos").classList.toggle("on", DATOS_VIEWS.includes(v));
+  document.querySelectorAll(".datos-nav [data-ir]").forEach((b) => b.setAttribute("aria-current", b.dataset.ir === v ? "page" : "false"));
   document.querySelectorAll(".view").forEach((el) => el.classList.toggle("on", el.id === "v-" + v));
+}
+
+// Methodology, open data and sources: one section reached from the header
+// button and the footer, with its own small navigation.
+const DATOS_VIEWS = ["meto", "datos", "fuentes"];
+const DATOS_LABEL = { meto: "Metodología y límites", datos: "Datos abiertos", fuentes: "Fuentes oficiales" };
+function initDatosNav() {
+  for (const v of DATOS_VIEWS) {
+    const nav = document.createElement("div");
+    nav.className = "datos-nav noprint";
+    nav.setAttribute("role", "navigation");
+    nav.setAttribute("aria-label", "Sobre los datos");
+    nav.innerHTML = `<div class="dn-top"><p class="dn-k">Sobre los datos</p><button type="button" class="linkbtn" data-ir="perfil">← Volver a preparar mi nota</button></div>
+     <p class="dn-sub">De dónde sale cada cifra, cómo se calcula y qué no puede afirmar.</p>
+     <div class="dn-tabs">${DATOS_VIEWS.map((x) => `<button type="button" data-ir="${x}">${DATOS_LABEL[x]}</button>`).join("")}</div>`;
+    $("v-" + v).prepend(nav);
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-ir]");
+    if (b) navigate(pathFor(b.dataset.ir));
+  });
 }
 
 function pathFor(v) {
@@ -353,7 +377,7 @@ function renderCapas() {
     const on = code === capa;
     const label = code === "IVEI" ? "Todos" : c.nombre;
     const tag = ["EST", "EXP", "RES", "PRE"].includes(code) ? `<span class="fcode">${code}</span>` : "";
-    const help = FACTORES[code] && code !== "HABDIG" && code !== "PERFIL" && !EXTRA.includes(code) ? `<button type="button" class="fhelp" data-ficha="${code}" aria-label="Ficha rápida: ${esc(c.nombre)}">?</button>` : "";
+    const help = FACTORES[code] ? `<button type="button" class="fhelp" data-ficha="${code}" aria-label="Cómo leer ${esc(label)}: qué mide y qué variables usa" title="Qué mide y qué variables usa">?</button>` : "";
     return `<span class="fchip${on ? " on" : ""}"><button type="button" class="fbtn" data-capa="${code}" aria-pressed="${on}" title="${esc(CAPA_DESC[code] ?? "")}">${esc(label)}${tag}</button>${help}</span>`;
   };
   box.innerHTML =
@@ -687,15 +711,34 @@ function reliability(n) {
   return { cls: "hi", label: `Muestra suficiente (n = ${n})`, detail: "" };
 }
 
-function citaTexto({ provincia, indice, nivel, puesto, nacional, nLb }) {
+// One attribution for every copied text (sentence, paragraph, map quote, bullet).
+const FUENTE_OVADE = "Fuente: Observatorio de Vulnerabilidad ante la Desinformación Electoral.";
+
+// Editorial warning for provinces whose opinion data is imputed or comes from a
+// tiny sample. Shown on screen and appended to everything the reporter copies.
+function precaucion(nLb, provincia) {
   const conf = reliability(nLb);
-  const nota = conf && conf.cls === "lo" ? ` Nota: ${conf.detail.charAt(0).toLowerCase()}${conf.detail.slice(1)}` : "";
+  if (!conf || conf.cls !== "lo") return null;
+  return nLb === 0
+    ? `${provincia} no tiene muestra propia en el Latinobarómetro: sus cifras de opinión son el promedio del país y no deben citarse como datos locales.`
+    : `La muestra de ${provincia} en el Latinobarómetro es pequeña (n = ${nLb}): sus cifras de opinión son orientativas, no exactas.`;
+}
+
+function citaTexto({ provincia, indice, nivel, puesto, nacional, nLb }) {
+  const aviso = precaucion(nLb, provincia);
   return (
     `${provincia} obtiene ${fmt(indice)} sobre 100 en el Índice de Vulnerabilidad Electoral Integrada (IVEI), ` +
     `de vulnerabilidad ${(nivel || "").toLowerCase()}: puesto ${puesto} de 24 provincias (1 = la más vulnerable), con un promedio nacional de ${fmt(nacional)}. ` +
-    `Fuente: Observatorio de Vulnerabilidad ante la Desinformación Electoral, con datos del Censo 2022 y la ENEMDU 2024 (INEC) y el Latinobarómetro 2024. ` +
-    `El índice describe condiciones del territorio, no el comportamiento de sus habitantes.${nota}`
+    `${FUENTE_OVADE.slice(0, -1)}, con datos del Censo 2022 y la ENEMDU 2024 (INEC) y el Latinobarómetro 2024. ` +
+    `El índice describe condiciones del territorio, no el comportamiento de sus habitantes.` +
+    (aviso ? ` Precaución editorial: ${aviso}` : "")
   );
+}
+
+// Short sentence for the reporter in a hurry; same source line, same warning.
+function fraseCorta({ provincia, indice, puesto, nLb }) {
+  const aviso = precaucion(nLb, provincia);
+  return `${provincia}: puesto ${puesto} de 24 en vulnerabilidad electoral (IVEI ${fmt(indice)} de 100). ${FUENTE_OVADE}` + (aviso ? ` Precaución editorial: ${aviso}` : "");
 }
 const buildCita = (d) => citaTexto({ provincia: d.provincia, indice: d.ivei.indice, nivel: d.ivei.nivel, puesto: d.ivei.puesto, nacional: d.ivei.nacional, nLb: d.n_lb });
 const citaDeRegistro = (p) => citaTexto({ provincia: p.provincia, indice: p.IVEI, nivel: p.nivel, puesto: p.rank, nacional: MAPA.nacional.IVEI, nLb: p.n_lb });
@@ -840,12 +883,14 @@ function renderPerfil(data) {
     .sort((a, b) => b[1] - a[1]);
 
   // quotable lines: short on screen, a full sentence with its source when copied
-  const FUENTE_OVADE = "Fuente: Observatorio de Vulnerabilidad ante la Desinformación Electoral.";
   const angulos = [
     ...drivers(rec).map((d) => ({ html: d.html, copia: `${d.plain} ${FUENTE_OVADE}` })),
     ...datosClave(data).map((c) => ({ html: `${c.corto}${solBadge(c.source)}`, copia: `${c.texto} Fuente: ${c.source}.` })),
   ].slice(0, 5);
-  const frase = `${data.provincia}: puesto ${data.ivei.puesto} de 24 en vulnerabilidad electoral (IVEI ${fmt(data.ivei.indice)} de 100). Fuente: OVADE.`;
+  const frase = fraseCorta({ provincia: data.provincia, indice: data.ivei.indice, puesto: data.ivei.puesto, nLb: data.n_lb });
+  const aviso = precaucion(data.n_lb, data.provincia);
+  const pesan = drivers(rec).map((d) => (d.k === "RES" ? "poca capacidad de contrastar" : factorNombre(d.k).toLowerCase()));
+  const titular = `${data.provincia}: vulnerabilidad ${(data.ivei.nivel || "").toLowerCase()} (${fmt(data.ivei.indice)}/100), puesto ${data.ivei.puesto} de 24${pesan.length ? `; pesan más ${pesan.join(" y ")}` : ""}.`;
   const extraNo = [];
   if (isImputed) extraNo.push(`Presentar como propias las cifras de opinión de ${data.provincia}: son el promedio del país.`);
   else if (conf && conf.cls === "lo") extraNo.push(`Dar como exactas las cifras de opinión de ${data.provincia}: ${conf.detail.charAt(0).toLowerCase()}${conf.detail.slice(1)}`);
@@ -895,16 +940,20 @@ function renderPerfil(data) {
   if (conf) cuidado.push(`<span class="conf ${conf.cls}">${esc(conf.label)}</span>`);
   if (isImputed) cuidado.push("<span>Su opinión es el promedio del país.</span>");
   if (isBorderlineCase) cuidado.push("<span>Su perfil puede cambiar con ajustes menores.</span>");
+  const conEscucha = viewEnabled("asistente");
+  // Quick-note mode: only what a reporter on deadline needs is open; the
+  // evidence is folded under "Investigar a fondo" and remembered per browser.
   const chips = [
     ["esencial", "Resumen"],
-    ...(showGuide ? [["angulos", "Datos para tu nota"], ["ideas", "Ideas"], ["decidir", "Qué afirmar"]] : []),
-    ["factores", "Qué lo explica"],
-    ["diagnostico", "Por qué"],
-    ["digital", "Perfil digital"],
-    ["dieta", "Dieta informativa"],
-    ["resiliencia", "Contraste y clima"],
-    ["contexto", "Contexto"],
+    ...(showGuide ? [["angulos", "Datos para tu nota"]] : []),
+    ...(conEscucha ? [["escucha", "Qué se dice"]] : []),
+    ...(showGuide ? [["decidir", "Qué afirmar"]] : []),
+    ["afondo", "Investigar a fondo"],
   ];
+  const segunda = [
+    conEscucha ? `<section class="card" id="sec-escucha" aria-live="polite"></section>` : "",
+    showGuide ? `<section class="card" id="sec-decidir"><h2>Qué puedes y qué no afirmar</h2>${decisionBlock({ extraSi: [`Para ${data.provincia}: ${canalSugerido(rec)}`], extraNo })}</section>` : "",
+  ].filter(Boolean);
 
   target.innerHTML = `
   <div class="kit-head">
@@ -915,6 +964,8 @@ function renderPerfil(data) {
 
   <div class="kit-grid">
    <section class="card kit-main" id="sec-esencial">
+    <h3 class="ess-titular">${esc(titular)}</h3>
+    ${aviso ? `<div class="precaucion" role="note"><span class="pc-h">${ICON.warn}Precaución editorial</span><p>${esc(aviso)} ${data.n_lb === 0 ? gl("imputado", "¿Qué es un valor imputado?") : ""}</p></div>` : ""}
     <div class="km-top">
      <div class="km-num">
       <span class="big">${fmt(data.ivei.indice)}</span>
@@ -927,17 +978,18 @@ function renderPerfil(data) {
       <p class="note" style="margin:0">${esc(data.perfil_territorial.descripcion)}</p>
      </div>
     </div>
-    ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
     ${
       flag("cita_lista")
         ? `<div class="copiar">
+       <div class="cita-act"><button class="btn" id="btnCita" type="button">Copiar párrafo para tu nota</button><button class="btn gh" id="btnFrase" type="button">Copiar frase corta</button></div>
        <p class="frase" id="fraseTexto">${esc(frase)}</p>
-       <div class="cita-act"><button class="btn" id="btnFrase" type="button">Copiar frase</button><button class="btn gh" id="btnCita" type="button">Copiar párrafo completo</button></div>
-       <blockquote id="citaTexto">${esc(cita)}</blockquote>
+       <details class="ver"><summary>Ver el párrafo completo que se copia</summary><blockquote id="citaTexto">${esc(cita)}</blockquote></details>
       </div>`
         : ""
     }
+    ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
+    <p class="gl-row noprint">¿Qué significa? ${gl("ivei", "IVEI")} ${gl("imputado", "valor imputado")} ${gl("factor", "factor")}</p>
    </section>
 
    ${
@@ -950,14 +1002,7 @@ function renderPerfil(data) {
    }
   </div>
 
-  ${
-    showGuide
-      ? `<div class="grid g2" style="margin-top:16px">
-   <section class="card" id="sec-ideas"><h2>Ideas para cubrirla</h2>${data.recomendaciones_periodismo.map((r) => `<div class="rec"><b>${esc(r.titulo)}</b><p>${esc(r.texto)}</p></div>`).join("")}</section>
-   <section class="card" id="sec-decidir"><h2>Qué puedes y qué no afirmar</h2>${decisionBlock({ extraSi: [`Para ${data.provincia}: ${canalSugerido(rec)}`], extraNo })}</section>
-  </div>`
-      : ""
-  }
+  ${segunda.length ? `<div class="grid ${segunda.length > 1 ? "g2" : ""}" style="margin-top:16px">${segunda.join("")}</div>` : ""}
 
   <div class="kit-actions noprint">
    ${flag("ficha_descargable") ? `<button class="btn gh" type="button" id="btnFicha">Descargar ficha</button>` : ""}
@@ -968,7 +1013,9 @@ function renderPerfil(data) {
    ${flag("solicitar_informacion") ? `<button class="btn gh" type="button" data-solicitar>Pedir más información</button>` : ""}
   </div>
 
-  <h2 class="todo-h">Todos los datos de ${esc(data.provincia)}</h2>
+  <details class="a-fondo" id="sec-afondo"${aFondoAbierto() ? " open" : ""}>
+  <summary><span class="af-t">Investigar a fondo</span><span class="af-s">Qué explica este nivel, ideas para cubrirla, perfil digital, dieta informativa y contexto social de ${esc(data.provincia)}</span></summary>
+  ${showGuide ? `<section class="card" id="sec-ideas" style="margin-bottom:16px"><h2>Ideas para cubrirla</h2>${data.recomendaciones_periodismo.map((r) => `<div class="rec"><b>${esc(r.titulo)}</b><p>${esc(r.texto)}</p></div>`).join("")}</section>` : ""}
   <section class="card sec-open" id="sec-factores" style="margin-bottom:16px">
    <div class="sec-h"><h2>Qué explica este nivel</h2><span class="sub-s">Cuatro factores, de 0 a 100. La marca vertical es el promedio del país.</span></div>
    <div class="frows">${data.dimensiones.map((d) => factorRow(d, data.provincia)).join("")}</div>
@@ -977,20 +1024,23 @@ function renderPerfil(data) {
   ${detalle("digital", "Perfil digital", "Acceso, uso y capacidades", digital)}
   ${detalle("dieta", "Dieta informativa", "Qué plataformas usa la gente conectada", dieta)}
   ${detalle("resiliencia", "Capacidad de contrastar y clima electoral", "Educación, fuentes y ambiente", resiliencia)}
-  ${detalle("contexto", "Contexto social", "Edad, etnia, pobreza y educación", contexto)}`;
+  ${detalle("contexto", "Contexto social", "Edad, etnia, pobreza y educación", contexto)}
+  </details>`;
 
   target.querySelectorAll(".idx [data-sec]").forEach((b) => {
-    b.onclick = () => $("sec-" + b.dataset.sec)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    b.onclick = () => {
+      if (b.dataset.sec === "afondo") $("sec-afondo").open = true;
+      $("sec-" + b.dataset.sec)?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    };
   });
+  $("sec-afondo").addEventListener("toggle", (e) => recordarAFondo(e.target.open));
+  if (conEscucha) renderEscuchaFicha(data.provincia);
   target.querySelectorAll("[data-copy]").forEach((b) => (b.onclick = () => copiarBtn(b, b.dataset.copy)));
   if ($("btnFrase")) $("btnFrase").onclick = (e) => copiarBtn(e.currentTarget, frase);
   if ($("btnCita")) $("btnCita").onclick = (e) => copiarBtn(e.currentTarget, cita);
   if ($("btnTodo")) $("btnTodo").onclick = (e) => copiarBtn(e.currentTarget, angulos.map((a) => `• ${a.copia}`).join("\n"));
   if ($("btnEnlace")) $("btnEnlace").onclick = (e) => copiarBtn(e.currentTarget, location.href);
-  $("btnSolidez").onclick = () => {
-    navigate("meto");
-    requestAnimationFrame(() => $("solidez")?.scrollIntoView());
-  };
+  $("btnSolidez").onclick = () => openFicha("IVEI", data.provincia);
   if ($("btnFicha")) $("btnFicha").onclick = () => downloadFicha(data.provincia);
   if ($("essComparar"))
     $("essComparar").onchange = (e) => {
@@ -1004,7 +1054,87 @@ function renderPerfil(data) {
 }
 
 // printing the kit should show everything, not only the open sections
-addEventListener("beforeprint", () => document.querySelectorAll("details.sec").forEach((d) => (d.open = true)));
+addEventListener("beforeprint", () => document.querySelectorAll("details.sec, details.a-fondo, details.ver").forEach((d) => (d.open = true)));
+
+// Whether the reporter keeps "Investigar a fondo" open: a per-browser
+// preference, so the deep-research user doesn't have to unfold it every time.
+const AFONDO_KEY = "ovade.afondo";
+function aFondoAbierto() {
+  try {
+    return localStorage.getItem(AFONDO_KEY) === "1";
+  } catch (_) {
+    return false;
+  }
+}
+function recordarAFondo(abierto) {
+  try {
+    localStorage.setItem(AFONDO_KEY, abierto ? "1" : "0");
+  } catch (_) {}
+}
+
+// ---------------------------------------------------------------------
+// "Qué se está diciendo": the digital-listening summary inside the sheet.
+// The index describes the terrain; this shows what is circulating now. They
+// stay visibly separate: the conversation never enters any index.
+// ---------------------------------------------------------------------
+const TEND_CACHE = new Map();
+const TEND_TTL = 5 * 60 * 1000;
+function getTendencias(province) {
+  const hit = TEND_CACHE.get(province);
+  if (hit && Date.now() - hit.t < TEND_TTL) return hit.p;
+  const p = getJSON(`/api/trends?province=${encodeURIComponent(province)}`);
+  TEND_CACHE.set(province, { t: Date.now(), p });
+  p.catch(() => TEND_CACHE.delete(province));
+  return p;
+}
+const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : "");
+const fechaCorta = (iso) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("es-EC", { day: "numeric", month: "short" });
+};
+function irAEscucha(provincia) {
+  tendSel = provinceKey(provincia);
+  navigate("asistente");
+  paintTendMap();
+  $("tendProvLabel").textContent = provincia;
+  runTendencias(provincia);
+}
+async function renderEscuchaFicha(provincia) {
+  const box = $("sec-escucha");
+  if (!box) return;
+  const head = `<div class="sec-h"><h2>Qué se está diciendo en ${esc(provincia)}</h2><span class="esc-tag">Escucha digital · contexto</span></div>`;
+  box.innerHTML = `${head}<p class="note"><span class="tend-spinner"></span> Leyendo X y medios sobre ${esc(provincia)}…</p>`;
+  let res;
+  try {
+    res = await getTendencias(provincia);
+  } catch (_) {
+    if (perfilActual !== provincia) return;
+    box.innerHTML = `${head}<p class="note">No pudimos leer la conversación en este momento. El resto de la ficha no depende de esto.</p><button type="button" class="linkbtn" id="escReintentar">Reintentar</button>`;
+    $("escReintentar").onclick = () => renderEscuchaFicha(provincia);
+    return;
+  }
+  if (perfilActual !== provincia) return;
+  const terminos = [...(res.actores || []).map((t) => ({ ...t, actor: true })), ...(res.temas || [])].slice(0, 4);
+  const vistos = new Set();
+  const posts = terminos
+    .flatMap((t) => t.samples || [])
+    .filter((s) => safeUrl(s.link) && !vistos.has(s.link) && vistos.add(s.link))
+    .sort((a, b) => String(b.published || "").localeCompare(String(a.published || "")))
+    .slice(0, 2);
+  const mas = `<button type="button" class="linkbtn" id="escMas">Ver toda la conversación en Escucha digital</button>`;
+  if (!terminos.length) {
+    // the backend note can be technical (expired X session); the reporter only needs the outcome
+    box.innerHTML = `${head}<p class="note">No encontramos conversación política reciente sobre ${esc(provincia)} en X ni en medios. Puede ser falta de cobertura o una pausa en la lectura de X: vuelve a intentarlo más tarde.</p>${mas}`;
+  } else {
+    box.innerHTML = `${head}
+     <p class="esc-lead">Lo que más se repite en ${res.total_analizados} publicaciones recientes de X y medios:</p>
+     <div class="trend-chip-row">${terminos.map((t) => `<span class="trend-chip${t.actor ? " actor" : ""}">${esc(t.term)}<span class="count">${t.count}</span></span>`).join("")}</div>
+     ${posts.length ? `<ul class="esc-posts">${posts.map((s) => `<li><a href="${esc(safeUrl(s.link))}" target="_blank" rel="noopener noreferrer">${esc(String(s.title || "").replace(/\s+/g, " ").slice(0, 180))}${String(s.title || "").length > 180 ? "…" : ""}</a><span class="esc-meta">${esc(s.user || s.source || "")}${s.published ? ` · ${esc(fechaCorta(s.published))}` : ""}</span></li>`).join("")}</ul>` : ""}
+     <p class="caveat">Muestra pequeña de publicaciones: pista para reportear, no dato citable. No entra a ningún índice.</p>
+     ${mas}`;
+  }
+  $("escMas").onclick = () => irAEscucha(provincia);
+}
 
 function dataOr(list, key) {
   return list.find((x) => x.key === key) || { label: key, valor: null, nacional: null, unit: "%", direction: 1 };
@@ -1393,7 +1523,7 @@ function renderTabla() {
 
   document.getElementById("tabla").innerHTML = `
   <thead><tr><th data-k="rank">#</th><th data-k="provincia">Provincia</th><th data-k="nivel">Nivel</th>${headCols}</tr></thead>
-  <tbody>${bodyRows}</tbody>
+  <tbody>${bodyRows || `<tr><td colspan="${3 + TABLA_DATA.columnas.length}" class="sin-res">No encontramos «${esc(document.getElementById("buscarDatos").value.trim())}» en la tabla. Revisa la ortografía o prueba con el nombre oficial, como «Azuay» o «Guayas».</td></tr>`}</tbody>
   <tfoot><tr style="font-weight:700;background:#f7f9fb"><td colspan="3">Nacional</td>${footCols}</tr></tfoot>`;
 
   document.querySelectorAll("#tabla th").forEach((th) => {
@@ -1444,18 +1574,20 @@ async function runTendencias(province) {
     box.innerHTML = "";
     return;
   }
-  box.innerHTML = `<div class="asis-loading"><span class="tend-spinner"></span> Leyendo X y medios sobre ${province}…</div>`;
+  box.innerHTML = `<div class="asis-loading"><span class="tend-spinner"></span> Leyendo X y medios sobre ${esc(province)}…</div>`;
   try {
-    const res = await getJSON(`/api/trends?province=${encodeURIComponent(province)}`);
+    // shared cache with the sheet's "Qué se está diciendo"; post text comes
+    // from X and outlets, so every field is escaped and links must be http(s)
+    const res = await getTendencias(province);
     if (res.note) {
-      box.innerHTML = `<p class="note">${res.note}</p>`;
+      box.innerHTML = `<p class="note">${esc(res.note)}</p>`;
       return;
     }
     const all = [...res.actores, ...res.temas];
     box.innerHTML = `
     <p class="note">${res.total_analizados} publicaciones analizadas · X y medios</p>
     <div class="trend-chip-row">${all
-      .map((t, i) => `<button class="trend-chip${res.actores.includes(t) ? " actor" : ""}" data-i="${i}">${t.term}<span class="count">${t.count}</span></button>`)
+      .map((t, i) => `<button class="trend-chip${res.actores.includes(t) ? " actor" : ""}" data-i="${i}">${esc(t.term)}<span class="count">${t.count}</span></button>`)
       .join("")}</div>
     <div id="tendSamples"></div>
     <p class="caveat">Conteo en muestra pequeña — pista para reportear, no dato citable.</p>`;
@@ -1466,7 +1598,10 @@ async function runTendencias(province) {
         document.getElementById("tendSamples").innerHTML =
           tendOpenTerm == null
             ? ""
-            : `<div class="trend-samples">${(all.find((x) => x.term === tendOpenTerm)?.samples || []).map((s) => `<a href="${s.link}" target="_blank" rel="noopener noreferrer">${s.title}</a>`).join("")}</div>`;
+            : `<div class="trend-samples">${(all.find((x) => x.term === tendOpenTerm)?.samples || [])
+                .filter((s) => safeUrl(s.link))
+                .map((s) => `<a href="${esc(safeUrl(s.link))}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a>`)
+                .join("")}</div>`;
       };
     });
   } catch (e) {
@@ -1561,6 +1696,85 @@ const GLOSARIO = [
   ["Valor imputado", "", "Cuando una provincia no tiene encuestados, se usa el promedio del país en su lugar. En el mapa se marca con borde punteado."],
   ["Fuente sólida, media o débil", "solidez", "Qué tan firme es una cifra según cómo se midió: conteo completo (sólida), encuesta con muestra suficiente (media) o muestra débil (débil)."],
 ];
+
+// Inline glossary: a short definition one tap away, without leaving the sheet.
+const GL_TERMS = {
+  ivei: ["IVEI", "Índice de Vulnerabilidad Electoral Integrada. Va de 0 a 100 y dice qué tan fértil es el territorio para que la desinformación llegue y prospere. Describe territorios, no personas."],
+  imputado: ["Valor imputado", GLOSARIO.find(([t]) => t === "Valor imputado")[2]],
+  factor: ["Factor", "Cada uno de los cuatro bloques que forman el índice: carencias de base, dependencia de redes, capacidad de contrastar y clima electoral."],
+};
+const gl = (k, label) => `<button type="button" class="gl" data-gl="${k}" aria-expanded="false">${label}</button>`;
+
+function initGlosario() {
+  const tip = Object.assign(document.createElement("div"), { id: "glTip", hidden: true });
+  tip.setAttribute("role", "note");
+  document.body.appendChild(tip);
+  let cur = null;
+  const cerrar = () => {
+    cur?.setAttribute("aria-expanded", "false");
+    cur?.removeAttribute("aria-describedby");
+    cur = null;
+    tip.hidden = true;
+  };
+  const abrir = (b) => {
+    const [t, d] = GL_TERMS[b.dataset.gl];
+    tip.innerHTML = `<b>${esc(t)}</b><p>${esc(d)}</p><button type="button" class="linkbtn" id="glMas">Ver el glosario completo</button>`;
+    tip.hidden = false;
+    const r = b.getBoundingClientRect();
+    const w = Math.min(320, innerWidth - 24);
+    tip.style.width = w + "px";
+    tip.style.left = Math.max(12, Math.min(r.left, innerWidth - w - 12)) + "px";
+    tip.style.top = r.bottom + 6 + "px";
+    b.setAttribute("aria-expanded", "true");
+    b.setAttribute("aria-describedby", "glTip");
+    cur = b;
+  };
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".gl");
+    if (b) {
+      const mismo = b === cur;
+      cerrar();
+      if (!mismo) abrir(b);
+      return;
+    }
+    if (e.target.closest("#glMas")) {
+      cerrar();
+      navigate("meto");
+      requestAnimationFrame(() => $("glosario")?.scrollIntoView());
+      return;
+    }
+    if (!e.target.closest("#glTip")) cerrar();
+  });
+  addEventListener("scroll", cerrar, { passive: true });
+  return cerrar;
+}
+
+// Esc steps back one layer at a time: open help, download menu, search text,
+// the selected province on the map, and finally the province sheet.
+function initAtajos(cerrarGl) {
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || e.defaultPrevented || document.querySelector("dialog[open]")) return;
+    if (!$("glTip").hidden) return cerrarGl();
+    if ($("dlMenu").open) {
+      $("dlMenu").open = false;
+      return;
+    }
+    const a = document.activeElement;
+    if (a && a.matches("input[type=text],input[type=search]") && a.value) {
+      a.value = "";
+      a.dispatchEvent(new Event("input"));
+      return;
+    }
+    if (currentView === "mapas" && mapSel) {
+      mapSel = null;
+      paintMap();
+      toast("Selección quitada.");
+    } else if (currentView === "perfil" && perfilActual) {
+      navigate("perfil");
+      toast("Volviste al inicio. Con «Atrás» regresas a la provincia.");
+    }
+  });
+}
 
 function renderMetodoExtra() {
   const r = solidezResumen();
@@ -1698,9 +1912,20 @@ function initSolicitud() {
 // Map selection: tap a province and its essentials appear beside the map,
 // without leaving it. The full profile is one more click away.
 // ---------------------------------------------------------------------
+// The press-kit button always says whose quote it will copy.
+function syncKit(p) {
+  const b = $("btnCitaMapa");
+  b.dataset.label = p ? `Copiar cita de ${p.provincia}` : "Copiar cita";
+  b.textContent = b.dataset.label;
+  $("kitNota").textContent = p
+    ? `Incluye fuente${p.n_lb != null && p.n_lb < 50 ? " y la precaución editorial de esta provincia" : ""}. Pega directo en tu nota.`
+    : "Elige una provincia en el mapa para copiar su cita lista para prensa.";
+}
+
 function renderPeek() {
   const box = $("peek");
   const p = mapSel ? byKey()[mapSel] : null;
+  syncKit(p);
   if (!p) {
     box.innerHTML = `<h3>Resumen rápido</h3><p class="note" style="margin:0">Elige una provincia en el mapa o en el ranking y verás aquí lo esencial, sin salir del mapa.</p>`;
     return;
@@ -1762,13 +1987,52 @@ function provItem(p) {
   const marks = (r.n_lb === 0 ? `<span class="pl-ic is-warn" title="Valor imputado">${ICON.warn}</span>` : "") + (esLimite(p) ? `<span class="pl-ic is-pin" title="Caso limítrofe">${ICON.pin}</span>` : "");
   return `<button type="button" role="listitem" class="pl-item${p === perfilActual ? " on" : ""}" data-p="${esc(p)}"><span class="dot" style="background:${col("IVEI", r.IVEI)}"></span><span class="pl-n">${esc(p)}</span>${marks}<span class="pl-r" title="Puesto entre 24 (1 = la más vulnerable)">${Math.round(r.rank)}</span></button>`;
 }
+// Closest province names for a typo ("guallas", "pichinca"): edit distance on
+// the accent-free keys, so the reporter never hits a dead end.
+function sugerir(texto, max = 3) {
+  const q = provinceKey((texto || "").trim());
+  if (!q) return [];
+  const dist = (a, b) => {
+    let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      const cur = [i];
+      for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = cur;
+    }
+    return prev[b.length];
+  };
+  return PROVINCIAS.map((p) => {
+    const k = provinceKey(p);
+    return { p, d: Math.min(dist(q, k), dist(q, k.slice(0, q.length + 1))) };
+  })
+    .filter((x) => x.d <= Math.max(2, Math.floor(q.length / 3)))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, max)
+    .map((x) => x.p);
+}
+const SIN_RESULTADOS = "Prueba con el nombre oficial, como «Azuay» o «Santo Domingo de los Tsáchilas», o toca la provincia en el mapa.";
+
 function renderProvLista() {
   paintSel();
   const q = provinceKey($("provFiltro").value.trim());
   const rec = recientes();
   $("provRecientes").innerHTML = rec.length && !q ? `<span class="pl-h">Recientes</span>${rec.map(provItem).join("")}<span class="pl-h">Todas</span>` : "";
   const list = [...PROVINCIAS].sort((a, b) => a.localeCompare(b, "es")).filter((p) => !q || provinceKey(p).includes(q));
-  $("provLista").innerHTML = list.length ? list.map(provItem).join("") : `<p class="note">No encontré esa provincia. Prueba con menos letras.</p>`;
+  if (list.length) {
+    $("provLista").innerHTML = list.map(provItem).join("");
+    return;
+  }
+  const raw = $("provFiltro").value.trim();
+  const sug = sugerir(raw);
+  $("provLista").innerHTML =
+    `<p class="note sin-res"><b>No encontramos «${esc(raw)}».</b> ${sug.length ? "¿Quisiste decir…?" : SIN_RESULTADOS}</p>` +
+    sug.map(provItem).join("") +
+    `<button type="button" class="linkbtn" id="btnLimpiarFiltro">Ver todas las provincias</button>`;
+  $("btnLimpiarFiltro").onclick = () => {
+    $("provFiltro").value = "";
+    renderProvLista();
+    $("provFiltro").focus();
+  };
 }
 function initProvLista() {
   drawSelMap($("map-sel"), PATHS.mainland);
@@ -1915,15 +2179,22 @@ function initPalette() {
     items = PROVINCIAS.filter((p) => !q || provinceKey(p).includes(q)).sort(
       (a, b) => Number(provinceKey(b).startsWith(q)) - Number(provinceKey(a).startsWith(q)) || (q ? 0 : Number(rec.includes(b)) - Number(rec.includes(a))) || a.localeCompare(b, "es")
     );
+    // no match: offer the nearest names so Enter still gets the reporter somewhere
+    const sinCoincidencia = !items.length;
+    const sug = sinCoincidencia ? sugerir(input.value) : [];
+    if (sinCoincidencia) items = sug;
     idx = Math.min(idx, Math.max(0, items.length - 1));
-    list.innerHTML = items.length
-      ? items
-          .map((p, i) => {
-            const r = byKey()[provinceKey(p)] ?? {};
-            return `<li role="option" id="pal-${i}" aria-selected="${i === idx}" data-p="${esc(p)}" class="${i === idx ? "on" : ""}"><span class="dot" style="background:${col("IVEI", r.IVEI)}"></span><b>${esc(p)}</b><span class="pal-meta">Puesto ${Math.round(r.rank)} · ${esc(r.nivel)}</span>${provinceFlags({ isImputed: r.n_lb === 0, isBorderlineCase: esLimite(p), compact: true })}</li>`;
-          })
-          .join("")
-      : `<li class="pal-empty">No encontré «${esc(input.value)}». Prueba con menos letras o con otro nombre.</li>`;
+    const aviso = sinCoincidencia
+      ? `<li class="pal-empty" role="presentation"><b>No encontramos «${esc(input.value)}».</b> ${sug.length ? "¿Quisiste decir…?" : SIN_RESULTADOS}</li>`
+      : "";
+    list.innerHTML =
+      aviso +
+      items
+        .map((p, i) => {
+          const r = byKey()[provinceKey(p)] ?? {};
+          return `<li role="option" id="pal-${i}" aria-selected="${i === idx}" data-p="${esc(p)}" class="${i === idx ? "on" : ""}"><span class="dot" style="background:${col("IVEI", r.IVEI)}"></span><b>${esc(p)}</b><span class="pal-meta">Puesto ${Math.round(r.rank)} · ${esc(r.nivel)}</span>${provinceFlags({ isImputed: r.n_lb === 0, isBorderlineCase: esLimite(p), compact: true })}</li>`;
+        })
+        .join("");
     input.setAttribute("aria-activedescendant", items.length ? `pal-${idx}` : "");
     list.querySelector(".on")?.scrollIntoView({ block: "nearest" });
   };
@@ -1973,14 +2244,37 @@ function initPalette() {
 }
 
 // ---------------------------------------------------------------------
-// Quick factsheet per factor: the six methodological questions
+// Help for each map layer: what it measures, which variables it uses (with
+// their source), how it is built and how to read it. Mirrors the variable
+// dictionary in "Fuentes oficiales" (08_diccionario_de_variables.csv).
 // ---------------------------------------------------------------------
-const FUENTES_FACTOR = {
-  IVEI: "27 variables del Censo 2022, la ENEMDU 2024, la ENEMDU-TIC 2024 y el Latinobarómetro 2024.",
-  EST: "10 variables: Censo 2022 (4), ENEMDU 2024 (5) y Latinobarómetro 2024 (1).",
-  EXP: "5 variables: Censo 2022 (2), Latinobarómetro 2024 (2) y ENEMDU-TIC 2024 (1).",
-  RES: "6 variables: Censo 2022 (3) y Latinobarómetro 2024 (3).",
-  PRE: "6 variables del Latinobarómetro 2024.",
+const FUENTE_VAR = {
+  C: ["Censo 2022", "#2a78d6"],
+  E: ["ENEMDU 2024", "#eda100"],
+  L: ["Latinobarómetro 2024", "#d03b3b"],
+  T: ["ENEMDU-TIC 2024", "#1baf7a"],
+  M: ["MINTEL 2023", "#7a4aa0"],
+};
+const VARIABLES_CAPA = {
+  EST: [["Pobreza por NBI (censal)", "C"], ["Población en área rural", "C"], ["Población de 65 años y más", "C"], ["Analfabetismo", "C"], ["Pobreza por ingresos", "E"], ["Pobreza extrema", "E"], ["Pobreza multidimensional", "E"], ["Pobreza por NBI", "E"], ["Coeficiente de Gini", "E"], ["Desconfianza en 9 instituciones", "L"]],
+  EXP: [["Usó teléfono celular", "C"], ["Usó internet", "C"], ["Usa alguna red social", "L"], ["Usa Facebook, WhatsApp o TikTok", "L"], ["Uso de internet en 2024", "T"]],
+  RES: [["Analfabetismo", "C"], ["Analfabetismo digital", "C"], ["Escolaridad promedio", "C"], ["Confianza interpersonal", "L"], ["Percibe información falsa en los medios", "L"], ["Número de plataformas que usa", "L"]],
+  PRE: [["Autoubicación ideológica extrema", "L"], ["Cree que las elecciones son fraudulentas", "L"], ["Fue víctima de un delito en 12 meses", "L"], ["Teme ser víctima de delito violento", "L"], ["Considera muy grave el narcotráfico", "L"], ["Percepción de corrupción", "L"]],
+  EXCLUSION: [["Población de 65 años y más", "C"], ["Usó teléfono celular", "C"], ["Usó internet", "C"], ["Analfabetismo", "C"], ["Analfabetismo digital", "C"], ["Población en área rural", "C"]],
+  HIPEREXP: [["Usó internet", "C"], ["Percibe información falsa en los medios", "L"], ["Usa Facebook, WhatsApp o TikTok", "L"], ["Usa alguna red social", "L"], ["Usa WhatsApp", "L"]],
+  HABDIG: [["Competencias digitales que la persona dice tener (31 preguntas Sí/No)", "M"]],
+};
+const ESCALA = "Cada variable se lleva a una escala de 0 a 100 entre provincias (la menor = 0, la mayor = 100) y se combinan en un solo valor. Las cifras de encuesta se suavizan antes hacia el promedio del país para que una muestra chica no dispare el resultado.";
+const CALCULO_CAPA = {
+  IVEI: "Combina tres factores con una media geométrica: carencias de base, dependencia de redes y la falta de capacidad de contrastar. El clima electoral ajusta el resultado hasta ±7,5 %. Un factor muy bajo no se compensa del todo con otro alto.",
+  EST: `${ESCALA} El índice de pobreza de la fase 1 (ENEMDU y desconfianza) pesa 60 %; el resto sale del Censo.`,
+  EXP: ESCALA,
+  RES: `${ESCALA} En el índice entra al revés: menos capacidad de contrastar suma vulnerabilidad.`,
+  PRE: `${ESCALA} No entra como factor completo: solo ajusta el índice hasta ±7,5 %.`,
+  EXCLUSION: `${ESCALA} Se calcula aparte del índice y nunca se promedia con él: explica por qué una provincia puntúa como puntúa.`,
+  HIPEREXP: `${ESCALA} Se calcula aparte del índice y nunca se promedia con él: explica por qué una provincia puntúa como puntúa.`,
+  HABDIG: "Porcentaje de respuestas «Sí» en el bloque de competencias digitales, promediado por provincia. No entra a ningún índice.",
+  PERFIL: "Cada provincia se asigna a un tipo según qué factores dominan en ella. No agrega variables nuevas: reordena las que ya están en el mapa.",
 };
 const FALLA_FACTOR = {
   IVEI: "Muestras débiles, valores imputados en cuatro provincias y una dieta informativa medida solo en su parte digital. Margen orientativo de ±5 a ±7 puntos.",
@@ -1988,25 +2282,48 @@ const FALLA_FACTOR = {
   EXP: "Mide solo la dieta digital: las bases no preguntan por televisión, radio, prensa ni conversaciones familiares.",
   RES: "Capta solo la capacidad de contraste digital y educativa. En las cuatro provincias sin muestra propia, la parte de opinión usa el promedio del país.",
   PRE: "Es el factor con datos más frágiles a nivel provincial: viene del Latinobarómetro, con muestras pequeñas.",
+  EXCLUSION: "Sale completo del Censo 2022, sin error muestral, pero refleja la situación de hace dos años.",
+  HIPEREXP: "Cuatro de sus cinco variables vienen del Latinobarómetro, con muestras pequeñas por provincia.",
+  HABDIG: "Encuesta voluntaria de 428 personas: 7 provincias no tienen respuestas y varias tienen menos de 10. No representa a la provincia.",
+  PERFIL: "Las provincias marcadas como caso limítrofe pueden cambiar de tipo con ajustes menores del método.",
 };
-function fichaRapida(code) {
-  const f = FACTORES[code];
-  return [
-    ["¿De dónde viene?", FUENTES_FACTOR[code]],
-    ["¿Por qué entra?", f.que],
-    ["¿Qué se transforma?", "Las encuestas se suavizan hacia el promedio del país, se escalan de 0 a 100 entre provincias y se combinan. Ficha detallada en preparación."],
-    ["¿Qué significa?", `${f.lectura} Es un valor relativo entre provincias, no un nivel absoluto.`],
-    ["¿Qué puede fallar?", FALLA_FACTOR[code]],
-    ["¿Qué lo valida?", "Para el índice completo: correlación de 0,92 con la ENEMDU, prueba de ruido de ±2 puntos y orden estable sin el modulador (ρ = 0,99). Las pruebas de pesos, de variables débiles y de fuente alternativa están en curso."],
-  ];
+
+function variablesHTML(code) {
+  if (code === "IVEI" || code === "PERFIL") {
+    return `<ul class="fv-list">${["EST", "EXP", "RES", "PRE"]
+      .map((k) => `<li><button type="button" class="linkbtn" data-ficha="${k}">${esc(factorNombre(k))}</button> <span class="fv-n">${VARIABLES_CAPA[k].length} variables</span></li>`)
+      .join("")}</ul>`;
+  }
+  const vars = VARIABLES_CAPA[code] ?? [];
+  const fuentes = [...new Set(vars.map(([, f]) => f))];
+  return `<ul class="fv-list">${vars.map(([v, f]) => `<li><span class="fdot" style="background:${FUENTE_VAR[f][1]}"></span>${esc(v)} <span class="fv-n">${FUENTE_VAR[f][0]}</span></li>`).join("")}</ul>
+   <p class="fv-pie">${vars.length} ${vars.length === 1 ? "variable" : "variables"} · ${fuentes.map((f) => FUENTE_VAR[f][0]).join(", ")}${fuentes.includes("L") ? ". Las del Latinobarómetro son de encuesta con muestras pequeñas por provincia." : "."}</p>`;
 }
-function openFicha(code) {
-  $("fichaTitulo").textContent = `Ficha rápida: ${code === "IVEI" ? "Todos los factores" : factorNombre(code)}`;
-  $("fichaSub").textContent = "Las seis preguntas del índice, aplicadas a este factor.";
-  $("fichaCuerpo").innerHTML = fichaRapida(code)
-    .map(([q, a]) => `<li><b>${esc(q)}</b><p>${esc(a)}</p></li>`)
-    .join("");
-  $("dlgFicha").showModal();
+
+function openFicha(code, provincia) {
+  const f = FACTORES[code] ?? {};
+  const nombre = code === "IVEI" ? "Nivel de vulnerabilidad (todos los factores)" : factorNombre(code);
+  const [lo, hi] = f.lg ?? ["", ""];
+  const lectura =
+    code === "PERFIL"
+      ? "Los colores son tipos, no niveles: ninguno es «mejor» que otro. Sirven para agrupar provincias que llegan a la desinformación por caminos parecidos."
+      : `${f.lectura} Claro = ${lo}; oscuro = ${hi}. Compara provincias entre sí: no es un nivel absoluto, y describe el territorio, no a sus habitantes.`;
+  $("fichaTitulo").textContent = `Cómo leer: ${nombre}`;
+  const conf = provincia ? reliability(PERFIL_DATA?.provincia === provincia ? PERFIL_DATA.n_lb : null) : null;
+  $("fichaSub").textContent = conf ? `Para ${provincia}: ${conf.label.toLowerCase()}${conf.detail ? `. ${conf.detail}` : ""}` : "Lo que mide este mapa, con qué datos y cómo citarlo bien.";
+  const bloques = [
+    ["Qué mide", `<p>${esc(f.que ?? "")}</p>`],
+    [code === "IVEI" || code === "PERFIL" ? "Qué factores usa" : "Qué variables usa", variablesHTML(code)],
+    ["Cómo se calcula", `<p>${esc(CALCULO_CAPA[code] ?? "")}</p>`],
+    ["Qué significa", `<p>${esc(lectura)}</p>`],
+    ["Qué puede fallar", `<p>${esc(FALLA_FACTOR[code] ?? "")}</p>`],
+  ];
+  if (code === "IVEI") bloques.push(["Qué lo valida", "<p>Correlación de 0,92 con la ENEMDU, prueba de ruido de ±2 puntos y orden estable sin el modulador (ρ = 0,99). Las pruebas de pesos, de variables débiles y de fuente alternativa están en curso.</p>"]);
+  $("fichaCuerpo").innerHTML = bloques.map(([q, a]) => `<li><b>${esc(q)}</b>${a}</li>`).join("");
+  $("fichaCuerpo").querySelectorAll("[data-ficha]").forEach((b) => (b.onclick = () => openFicha(b.dataset.ficha)));
+  const dlg = $("dlgFicha");
+  if (!dlg.open) dlg.showModal();
+  dlg.scrollTop = 0;
 }
 
 // ---------------------------------------------------------------------
@@ -2085,7 +2402,10 @@ async function descargarPNG() {
     g.fillStyle = "#fff";
     g.fillRect(0, 0, c.width, c.height);
     g.drawImage(img, 0, 0, c.width, c.height);
-    c.toBlob((b) => descargar(b, `OVADE_mapa_${capa}.png`), "image/png");
+    c.toBlob((b) => {
+      descargar(b, `OVADE_mapa_${capa}.png`);
+      toast("Mapa en PNG descargado. Cita la fuente: Observatorio OVADE.");
+    }, "image/png");
   } catch (e) {
     toast("No se pudo generar el PNG. Prueba con el SVG.");
   } finally {
@@ -2093,9 +2413,18 @@ async function descargarPNG() {
   }
 }
 function initMapTools() {
-  $("btnSvg").onclick = descargarSVG;
-  $("btnPng").onclick = descargarPNG;
-  $("btnCsv").onclick = descargarCSV;
+  // downloads live in a menu: close it once a choice is made, and say what happened
+  const tras = (fn) => (e) => {
+    $("dlMenu").open = false;
+    return fn(e);
+  };
+  $("btnSvg").onclick = tras(() => {
+    descargarSVG();
+    toast("Mapa en SVG descargado. Cita la fuente: Observatorio OVADE.");
+  });
+  $("btnPng").onclick = tras(descargarPNG);
+  $("btnLeerCapa").onclick = () => openFicha(capa);
+  $("btnCsv").onclick = tras(descargarCSV);
   $("btnCitaMapa").onclick = (e) => {
     const p = mapSel ? byKey()[mapSel] : null;
     if (!p) return toast("Elige primero una provincia en el mapa para copiar su cita.");
@@ -2123,7 +2452,11 @@ function setHidden(id, hidden) {
   if (el) el.hidden = hidden;
 }
 function applyFlags() {
-  document.querySelectorAll("nav button").forEach((b) => (b.hidden = !viewEnabled(b.dataset.v)));
+  document.querySelectorAll("header nav button").forEach((b) => (b.hidden = !viewEnabled(b.dataset.v)));
+  document.querySelectorAll("[data-ir]").forEach((b) => (b.hidden = !viewEnabled(b.dataset.ir)));
+  const primeraDatos = DATOS_VIEWS.find(viewEnabled);
+  $("btnSobreDatos").hidden = !primeraDatos;
+  if (primeraDatos) $("btnSobreDatos").dataset.ir = primeraDatos;
   setHidden("cardScatter", !flag("grafico_dispersion"));
   setHidden("buscador", !flag("buscador_provincia"));
   if (!perfilActual && $("perfil").querySelector(".inicio-main")) renderInicio();
@@ -2152,8 +2485,10 @@ onTenant(applyFlags);
     initAsistente();
     initPalette();
     initSolicitud();
+    initDatosNav();
     initExtras();
     initMapTools();
+    initAtajos(initGlosario());
     renderMetodoExtra();
     await tenantReady;
     applyFlags();

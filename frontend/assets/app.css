@@ -2518,6 +2518,39 @@ table.delta td.dn {
   padding: 11px 20px;
   font-size: 14px;
 }
+.ess-titular {
+  margin: 0 0 12px;
+  font-size: 19px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  max-width: 60ch;
+  text-transform: none;
+  color: var(--ink, inherit);
+  font-weight: 700;
+}
+.precaucion {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: #fff6e5;
+  border: 1px solid #ecc98a;
+  border-left: 5px solid #d98a00;
+  border-radius: 8px;
+  color: #5c3a00;
+}
+.precaucion .pc-h {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.precaucion p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
 .km-conf {
   margin: 12px 0 0;
   font-size: 13px;
@@ -3401,5 +3434,518 @@ nav button.t2.on {
   .sel-map svg {
     max-height: 340px;
     margin: 0 auto;
+  }
+}
+
+/* ---- press kit on the map: one primary action, downloads grouped ---- */
+.maptools {
+  align-items: center;
+}
+.maptools > .btn,
+.dl-menu > summary.btn {
+  padding: 9px 16px;
+  font-size: 13.5px;
+}
+.dl-menu {
+  position: relative;
+}
+.dl-menu > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.dl-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.dl-pop {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 270px;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(13, 22, 34, 0.16);
+}
+.dl-pop button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.dl-pop button:hover,
+.dl-pop button:focus-visible {
+  background: var(--acc-soft);
+}
+.dl-pop b {
+  display: block;
+  font-size: 13.5px;
+}
+.dl-pop span {
+  display: block;
+  font-size: 12px;
+  color: var(--mut);
+}
+.kit-note {
+  flex: 1 1 100%;
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--mut);
+}
+
+/* ---- search shortcut hint and inline glossary ---- */
+.finder-btn kbd {
+  font-size: 12.5px;
+  padding: 2px 8px;
+  background: color-mix(in srgb, var(--on-acc) 22%, transparent);
+  border-color: color-mix(in srgb, var(--on-acc) 70%, transparent);
+}
+.finder-btn .kbd-ctrl {
+  display: none;
+}
+@media (min-width: 1000px) {
+  .finder-btn .kbd-ctrl {
+    display: inline-block;
+  }
+}
+.finder-btn em {
+  opacity: 0.92;
+}
+.gl-row {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--mut);
+}
+.gl {
+  font: inherit;
+  font-size: inherit;
+  font-weight: 650;
+  padding: 0 1px;
+  margin: 0 2px;
+  color: var(--acc);
+  background: none;
+  border: 0;
+  border-bottom: 1px dotted currentColor;
+  cursor: help;
+}
+.gl:hover,
+.gl[aria-expanded="true"] {
+  background: var(--acc-soft);
+}
+#glTip {
+  position: fixed;
+  z-index: 60;
+  padding: 12px 14px;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--acc);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px rgba(13, 22, 34, 0.18);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+#glTip p {
+  margin: 4px 0 8px;
+}
+.sin-res {
+  color: var(--ink);
+  line-height: 1.45;
+}
+#tabla td.sin-res {
+  padding: 18px 12px;
+  text-align: center;
+}
+
+/* ---- consistency and contrast (WCAG AA) ---- */
+nav button {
+  opacity: 0.82;
+}
+nav button.t2 {
+  opacity: 0.78;
+}
+nav button:hover,
+nav button.on,
+nav button.t2:hover,
+nav button.t2.on {
+  opacity: 1;
+}
+.btn.gh {
+  border-color: color-mix(in srgb, var(--acc) 55%, var(--line));
+}
+.btn,
+.btn.gh {
+  min-height: 36px;
+}
+.linkbtn,
+.gl {
+  min-height: 24px;
+}
+
+@media (max-width: 640px) {
+  .maptools > .btn,
+  .dl-menu > summary.btn {
+    flex: 1 1 auto;
+    min-height: 44px;
+    text-align: center;
+  }
+  .dl-menu {
+    flex: 1 1 auto;
+  }
+  .dl-pop {
+    left: auto;
+    right: 0;
+    min-width: min(270px, calc(100vw - 32px));
+  }
+  .btn,
+  .btn.gh,
+  .cita-act .btn {
+    min-height: 44px;
+  }
+  .ess-titular {
+    font-size: 17px;
+  }
+  .precaucion {
+    padding: 9px 11px;
+  }
+  .gl {
+    padding: 4px 2px;
+  }
+  nav button {
+    padding: 11px 13px;
+    white-space: nowrap;
+  }
+}
+
+/* =====================================================================
+   Design standard: one type scale and one button system for the whole
+   site. Declared last on purpose so it wins over older one-off sizes.
+   ===================================================================== */
+:root {
+  --fs-page: 26px; /* page title: province name, start screen */
+  --fs-section: 19px; /* section title: "Todos los datos de…", headline */
+  --fs-card: 17px; /* card title */
+  --fs-label: 12px; /* small uppercase label (h3) */
+  --fs-body: 14px;
+  --fs-small: 12.5px;
+  --btn-h: 40px;
+}
+.prov-title,
+.inicio-main h2 {
+  font-size: var(--fs-page);
+  line-height: 1.2;
+}
+.todo-h,
+.fsec,
+.ess-titular {
+  font-size: var(--fs-section);
+  line-height: 1.3;
+}
+.card h2,
+.sec-h h2,
+dialog h2 {
+  font-size: var(--fs-card);
+  line-height: 1.3;
+}
+h3 {
+  font-size: var(--fs-label);
+}
+
+/* buttons: primary (.btn), secondary (.btn.gh), small (.copybtn), text (.linkbtn) */
+.btn,
+.btn.gh,
+.maptools > .btn,
+.dl-menu > summary.btn,
+.cita-act .btn,
+.peek-actions .btn,
+.kit-actions .btn,
+.sol-actions .btn {
+  min-height: var(--btn-h);
+  padding: 9px 16px;
+  font-size: var(--fs-body);
+  font-weight: 650;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1.2;
+}
+.kit-actions select,
+.ess-actions select {
+  min-height: var(--btn-h);
+  font-size: var(--fs-body);
+  border-radius: 9px;
+}
+.copybtn {
+  font-size: var(--fs-small);
+  min-height: 30px;
+  padding: 5px 12px;
+  border-radius: 9px;
+}
+.linkbtn {
+  font-size: var(--fs-small);
+}
+.btn-req,
+.btn-datos {
+  min-height: 38px;
+  font-size: 13.5px;
+  font-weight: 650;
+  padding: 8px 14px;
+  border-radius: 9px;
+}
+
+/* header entry to the reference section */
+.btn-datos {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: inherit;
+  border: 1.5px solid color-mix(in srgb, var(--on-acc) 55%, transparent);
+  background: none;
+  color: var(--on-acc);
+  cursor: pointer;
+}
+.btn-datos:hover,
+.btn-datos.on {
+  background: color-mix(in srgb, var(--on-acc) 16%, transparent);
+}
+.btn-datos .sd-c {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font: 700 11px/1 var(--body);
+}
+
+/* "Sobre los datos" section header and sub-tabs */
+.datos-nav {
+  margin: 4px 0 18px;
+  padding: 16px 18px 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+}
+.dn-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.dn-k {
+  margin: 0;
+  font-family: var(--display);
+  font-size: var(--fs-section);
+  font-weight: 700;
+  color: var(--ink);
+}
+.dn-sub {
+  margin: 4px 0 12px;
+  font-size: var(--fs-body);
+  color: var(--mut);
+}
+.dn-tabs {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.dn-tabs button {
+  font: inherit;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  white-space: nowrap;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  color: var(--mut);
+  cursor: pointer;
+}
+.dn-tabs button:hover {
+  color: var(--ink);
+}
+.dn-tabs button[aria-current="page"] {
+  color: var(--acc);
+  border-bottom-color: var(--acc);
+}
+.pie-datos-links {
+  font-size: var(--fs-small);
+}
+
+/* layer help: focused on the selected map */
+#btnLeerCapa {
+  margin-top: 6px;
+}
+.fv-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+.fv-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-body);
+}
+.fv-list .fdot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.fv-n {
+  margin-left: auto;
+  font-size: var(--fs-small);
+  color: var(--mut);
+  white-space: nowrap;
+}
+.fv-pie {
+  margin: 6px 0 0;
+  font-size: var(--fs-small);
+  color: var(--mut);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --fs-page: 22px;
+    --fs-section: 17px;
+    --fs-card: 16px;
+    --btn-h: 44px;
+  }
+  .btn-datos .sd-t {
+    display: none;
+  }
+  .btn-datos {
+    padding: 9px 11px;
+  }
+  .datos-nav {
+    padding: 14px 14px 0;
+  }
+}
+@media (max-width: 1000px) {
+  .btn-datos .sd-t {
+    display: none;
+  }
+  .btn-datos {
+    padding: 8px 11px;
+  }
+}
+
+/* ---- quick-note mode: the rest of the sheet folds under "Investigar a fondo" ---- */
+details.a-fondo {
+  margin-top: 22px;
+}
+details.a-fondo > summary {
+  list-style: none;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  align-items: center;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+}
+details.a-fondo > summary::-webkit-details-marker {
+  display: none;
+}
+details.a-fondo > summary::after {
+  content: "Abrir ▾";
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  font-size: var(--fs-small);
+  font-weight: 650;
+  color: var(--acc);
+}
+details.a-fondo[open] > summary {
+  margin-bottom: 16px;
+}
+details.a-fondo[open] > summary::after {
+  content: "Cerrar ▴";
+}
+details.a-fondo > summary:hover {
+  border-color: color-mix(in srgb, var(--acc) 45%, var(--line));
+}
+.af-t {
+  font-family: var(--display);
+  font-size: var(--fs-section);
+  font-weight: 700;
+  color: var(--ink);
+}
+.af-s {
+  font-size: var(--fs-small);
+  color: var(--mut);
+}
+
+/* ---- "Qué se está diciendo": listening summary inside the sheet ---- */
+#sec-escucha {
+  border-top: 3px solid #7a4a9e;
+}
+.esc-tag {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: #5b3577;
+  background: #f3edf8;
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+.esc-lead {
+  margin: 8px 0 8px;
+  font-size: var(--fs-body);
+}
+span.trend-chip {
+  cursor: default;
+}
+.esc-posts {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.esc-posts li {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.esc-posts a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.esc-posts a:hover {
+  text-decoration: underline;
+}
+.esc-meta {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-small);
+  color: var(--mut);
+}
+#sec-escucha .caveat {
+  margin: 10px 0 6px;
+}
+@media (max-width: 640px) {
+  details.a-fondo > summary {
+    padding: 12px 14px;
+  }
+  .sec-h {
+    flex-wrap: wrap;
   }
 }
