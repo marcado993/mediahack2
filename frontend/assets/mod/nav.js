@@ -10,12 +10,14 @@ import { loadPerfil } from "./kit.js";
 import { renderCmp } from "./comparar.js";
 import { pedirOpinion } from "./formularios.js";
 import { renderInicio } from "./inicio.js";
+import { entradaVista, pop } from "./efectos.js";
 
 export const viewEnabled = (v) => v in VIEW_FLAG && flag(VIEW_FLAG[v]);
 
 export function showView(v) {
   if (!viewEnabled(v)) v = "perfil";
-  if (v !== E.currentView) pulsoBarra();
+  const cambio = v !== E.currentView;
+  if (cambio) pulsoBarra();
   E.currentView = v;
   document.querySelectorAll("header nav button").forEach((b) => {
     const on = b.dataset.v === v;
@@ -27,6 +29,7 @@ export function showView(v) {
   $("btnSobreDatos").classList.toggle("on", DATOS_VIEWS.includes(v));
   document.querySelectorAll(".datos-nav [data-ir]").forEach((b) => b.setAttribute("aria-current", b.dataset.ir === v ? "page" : "false"));
   document.querySelectorAll(".view").forEach((el) => el.classList.toggle("on", el.id === "v-" + v));
+  if (cambio) entradaVista($("v-" + v));
 }
 
 export function initDatosNav() {
@@ -127,6 +130,7 @@ export async function copiarBtn(btn, texto, contexto) {
   btn.dataset.label = prev;
   btn.textContent = "Copiado ✓";
   btn.classList.add("done");
+  pop(btn);
   clearTimeout(btn._t);
   btn._t = setTimeout(() => {
     btn.textContent = prev;

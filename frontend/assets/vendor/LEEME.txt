@@ -1,0 +1,2 @@
+GSAP 3.15.0 (GreenSock). Licencia estándar "sin costo": https://gsap.com/standard-license
+Se sirve desde este mismo sitio (sin CDN). Archivo original: npm gsap@3.15.0, dist/gsap.min.js

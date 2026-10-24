@@ -13,6 +13,7 @@ import { tipHide, tipMove, tipShow } from "./tooltip.js";
 import { byKey, paintMap } from "./mapa.js";
 import { citaDeRegistro, driversHTML, goToPerfil, reliability } from "./kit.js";
 import { compareText, deltaTableHTML } from "./comparar.js";
+import { entradaKit } from "./efectos.js";
 
 // ---------------------------------------------------------------------
 // Map selection: tap a province and its essentials appear beside the map,
@@ -183,6 +184,7 @@ export function renderInicio() {
   </div>`
       : ""
   }`;
+  entradaKit($("perfil"));
   if (tareas) modCmpBind();
   renderProvLista();
 }

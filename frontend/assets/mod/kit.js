@@ -2,7 +2,8 @@
 
 import { getJSON } from "../api.js";
 import { flag } from "../tenant.js";
-import { skLines, countUp, stagger } from "../estados.js";
+import { skLines } from "../estados.js";
+import { entradaKit } from "./efectos.js";
 import { esc, fmt, fmtInt, ICON, provinceFlags, scoreRange } from "../ui.js";
 import { E } from "./estado.js";
 import { $, provinceKey } from "./util.js";
@@ -199,6 +200,9 @@ function datosClave(data) {
   return out;
 }
 
+// One sentence is enough here; the rest of the profile description is in the full data.
+const primeraFrase = (t) => (String(t || "").match(/^.*?[.!?](?=\s|$)/) || [t || ""])[0];
+
 export function renderPerfil(data) {
   E.PERFIL_DATA = data;
   E.SOL_NLB = data.n_lb;
@@ -297,18 +301,6 @@ export function renderPerfil(data) {
    <section class="card kit-main" id="sec-esencial">
     <h3 class="ess-titular">${esc(titular)}</h3>
     ${aviso ? `<div class="precaucion" role="note"><span class="pc-h">${ICON.warn}Precaución editorial</span><p>${esc(aviso)} ${data.n_lb === 0 ? gl("imputado", "¿Qué es un valor imputado?") : ""}</p></div>` : ""}
-    <div class="km-top">
-     <div class="km-num">
-      <span class="big">${fmt(data.ivei.indice)}</span>
-      <span class="pill" style="background:${nivelColor};color:${inkFor(nivelColor)}">${esc(data.ivei.nivel)}</span>
-      ${scoreRange({ confidenceRange: data.ivei.rango ?? null })}
-     </div>
-     <div class="km-txt">
-      <p class="ess-lead"><b>Puesto ${data.ivei.puesto} de 24</b> <span class="pais">1 = la más vulnerable · país ${fmt(data.ivei.nacional)}</span></p>
-      <p class="ess-tipo"><span class="pdot" style="background:${perfilColor(data.perfil_territorial.tipo)}"></span><b>${esc(perfilPlano(data.perfil_territorial.tipo))}</b></p>
-      <p class="note" style="margin:0">${esc(data.perfil_territorial.descripcion)}</p>
-     </div>
-    </div>
     ${
       flag("cita_lista")
         ? `<div class="copiar">
@@ -318,6 +310,18 @@ export function renderPerfil(data) {
       </div>`
         : ""
     }
+    <div class="km-top">
+     <div class="km-num">
+      <span class="big">${fmt(data.ivei.indice)}</span>
+      <span class="pill" style="background:${nivelColor};color:${inkFor(nivelColor)}">${esc(data.ivei.nivel)}</span>
+      ${scoreRange({ confidenceRange: data.ivei.rango ?? null })}
+     </div>
+     <div class="km-txt">
+      <p class="ess-lead"><b>Puesto ${data.ivei.puesto} de 24</b> <span class="pais">1 = la más vulnerable · país ${fmt(data.ivei.nacional)}</span></p>
+      <p class="ess-tipo"><span class="pdot" style="background:${perfilColor(data.perfil_territorial.tipo)}"></span><b>${esc(perfilPlano(data.perfil_territorial.tipo))}</b></p>
+      <p class="note" style="margin:0">${esc(primeraFrase(data.perfil_territorial.descripcion))}</p>
+     </div>
+    </div>
     ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
     <p class="gl-row noprint">¿Qué significa? ${gl("ivei", "IVEI")} ${gl("imputado", "valor imputado")} ${gl("factor", "factor")}</p>
@@ -486,8 +490,7 @@ export async function loadPerfil(provincia) {
     recordarReciente(provincia);
     renderPerfil(data);
     renderProvLista();
-    stagger(box);
-    countUp(box.querySelector(".kit-main .big"), data.ivei.indice);
+    entradaKit(box, data.ivei.indice);
     const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (innerWidth < 900) requestAnimationFrame(() => box.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" }));
   } catch (e) {

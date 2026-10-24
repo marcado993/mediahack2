@@ -2,6 +2,7 @@
 
 import { loadTenant, onTenant } from "./tenant.js";
 import { initEstadosRed } from "./estados.js";
+import { initEfectos, revelar } from "./mod/efectos.js";
 import { E } from "./mod/estado.js";
 import { $ } from "./mod/util.js";
 import { applyRoute, barraOff, barraOn, errorBox, initDatosNav, navigate, pathFor, tabs } from "./mod/nav.js";
@@ -50,11 +51,14 @@ onTenant(applyFlags);
 // Boot
 // ---------------------------------------------------------------------
 (async function init() {
+  initEfectos();
   initEstadosRed();
   const tenantReady = loadTenant();
   try {
     await initMapas();
     initProvLista();
+    revelar(document.querySelectorAll("#map-sel .pvs"), { desde: "random", cuanto: 0.6 });
+    revelar(document.querySelectorAll("#provLista .pl-item"), { cuanto: 0.35 });
     document.querySelectorAll("[data-loading]").forEach((e) => e.removeAttribute("data-loading"));
     $("provLista")?.removeAttribute("aria-busy");
     initComparar();
