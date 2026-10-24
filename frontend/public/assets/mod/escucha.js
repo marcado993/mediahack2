@@ -70,6 +70,8 @@ function drawTendMapSVG(svgEl, pathsMap) {
       paintTendMap();
       document.getElementById("tendProvLabel").textContent = displayName;
       runTendencias(displayName);
+      // on a phone the result sits under the map: bring it into view, no scrolling needed
+      if (innerWidth <= 760) requestAnimationFrame(() => document.getElementById("tendProvLabel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
     });
     svgEl.appendChild(path);
   }

@@ -4873,3 +4873,10 @@ svg.vacio-flecha {
     animation: none;
   }
 }
+
+/* no extra scrolling: while you type a province, the map steps aside so the matches are right under the field */
+@media (max-width: 900px) {
+  .prov-aside:has(#provFiltro:not(:placeholder-shown)) .aside-map {
+    display: none;
+  }
+}
