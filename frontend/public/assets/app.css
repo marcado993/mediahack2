@@ -4880,3 +4880,316 @@ svg.vacio-flecha {
     display: none;
   }
 }
+
+/* phone: the header closes with some air and a soft edge instead of ending right under the buttons */
+@media (max-width: 640px) {
+  header {
+    padding: 12px 0 16px;
+    border-radius: 0 0 20px 20px;
+    box-shadow: 0 6px 18px rgba(16, 32, 56, 0.16);
+  }
+  #main {
+    padding-top: 16px;
+  }
+}
+@media (max-width: 640px) {
+  /* on the home the search field is right below: don't show the same question twice */
+  body:has(#perfil .inicio-main) .finder-btn {
+    display: none;
+  }
+  body:has(#perfil .inicio-main) .brand-row h1 {
+    flex: 1 1 0;
+  }
+}
+
+/* ---- Compare: two colours, one per side, everywhere they appear ---- */
+:root {
+  --cmp-a: #1f5fae;
+  --cmp-b: #d97706;
+  --cmp-b-ink: #9a4f03; /* the amber as text: reaches 4.5:1 on white */
+}
+.cdot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  margin-right: 7px;
+  vertical-align: baseline;
+  flex: none;
+}
+.cdot.a {
+  background: var(--cmp-a);
+}
+.cdot.b {
+  background: var(--cmp-b);
+}
+.cmp-hero {
+  border-top: 4px solid transparent;
+  border-image: linear-gradient(90deg, var(--cmp-a) 0 50%, var(--cmp-b) 50% 100%) 1;
+  margin-bottom: 16px;
+}
+.cmp-sel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+.cmp-lado {
+  display: block;
+}
+.cmp-lado > span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.cmp-lado select {
+  width: 100%;
+  font-size: 16px;
+  font-weight: 600;
+  min-height: 44px;
+  border-width: 2px;
+}
+.cmp-lado.a select {
+  border-color: var(--cmp-a);
+}
+.cmp-lado.b select {
+  border-color: var(--cmp-b);
+}
+.cmp-lado.a > span {
+  color: var(--cmp-a);
+}
+.cmp-lado.b > span {
+  color: var(--cmp-b-ink);
+}
+.cmp-swap {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--acc);
+  cursor: pointer;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s;
+}
+.cmp-swap:hover {
+  background: var(--acc-soft);
+  transform: rotate(180deg);
+}
+.cmp-col.a h3 {
+  color: var(--cmp-a);
+}
+.cmp-col.b h3 {
+  color: var(--cmp-b-ink);
+}
+.cmp-col {
+  border-top: 3px solid transparent;
+  padding-top: 8px;
+}
+.cmp-col.a {
+  border-top-color: var(--cmp-a);
+}
+.cmp-col.b {
+  border-top-color: var(--cmp-b);
+}
+table.delta th .cdot {
+  margin-right: 5px;
+}
+.cmp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.cmp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 2px solid #c9d6e6;
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s;
+}
+.cmp-chip:hover {
+  border-color: var(--acc);
+  background: var(--acc-soft);
+  transform: translateY(-1px);
+}
+.cmp-chip .cdot {
+  margin-right: 2px;
+}
+.cmp-chip svg {
+  color: var(--mut);
+}
+.cmp-sug {
+  border-top: 4px solid transparent;
+  border-image: linear-gradient(90deg, var(--cmp-a) 0 50%, var(--cmp-b) 50% 100%) 1;
+}
+.cmp-sug select {
+  min-height: 44px;
+  border-width: 2px;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .cmp-sel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cmp-swap {
+    justify-self: center;
+    margin: -2px 0;
+    transform: rotate(90deg);
+  }
+  .cmp-swap:hover {
+    transform: rotate(270deg);
+  }
+}
+
+/* the tab that is easy to miss: a small amber dot that pulses until it has been used once */
+nav button.nuevo {
+  position: relative;
+}
+nav button.nuevo::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f2a52b;
+  box-shadow: 0 0 0 0 rgba(242, 165, 43, 0.7);
+  animation: nuevoPulso 1.8s ease-out infinite;
+}
+@keyframes nuevoPulso {
+  70% {
+    box-shadow: 0 0 0 9px rgba(242, 165, 43, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(242, 165, 43, 0);
+  }
+}
+@media (max-width: 640px) {
+  header nav button.nuevo::after {
+    top: 8px;
+    right: 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  nav button.nuevo::after {
+    animation: none;
+  }
+  .cmp-swap,
+  .cmp-chip {
+    transition: none;
+  }
+}
+
+/* ---- Compare: "touch me" glow, a slow shine across the suggestions, rings on focus ---- */
+.cmp-chip {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.cmp-chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.85) 50%, transparent 65%);
+  transform: translateX(-130%);
+  animation: brilloChip 4.2s ease-in-out infinite;
+}
+.cmp-chip:nth-of-type(2)::before {
+  animation-delay: 0.45s;
+}
+.cmp-chip:nth-of-type(3)::before {
+  animation-delay: 0.9s;
+}
+@keyframes brilloChip {
+  0%,
+  55% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(130%);
+  }
+}
+.cmp-chip {
+  border-color: #b7c9e0;
+  box-shadow: 0 0 0 0 rgba(31, 95, 174, 0);
+}
+.cmp-chip:hover,
+.cmp-chip:focus-visible {
+  border-color: var(--cmp-a);
+  box-shadow: 0 0 0 4px rgba(31, 95, 174, 0.16), 0 8px 18px rgba(31, 95, 174, 0.22);
+  transform: translateY(-2px);
+}
+.cmp-chip:active {
+  transform: translateY(0) scale(0.98);
+}
+.cmp-chip:hover svg {
+  color: var(--cmp-b);
+  transform: translateX(3px);
+}
+.cmp-chip svg {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s;
+}
+.cmp-lado.a select:hover,
+.cmp-lado.a select:focus {
+  box-shadow: 0 0 0 4px rgba(31, 95, 174, 0.18);
+}
+.cmp-lado.b select:hover,
+.cmp-lado.b select:focus {
+  box-shadow: 0 0 0 4px rgba(217, 119, 6, 0.2);
+}
+.cmp-swap {
+  box-shadow: 0 0 0 0 rgba(31, 95, 174, 0.35);
+  animation: swapLatido 2.6s ease-out infinite;
+}
+.cmp-swap:hover {
+  animation: none;
+  box-shadow: 0 0 0 5px rgba(31, 95, 174, 0.18);
+}
+@keyframes swapLatido {
+  70% {
+    box-shadow: 0 0 0 10px rgba(31, 95, 174, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(31, 95, 174, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cmp-chip::before,
+  .cmp-swap {
+    animation: none;
+  }
+  .cmp-chip:hover,
+  .cmp-chip:focus-visible {
+    transform: none;
+  }
+}
+/* keep the card's rounded corners: the two-colour bar is a pseudo-element, not a border image */
+.cmp-hero,
+.cmp-sug {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  border-image: none;
+}
+.cmp-hero::before,
+.cmp-sug::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--cmp-a) 0 50%, var(--cmp-b) 50% 100%);
+}

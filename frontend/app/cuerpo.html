@@ -109,9 +109,14 @@
 
 <!-- ============ COMPARAR ============ -->
 <section class="view" id="v-comparar">
- <div style="display:flex;gap:9px;align-items:center;margin-bottom:15px;flex-wrap:wrap">
-  <label for="cmpA" class="sr">Primera provincia</label><select id="cmpA"></select><span style="color:var(--mut);font-size:13px">frente a</span>
-  <label for="cmpB" class="sr">Segunda provincia</label><select id="cmpB"></select>
+ <div class="card cmp-hero">
+  <h2>Compara dos provincias</h2>
+  <p class="note" style="margin:2px 0 14px">Elige dos y te damos la diferencia, lista para copiar.</p>
+  <div class="cmp-sel">
+   <label class="cmp-lado a"><span><i class="cdot a" aria-hidden="true"></i>Provincia A</span><select id="cmpA"></select></label>
+   <button type="button" class="cmp-swap" id="cmpSwap" aria-label="Intercambiar las dos provincias" title="Intercambiar"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M3 7h13m-4-4 4 4-4 4M17 13H4m4-4-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+   <label class="cmp-lado b"><span><i class="cdot b" aria-hidden="true"></i>Provincia B</span><select id="cmpB"></select></label>
+  </div>
  </div>
  <div id="comparar"></div>
 </section>

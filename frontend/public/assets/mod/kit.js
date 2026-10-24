@@ -342,12 +342,11 @@ export function renderPerfil(data) {
    }
   </div>
 
+  ${flag("vista_comparar") ? comparaCard(data.provincia) : ""}
   ${segunda.length ? `<div class="grid ${segunda.length > 1 ? "g2" : ""}" style="margin-top:16px">${segunda.join("")}</div>` : ""}
 
   <div class="kit-actions noprint">
    ${flag("ficha_descargable") ? `<button class="btn gh" type="button" id="btnFicha">Descargar ficha</button>` : ""}
-   <label class="sr" for="essComparar">Comparar con otra provincia</label>
-   <select id="essComparar" ${flag("vista_comparar") ? "" : "hidden"}><option value="">Comparar con…</option>${E.PROVINCIAS.filter((p) => p !== data.provincia).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("")}</select>
    <button class="btn gh" type="button" id="btnVerMapa">Ver en el mapa</button>
    <button class="btn gh" type="button" id="btnEnlace">Copiar enlace</button>
    ${typeof navigator !== "undefined" && navigator.share ? `<button class="btn gh" type="button" id="btnCompartir">Compartir</button>` : ""}
@@ -418,6 +417,23 @@ export function renderPerfil(data) {
   };
 }
 
+// Comparing is a first-class move: the three provinces closest in score are one tap away.
+function comparaCard(prov) {
+  const yo = (E.MAPA?.provincias ?? []).find((p) => p.provincia === prov);
+  const cerca = yo
+    ? E.MAPA.provincias
+        .filter((p) => p !== yo && p.IVEI != null)
+        .sort((a, b) => Math.abs(a.IVEI - yo.IVEI) - Math.abs(b.IVEI - yo.IVEI))
+        .slice(0, 3)
+    : [];
+  return `<section class="card cmp-sug" id="sec-comparar" style="margin-top:16px"><h2>Compara ${esc(prov)} con otra provincia</h2>
+   <p class="note" style="margin:2px 0 12px">Las más parecidas en puntaje, a un toque. O elige cualquiera.</p>
+   <div class="cmp-chips">${cerca.map((p) => `<button type="button" class="cmp-chip" data-ruta="comparar/${enc(prov)}/${enc(p.provincia)}"><i class="cdot a"></i>${esc(prov)}<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 7h13m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><i class="cdot b"></i>${esc(p.provincia)}</button>`).join("")}
+    <label class="sr" for="essComparar">Comparar con otra provincia</label>
+    <select id="essComparar"><option value="">Otra provincia…</option>${E.PROVINCIAS.filter((p) => p !== prov).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("")}</select></div>
+  </section>`;
+}
+
 function pintarSeguir(btn, provincia) {
   const on = sigue(provincia);
   btn.setAttribute("aria-pressed", String(on));
@@ -466,7 +482,7 @@ async function renderEscuchaFicha(provincia) {
   const box = $("sec-escucha");
   if (!box) return;
   const head = `<div class="sec-h"><h2>Qué se está diciendo en ${esc(provincia)}</h2><span class="esc-tag">Escucha digital · insumo para decisión humana</span></div>`;
-  box.innerHTML = `${head}<p class="note" style="margin-bottom:6px">Leyendo X y medios sobre ${esc(provincia)}…</p>${skLines(3)}`;
+  box.innerHTML = `${head}<p class="note" style="margin-bottom:6px">Leyendo X y medios sobre ${esc(provincia)}… puede tardar hasta 20 segundos. Lo demás de la ficha ya está listo.</p>${skLines(3)}`;
   let res;
   try {
     res = await getTendencias(provincia);

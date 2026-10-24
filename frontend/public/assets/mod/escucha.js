@@ -15,7 +15,7 @@ export async function runTendencias(province) {
     box.innerHTML = vacioEscucha();
     return;
   }
-  box.innerHTML = `<p class="note">Leyendo X y medios sobre ${esc(province)}…</p>${skLines(4)}`;
+  box.innerHTML = `<p class="note">Leyendo X y medios sobre ${esc(province)}… puede tardar hasta 20 segundos.</p>${skLines(4)}`;
   try {
     // shared cache with the sheet's "Qué se está diciendo"; post text comes
     // from X and outlets, so every field is escaped and links must be http(s)
