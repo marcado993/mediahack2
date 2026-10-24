@@ -4806,3 +4806,70 @@ nav button {
     min-width: 76px;
   }
 }
+
+/* ---- empty state that says what to do and points at it ---- */
+.vacio {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 20px;
+  border: 2px dashed #9fb4cc;
+  border-radius: 12px;
+  background: var(--acc-soft);
+  color: var(--acc);
+}
+svg.vacio-flecha {
+  width: 56px;
+  height: 38px;
+  max-width: none;
+  flex: none;
+  animation: vacioEmpuja 1.5s ease-in-out infinite;
+}
+.vacio-t {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 750;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.vacio-x {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: #3a4657;
+}
+@keyframes vacioEmpuja {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-9px);
+  }
+}
+@keyframes vacioEmpujaArriba {
+  0%,
+  100% {
+    transform: rotate(90deg) translateX(0);
+  }
+  50% {
+    transform: rotate(90deg) translateX(-9px);
+  }
+}
+@media (max-width: 900px) {
+  .vacio--mapa .vacio-flecha {
+    transform: rotate(90deg);
+    animation-name: vacioEmpujaArriba;
+  }
+}
+@media (max-width: 760px) {
+  .vacio--tend .vacio-flecha {
+    transform: rotate(90deg);
+    animation-name: vacioEmpujaArriba;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vacio-flecha {
+    animation: none;
+  }
+}
