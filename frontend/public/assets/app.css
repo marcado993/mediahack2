@@ -4564,3 +4564,104 @@ dialog .chk input {
     margin: -4px -10px -4px 0;
   }
 }
+
+/* ---- refactor pass: figures line up, every control answers hover / press / focus ---- */
+.big,
+.num,
+.vl,
+.fv,
+.rk,
+td,
+th,
+.pl-item b,
+.esc-lab,
+.kit-main .pill {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+.btn,
+.btn-req,
+.btn-datos,
+.finder-btn,
+.chip,
+.pl-item,
+.fbtn,
+.copybtn,
+.linkbtn,
+.trend-chip,
+.jump button,
+.idx button,
+nav button {
+  transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn:active,
+.btn-req:active,
+.chip:active,
+.pl-item:active,
+.copybtn:active,
+.fbtn:active {
+  transform: translateY(1px);
+}
+:where(button, a[href], summary, select, input, textarea, [role="button"], [tabindex="0"]):focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:active,
+  .btn-req:active,
+  .chip:active,
+  .pl-item:active,
+  .copybtn:active,
+  .fbtn:active {
+    transform: none;
+  }
+}
+
+/* ---- phone: the four sections live under the thumb, and the note comes first ---- */
+@media (max-width: 640px) {
+  body {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+  header nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 90;
+    margin: 0;
+    gap: 0;
+    overflow: visible;
+    background: var(--acc);
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -6px 20px rgba(16, 32, 56, 0.18);
+  }
+  header nav button {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 60px;
+    padding: 8px 4px;
+    border-radius: 0;
+    border-bottom: 0;
+    border-top: 3px solid transparent;
+    font-size: 12.5px;
+    line-height: 1.2;
+    opacity: 0.78;
+  }
+  header nav button.on {
+    opacity: 1;
+    font-weight: 700;
+    border-top-color: var(--on-acc);
+    background: rgba(255, 255, 255, 0.12);
+  }
+  #toast {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+  /* with a province open, its note goes before the map and the list */
+  .notes-layout:has(.kit-head) .prov-aside {
+    order: 2;
+  }
+  .notes-layout:has(.kit-head) .prov-aside .aside-h:first-child {
+    margin-top: 0;
+  }
+}
