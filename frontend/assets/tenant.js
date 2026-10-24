@@ -7,7 +7,7 @@ import { getJSON } from "./api.js";
 
 const FLAG_KEYS = [
   "vista_mapas", "vista_perfil", "vista_comparar", "vista_datos", "vista_fuentes", "vista_conversacion", "vista_metodologia",
-  "capa_mecanismos", "capa_habilidades", "grafico_dispersion", "inicio_guiado", "buscador_provincia", "guia_reportero", "cita_lista", "solicitar_informacion", "ficha_descargable",
+  "capa_mecanismos", "capa_habilidades", "grafico_dispersion", "inicio_guiado", "buscador_provincia", "guia_reportero", "cita_lista", "solicitar_informacion", "ficha_descargable", "retroalimentacion",
 ];
 // If the backend is unreachable the site still has to open: everything on, house brand.
 const FALLBACK = {
@@ -120,6 +120,16 @@ function paintBrand(cfg) {
       btn.textContent = "Solicitar información al observatorio";
       ask.append(btn);
       foot.append(ask);
+    }
+    if (cfg.flags.retroalimentacion !== false) {
+      const retro = document.createElement("p");
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "linkbtn";
+      b.dataset.retro = "";
+      b.textContent = "¿Te sirve el observatorio? Cuéntanos qué necesita tu medio";
+      retro.append(b);
+      foot.append(retro);
     }
   }
 }

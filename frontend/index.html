@@ -215,6 +215,51 @@
  </div>
 </dialog>
 
+<dialog id="dlgRetro" aria-labelledby="retroTitulo">
+ <form id="formRetro">
+  <h2 id="retroTitulo">Cuéntanos qué necesita tu medio</h2>
+  <p class="note" style="margin:4px 0 14px">Lo lee el equipo del observatorio y decide qué construir después. Tarda dos minutos.</p>
+  <div class="grid g2" style="gap:12px">
+   <label class="fld"><span>Nombre</span><input id="retNombre" type="text" required minlength="2" maxlength="100" autocomplete="name"></label>
+   <label class="fld"><span>Medio u organización</span><input id="retOrg" type="text" required minlength="2" maxlength="150" autocomplete="organization"></label>
+   <label class="fld"><span>Tu rol en la redacción</span><select id="retRol" required>
+    <option value="">Elige uno…</option><option value="reportero">Reportería</option><option value="editor">Edición</option><option value="verificador">Verificación</option><option value="datos">Periodismo de datos</option><option value="direccion">Dirección o producto</option><option value="otro">Otro</option></select></label>
+   <label class="fld"><span>Correo (opcional, si quieres respuesta)</span><input id="retCorreo" type="email" maxlength="150" autocomplete="email"></label>
+  </div>
+  <fieldset class="fld retro-mods"><legend>¿Qué partes usas?</legend>
+   <label><input type="checkbox" name="retMod" value="nota"> Preparar mi nota</label>
+   <label><input type="checkbox" name="retMod" value="mapa"> Mapa del país</label>
+   <label><input type="checkbox" name="retMod" value="comparar"> Comparar provincias</label>
+   <label><input type="checkbox" name="retMod" value="escucha"> Escucha digital</label>
+   <label><input type="checkbox" name="retMod" value="datos_abiertos"> Datos abiertos</label>
+   <label><input type="checkbox" name="retMod" value="solicitudes"> Solicitar información</label>
+  </fieldset>
+  <label class="fld"><span>¿Qué le falta o qué cambiarías para tu cobertura?</span><textarea id="retNecesidad" required minlength="10" maxlength="1500" rows="3" placeholder="Por ejemplo: datos por cantón, alertas cuando un tema crece en mi provincia, gráficos con nuestra marca…"></textarea></label>
+  <fieldset class="fld retro-val"><legend>¿Qué tan útil te resulta hoy?</legend>
+   <div class="val-row">
+    <label><input type="radio" name="retVal" value="1" required><span>1</span></label>
+    <label><input type="radio" name="retVal" value="2"><span>2</span></label>
+    <label><input type="radio" name="retVal" value="3"><span>3</span></label>
+    <label><input type="radio" name="retVal" value="4"><span>4</span></label>
+    <label><input type="radio" name="retVal" value="5"><span>5</span></label>
+   </div>
+   <p class="val-lab"><span>Nada útil</span><span>Imprescindible</span></p>
+  </fieldset>
+  <label class="hp" aria-hidden="true">No llenar este campo <input id="retWeb" type="text" tabindex="-1" autocomplete="off"></label>
+  <p class="sol-err" id="retErr" role="alert"></p>
+  <div class="sol-actions">
+   <button class="btn" type="submit" id="retEnviar">Enviar</button>
+   <button class="btn gh" type="button" data-cerrar-retro>Cancelar</button>
+  </div>
+ </form>
+ <div id="retOk" hidden>
+  <h2>Gracias, lo recibimos</h2>
+  <p style="margin:8px 0 16px;font-size:14px">El equipo revisa cada respuesta. Si dejaste tu correo, te escribiremos cuando avancemos con lo que pediste.</p>
+  <button class="btn" type="button" id="retCerrarOk" data-cerrar-retro>Cerrar</button>
+ </div>
+</dialog>
+
+<div id="opina" class="opina noprint" role="region" aria-label="¿Te sirvió?" aria-live="polite" hidden></div>
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script type="module" src="/assets/app.js"></script>
