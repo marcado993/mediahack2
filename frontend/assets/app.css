@@ -4102,3 +4102,273 @@ span.trend-chip {
   margin: 0;
   accent-color: var(--acc);
 }
+
+/* ======================================================================
+   Loading states, quiet effects, and a readable type floor
+   ====================================================================== */
+:root {
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---- connection pill: slow server, offline, back online ---- */
+#netbar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 250;
+  max-width: min(580px, calc(100vw - 24px));
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  background: #1b3a5c;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(10, 20, 36, 0.3);
+  animation: pillIn 0.35s var(--ease) both;
+}
+#netbar[data-tone="warn"] {
+  background: #fff6e5;
+  color: #6b4d12;
+  border: 1px solid #ecc98a;
+}
+#netbar[data-tone="ok"] {
+  background: #eaf6ef;
+  color: #17573a;
+  border: 1px solid #9fd0b4;
+}
+@keyframes pillIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -10px);
+  }
+}
+.noscript {
+  margin: 0;
+  padding: 14px 20px;
+  background: #fff6e5;
+  color: #5a3b05;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* ---- skeletons with the shape of what is coming ---- */
+.sk-wrap {
+  display: grid;
+  gap: 0;
+}
+.sk-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 12px 0;
+}
+.sk-row .sk-b {
+  margin: 0;
+  height: 16px;
+}
+.map-canvas {
+  position: relative;
+}
+.map-canvas[data-loading] {
+  min-height: 300px;
+}
+.map-canvas[data-loading]::before {
+  content: "";
+  position: absolute;
+  inset: 12% 22%;
+  border-radius: 46% 54% 50% 50% / 55% 45% 55% 45%;
+  background: linear-gradient(90deg, #dde6f0 25%, #edf2f8 37%, #dde6f0 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.3s ease infinite;
+}
+.btn-spin {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  margin-right: 8px;
+  vertical-align: -2px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: tend-spin 0.7s linear infinite;
+}
+.is-busy {
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* ---- the one signature motion: the note arrives in order ---- */
+#perfil > * {
+  animation: kitIn 0.45s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+@keyframes kitIn {
+  from {
+    opacity: 0.4;
+    transform: translateY(8px);
+  }
+}
+.esc-mark {
+  animation: markPop 0.6s var(--ease) 0.3s both;
+}
+@keyframes markPop {
+  from {
+    transform: translateX(-50%) scale(0.3);
+    opacity: 0.3;
+  }
+}
+
+/* ---- everything else stays quiet: soft hover, a small press ---- */
+.btn,
+.btn-req,
+.copybtn,
+.pl-item,
+.prov-btn,
+.fbtn,
+.fhelp,
+.mod-h,
+nav button,
+.idx button,
+.linkbtn {
+  transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), color 0.2s var(--ease), box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.btn:not(:disabled):hover,
+.btn-req:hover {
+  box-shadow: 0 6px 16px rgba(16, 32, 56, 0.16);
+  transform: translateY(-1px);
+}
+.btn:active,
+.btn-req:active,
+.copybtn:active,
+.pl-item:active,
+.prov-btn:active,
+.fbtn:active,
+nav button:active,
+.idx button:active {
+  transform: scale(0.97);
+  box-shadow: none;
+}
+.pv.sel,
+.pvs.sel {
+  filter: drop-shadow(0 2px 4px rgba(10, 20, 36, 0.45));
+}
+
+/* ---- readability: figures align, lines stay short, nothing is tiny ---- */
+.num,
+.big,
+.pl-r,
+.fv b,
+.fcode,
+.esc-lab,
+.rango,
+.pill,
+.metric .v,
+.rk,
+td.num,
+table.delta td {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+.note,
+.fp,
+.fintro,
+.inicio-lead,
+.ess-lead,
+.ess-tipo,
+.esc-lead,
+.rec p,
+.caveat,
+.hint {
+  max-width: 68ch;
+}
+.srcline,
+.stack,
+.asis-chain-item .t,
+.asis-source .src-meta,
+.caveat,
+.fsub,
+.tag,
+th,
+.ftab th,
+#palList .ptag,
+#rk .ptag,
+.metric .c,
+.pill,
+.rk,
+.esc-tag,
+.fleg .knote,
+.fmeta,
+.fo,
+.hint,
+.legend,
+.metric .k,
+.sol,
+.trend-chip,
+.trend-chip .count,
+.trend-samples a,
+.val-lab {
+  font-size: 12px;
+}
+.cut {
+  font-size: 12px;
+}
+.lbl {
+  font-size: 11px;
+}
+
+/* ---- "¿Para qué sirve este dato?": one decision per row, any width ---- */
+.criterio {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.criterio li {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.criterio li:last-child {
+  border: 0;
+  padding-bottom: 0;
+}
+.criterio b {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+.criterio p {
+  display: flex;
+  gap: 8px;
+  margin: 3px 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.criterio svg.ic {
+  margin-top: 3px;
+}
+.criterio .c-si {
+  color: #1d6a43;
+}
+.criterio .c-no {
+  color: #8a2a20;
+}
+.criterio .c-nota {
+  color: var(--mut);
+  font-size: 13px;
+}
+
+/* ---- people who ask for less motion get none ---- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+  }
+}
