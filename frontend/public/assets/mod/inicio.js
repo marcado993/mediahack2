@@ -3,7 +3,7 @@
 import { getJSON } from "../api.js";
 import { flag } from "../tenant.js";
 import { skTable } from "../estados.js";
-import { MARGEN_GENERAL, esc, fmt, ICON, provinceFlags, scoreRange } from "../ui.js";
+import { MARGEN_GENERAL, esc, fmt, ICON, provinceFlags, scoreRange, vacioFlecha } from "../ui.js";
 import { E } from "./estado.js";
 import { $, provinceKey } from "./util.js";
 import { DECISIONES, RAMP, RECIENTES_KEY, SIN_RESULTADOS, enc, esLimite, perfilColor, perfilPlano } from "./datos.js";
@@ -35,7 +35,7 @@ export function renderPeek() {
   const p = E.mapSel ? byKey()[E.mapSel] : null;
   syncKit(p);
   if (!p) {
-    box.innerHTML = `<h3>Resumen rápido</h3><p class="note" style="margin:0">Elige una provincia en el mapa o en el ranking y verás aquí lo esencial, sin salir del mapa.</p>`;
+    box.innerHTML = vacioFlecha({ titulo: "Toca una provincia", texto: "En el mapa o en el ranking. Aquí verás lo esencial, sin salir del mapa." });
     return;
   }
   const conf = reliability(p.n_lb);

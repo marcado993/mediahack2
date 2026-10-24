@@ -1,16 +1,18 @@
 // Module: escucha. Part of the app.js split into native ES modules (no build step).
 
 import { skLines } from "../estados.js";
-import { esc } from "../ui.js";
+import { esc, vacioFlecha } from "../ui.js";
 import { E } from "./estado.js";
 import { provinceKey } from "./util.js";
 import { tipHide, tipMove, tipShow } from "./tooltip.js";
 import { getTendencias, safeUrl } from "./kit.js";
 
+export const vacioEscucha = () => vacioFlecha({ donde: "tend", titulo: "Toca una provincia", texto: "Verás los temas y actores más mencionados en X y medios sobre ese territorio." });
+
 export async function runTendencias(province) {
   const box = document.getElementById("tendResult");
   if (!province) {
-    box.innerHTML = "";
+    box.innerHTML = vacioEscucha();
     return;
   }
   box.innerHTML = `<p class="note">Leyendo X y medios sobre ${esc(province)}…</p>${skLines(4)}`;
@@ -68,6 +70,8 @@ function drawTendMapSVG(svgEl, pathsMap) {
       paintTendMap();
       document.getElementById("tendProvLabel").textContent = displayName;
       runTendencias(displayName);
+      // on a phone the result sits under the map: bring it into view, no scrolling needed
+      if (innerWidth <= 760) setTimeout(() => document.getElementById("tendProvLabel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }), 30);
     });
     svgEl.appendChild(path);
   }
@@ -80,6 +84,7 @@ export function paintTendMap() {
 }
 
 export function initAsistente() {
+  document.getElementById("tendResult").innerHTML = vacioEscucha();
   if (E.PATHS) {
     drawTendMapSVG(document.getElementById("tend-map"), E.PATHS.mainland);
     drawTendMapSVG(document.getElementById("tend-map-gal"), E.PATHS.galapagos);

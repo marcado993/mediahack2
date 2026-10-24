@@ -28,6 +28,15 @@ export const ICON = {
   mail: svg('<rect x="1.6" y="3" width="12.8" height="10" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 4.4 8 9l6-4.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>'),
 };
 
+/** The obvious empty state: says what to do and points at where. `donde` = "tend" | "mapa"
+ *  picks the breakpoint where the map ends up above the panel and the arrow turns upward. */
+export function vacioFlecha({ titulo, texto, donde = "mapa" }) {
+  return `<div class="vacio vacio--${donde}" role="status">
+   <svg class="vacio-flecha" viewBox="0 0 48 32" width="56" height="38" aria-hidden="true" focusable="false"><path d="M44 16H6M17 5 5.5 16 17 27" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+   <div><p class="vacio-t">${esc(titulo)}</p><p class="vacio-x">${esc(texto)}</p></div>
+  </div>`;
+}
+
 /** dataSourceQuality: "alta" | "media" | "baja". Three pips + a word: never colour alone. */
 export function qualityBadge({ dataSourceQuality, detail = "" }) {
   const palabra = { alta: "sólida", media: "media", baja: "débil" }[dataSourceQuality] ?? dataSourceQuality;
