@@ -55,6 +55,9 @@ Object.assign(ICON, {
   book: trazo('<path d="M2.5 3.5h4.2A1.3 1.3 0 0 1 8 4.8v8.7a1.3 1.3 0 0 0-1.3-1H2.5zM13.5 3.5H9.3A1.3 1.3 0 0 0 8 4.8v8.7a1.3 1.3 0 0 1 1.3-1h4.2z"/>'),
   home: trazo('<path d="M2 7.5 8 2.5l6 5M3.5 6.8v6.7h9V6.8"/>'),
   info: trazo('<circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/>'),
+  moon: trazo('<path d="M13.5 9.5A5.8 5.8 0 0 1 6.5 2.5a5.8 5.8 0 1 0 7 7z"/>'),
+  sun: trazo('<circle cx="8" cy="8" r="2.8"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/>'),
+  escucha: trazo('<path d="M3 6.5v3M6 4.5v7M9 2.5v11M12 5.5v5"/>'),
   ext: trazo('<path d="M9 2.5h4.5V7M13.5 2.5l-6 6M12 9.5v3a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/>'),
 });
 

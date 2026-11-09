@@ -7,6 +7,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#1b3a5c",
+  colorScheme: "light dark",
 };
 
 // The app's own modules, fetched in parallel instead of one after another.
@@ -21,6 +22,13 @@ export default function RootLayout({ children }) {
     // the app adds classes to <html> (gsap, theme) before React hydrates: React must not compare them
     <html lang="es" suppressHydrationWarning>
       <head>
+        {/* sets the theme before the first paint, so there is no light flash on a dark choice */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              '(function(){try{var q=new URLSearchParams(location.search).get("tema");var t=(q==="oscuro"||q==="claro")?q:localStorage.getItem("ovade.tema");if(!t)t=matchMedia("(prefers-color-scheme: dark)").matches?"oscuro":"claro";document.documentElement.dataset.tema=t;document.documentElement.style.colorScheme=t==="oscuro"?"dark":"light"}catch(e){}})()',
+          }}
+        />
         <link rel="stylesheet" href="/assets/app.css" />
         <link rel="stylesheet" href="/assets/estilo-ps.css" />
         {MODULOS.map((m) => (
