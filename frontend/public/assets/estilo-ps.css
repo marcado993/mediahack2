@@ -1158,3 +1158,81 @@ header h1,
   font-size: 0.88rem;
   line-height: 1.4;
 }
+
+/* =====================================================================
+   Chat and Vault in the main navigation (they open the sister project)
+   ===================================================================== */
+nav .tabs {
+  display: contents;
+}
+.nv-c {
+  display: none;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+nav .nav-ext {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  font-family: var(--cuerpo);
+  font-weight: 800;
+  font-size: 1.02rem;
+  color: var(--linea);
+  text-decoration: none;
+  border-bottom: 4px solid var(--regla);
+  white-space: nowrap;
+}
+nav .nav-ext:first-of-type {
+  margin-left: auto;
+}
+nav .nav-ext svg.ic {
+  width: 17px;
+  height: 17px;
+  color: var(--primario);
+}
+nav .nav-ext:hover {
+  background: var(--gris);
+  border-bottom-color: var(--primario);
+}
+@media (max-width: 640px) {
+  .nv-l {
+    display: none;
+  }
+  .nv-c {
+    display: inline;
+  }
+  header nav .nav-ext {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 60px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    margin: -4px 0 0;
+    padding: 6px 2px;
+    font-size: 0.74rem;
+    border-bottom: 0;
+    border-top: 4px solid transparent;
+    background: none;
+  }
+  header nav .nav-ext:first-of-type {
+    margin-left: 0;
+    border-left: 2px solid var(--regla);
+  }
+  header nav .nav-ext svg.ic {
+    width: 18px;
+    height: 18px;
+  }
+  header nav button {
+    font-size: 0.74rem;
+    padding: 6px 2px;
+  }
+}

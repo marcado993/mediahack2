@@ -44,7 +44,7 @@ if (tabCmp && !vioComparar()) {
   });
 }
 
-document.querySelectorAll("nav > button").forEach((b) => {
+document.querySelectorAll("nav [role=tab]").forEach((b) => {
   b.addEventListener("keydown", (e) => {
     const step = { ArrowRight: 1, ArrowLeft: -1 }[e.key];
     if (!step) return;

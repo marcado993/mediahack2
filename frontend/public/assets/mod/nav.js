@@ -101,7 +101,7 @@ export function applyRoute() {
   }
 }
 
-export const tabs = () => [...document.querySelectorAll("nav > button:not([hidden])")];
+export const tabs = () => [...document.querySelectorAll("nav [role=tab]:not([hidden])")];
 
 export function barraOn() {
   const b = $("progress");
