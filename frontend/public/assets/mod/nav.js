@@ -11,6 +11,7 @@ import { renderCmp } from "./comparar.js";
 import { pedirOpinion } from "./formularios.js";
 import { renderInicio } from "./inicio.js";
 import { entradaVista, pop } from "./efectos.js";
+import { abrirChat, cerrarChat } from "./chat.js";
 
 export const viewEnabled = (v) => v in VIEW_FLAG && flag(VIEW_FLAG[v]);
 
@@ -30,6 +31,7 @@ export function showView(v) {
   document.querySelectorAll(".datos-nav [data-ir]").forEach((b) => b.setAttribute("aria-current", b.dataset.ir === v ? "page" : "false"));
   document.querySelectorAll(".view").forEach((el) => el.classList.toggle("on", el.id === "v-" + v));
   if (cambio) entradaVista($("v-" + v));
+  if (v !== "chat") cerrarChat();
 }
 
 export function initDatosNav() {
@@ -80,6 +82,7 @@ export function applyRoute() {
   } catch (_) {}
   const [v = "perfil", a, b] = parts;
   showView(v);
+  if (E.currentView === "chat" && E.PROVINCIAS.length) abrirChat(a);
   if (E.currentView === "mapas" && a && E.MAPA && capasAll().some((c) => c.codigo === a && capaEnabled(c)) && a !== E.capa) {
     E.capa = a;
     renderCapas();

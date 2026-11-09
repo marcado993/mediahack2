@@ -58,6 +58,7 @@ Object.assign(ICON, {
   moon: trazo('<path d="M13.5 9.5A5.8 5.8 0 0 1 6.5 2.5a5.8 5.8 0 1 0 7 7z"/>'),
   sun: trazo('<circle cx="8" cy="8" r="2.8"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/>'),
   escucha: trazo('<path d="M3 6.5v3M6 4.5v7M9 2.5v11M12 5.5v5"/>'),
+  send: trazo('<path d="M2 8 14 2.5 10.5 13.5 8 9z"/><path d="M8 9 14 2.5"/>'),
   ext: trazo('<path d="M9 2.5h4.5V7M13.5 2.5l-6 6M12 9.5v3a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/>'),
 });
 

@@ -153,8 +153,14 @@ header h1,
   -webkit-text-stroke: 0;
   text-shadow: none;
 }
+/* the logo keeps turning slowly (it did before the new look); off for people who ask for less motion */
 .brand-mark {
-  animation: none;
+  animation: brand-spin 22s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-mark {
+    animation: none;
+  }
 }
 .finder-btn,
 .btn-datos {
@@ -1295,29 +1301,30 @@ nav .nav-ext:hover {
 /* ---- dark theme (same palette logic as Periodismo Seguro's dark mode) ---- */
 :root[data-tema="oscuro"] {
   color-scheme: dark;
-  --papel: #101728;
-  --superficie: #19223a;
-  --cab: #0c1322;
-  --cab-tinta: #f1f4fa;
-  --tinta: #f1f4fa;
-  --suave: #b8c3d8;
-  --regla: #34425f;
-  --linea: #c9d4ea;
-  --sombra: #05080f;
-  --punto: #c9d4ea12;
-  --mapa-pais: #2a3656;
-  --gris: #1b2540;
-  --tinte-aviso: #3a2f10;
-  --tinte-peligro: #3d1a1f;
+  /* dark wine: page, cards, header and footer all in deep reds; outlines stay light, the call to action stays red */
+  --papel: #1f090f;
+  --superficie: #2e1019;
+  --cab: #170509;
+  --cab-tinta: #fbeef0;
+  --tinta: #fbeef0;
+  --suave: #e2c3c9;
+  --regla: #5c2632;
+  --linea: #f2cdd3;
+  --sombra: #0a0203;
+  --punto: #f2cdd314;
+  --mapa-pais: #3f1a25;
+  --gris: #37131d;
+  --tinte-aviso: #3d2a0c;
+  --tinte-peligro: #4d1722;
   --tinte-ok: #14301c;
   --ok-t: #6fd12a;
   --peligro-t: #ff9aa0;
   --ok: #6fd12a;
   --peligro: #ff7b80;
-  --azul2: #8fb8ff;
-  --acc: #9fc2ff !important; /* the outlet's brand colour is set inline; in dark the accent is always light */
-  --acc-soft: #1b2540 !important;
-  --on-acc: #0c1322 !important;
+  --azul2: #a9c8ff;
+  --acc: #ffa3ae !important; /* the outlet's brand colour is set inline; in dark the accent is always light */
+  --acc-soft: #37131d !important;
+  --on-acc: #170509 !important;
   --line: var(--regla);
   --mut: var(--suave);
 }
@@ -1343,11 +1350,11 @@ nav .nav-ext:hover {
   stroke: var(--papel);
 }
 :root[data-tema="oscuro"] .tend-pv {
-  fill: #3a4a6e;
+  fill: #5d2a37;
 }
 :root[data-tema="oscuro"] .sk-b,
 :root[data-tema="oscuro"] .sk {
-  background-color: #243050;
+  background-color: #44202b;
 }
 :root[data-tema="oscuro"] .hero-sello,
 :root[data-tema="oscuro"] .cut .wrap::before,
@@ -1356,7 +1363,7 @@ nav .nav-ext:hover {
 }
 :root[data-tema="oscuro"] .frase,
 :root[data-tema="oscuro"] .copiar .frase {
-  background: #141c32;
+  background: #260b12;
 }
 :root[data-tema="oscuro"] .precaucion,
 :root[data-tema="oscuro"] .mc-nota {
@@ -1490,4 +1497,252 @@ nav .nav-ext:hover {
   position: static;
   max-height: none;
   overflow: visible;
+}
+
+/* =====================================================================
+   Chat
+   ===================================================================== */
+.chat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.chat-cab {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.chat-ic {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  background: var(--primario);
+  color: #fff;
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+.chat-ic svg.ic {
+  width: 22px;
+  height: 22px;
+}
+.chat-tit {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.chat-tit h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.chat-n {
+  font-size: 0.88rem;
+  color: var(--suave);
+}
+.chat-sala {
+  display: grid;
+  gap: 2px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--suave);
+}
+.chat-sala select {
+  min-height: 44px;
+  min-width: 200px;
+  max-width: 100%;
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--tinta);
+}
+.chat-estado {
+  padding: 4px 10px;
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+  font-size: 0.85rem;
+  font-weight: 800;
+  background: var(--gris);
+}
+.chat-estado[data-tono="ok"] {
+  background: var(--tinte-ok);
+  color: var(--ok-t);
+}
+.chat-estado[data-tono="warn"],
+.chat-estado[data-tono="info"] {
+  background: var(--tinte-aviso);
+}
+.chat-estado[data-tono="error"] {
+  background: var(--tinte-peligro);
+  color: var(--peligro-t);
+}
+.chat-aviso {
+  margin: 0;
+  padding: 9px 12px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  background: var(--tinte-aviso);
+  border: 2px solid var(--linea);
+  border-left: 8px solid var(--aviso);
+  border-radius: var(--r);
+}
+.chat-caja {
+  position: relative;
+}
+.chat-log {
+  list-style: none;
+  margin: 0;
+  padding: 12px;
+  height: min(55vh, 520px);
+  min-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--gris);
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  overscroll-behavior: contain;
+}
+.chat-msg {
+  max-width: min(78%, 560px);
+  padding: 8px 12px;
+  background: var(--superficie);
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 2px 2px 0 var(--sombra);
+  align-self: flex-start;
+}
+.chat-msg.mia {
+  align-self: flex-end;
+  background: var(--tinte-ok);
+}
+.chat-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+.chat-meta time {
+  color: var(--suave);
+  font-size: 0.75rem;
+}
+.chat-msg p {
+  margin: 2px 0 0;
+  font-size: 1rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.chat-sys {
+  align-self: center;
+  padding: 3px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--suave);
+  background: var(--superficie);
+  border: 2px dashed var(--regla);
+  border-radius: 999px;
+}
+.chat-vacio {
+  align-self: center;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  text-align: left;
+  color: var(--suave);
+  border: 3px dashed var(--regla);
+  border-radius: var(--r);
+}
+.chat-vacio svg.ic {
+  width: 30px;
+  height: 30px;
+  color: var(--primario);
+}
+.chat-vacio p {
+  margin: 0;
+  line-height: 1.4;
+}
+.chat-nuevos {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  padding: 6px 14px;
+  font: 400 0.95rem/1 var(--titulos);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--primario);
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 3px 3px 0 var(--sombra);
+  cursor: pointer;
+}
+.chat-nuevos[hidden] {
+  display: none;
+}
+.chat-form {
+  display: flex;
+  gap: 10px;
+}
+.chat-form input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 12px;
+  font-size: 16px; /* keeps phones from zooming in on focus */
+}
+.chat-form .btn {
+  min-height: 48px;
+}
+.chat-pie {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--suave);
+}
+.chat-cuenta {
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .chat-card {
+    gap: 10px;
+  }
+  .chat-log {
+    height: calc(100svh - 430px);
+    min-height: 220px;
+  }
+  .chat-msg {
+    max-width: 90%;
+  }
+  .chat-sala select {
+    min-width: 0;
+    width: 100%;
+  }
+  .chat-sala {
+    flex: 1 1 100%;
+  }
+  .chat-estado {
+    order: 2;
+  }
+  .chat-aviso {
+    font-size: 0.8rem;
+  }
+  /* the send box stays above the bottom tab bar while you type */
+  .chat-form {
+    position: sticky;
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    padding: 8px 0;
+    background: var(--papel);
+    z-index: 5;
+  }
+}
+:root[data-tema="oscuro"] .chat-msg.mia {
+  background: #14301c;
 }

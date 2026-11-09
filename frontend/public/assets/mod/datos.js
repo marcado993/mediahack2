@@ -90,6 +90,7 @@ export const VIEW_FLAG = {
   datos: "vista_datos",
   fuentes: "vista_fuentes",
   asistente: "vista_conversacion",
+  chat: "vista_chat",
   meto: "vista_metodologia",
 };
 
