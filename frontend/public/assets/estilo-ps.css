@@ -1484,3 +1484,10 @@ nav .nav-ext:hover {
 :root[data-tema="oscuro"] .hero-t small {
   color: var(--suave);
 }
+
+/* the province picker card shows everything: no inner scrollbar, no sticky box taller than the screen */
+.prov-aside {
+  position: static;
+  max-height: none;
+  overflow: visible;
+}
