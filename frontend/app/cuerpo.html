@@ -22,7 +22,7 @@
 </div></header>
 <p class="cut"><span class="wrap">Datos con corte a la última publicación de cada fuente · sujetos a actualización continua. <span id="brandSub"></span></span></p>
 
-<div class="wrap" id="main" tabindex="-1">
+<div class="wrap" id="main" role="main" tabindex="-1">
 
 <!-- ============ MAPAS ============ -->
 <section class="view" id="v-mapas">
@@ -83,6 +83,25 @@
 
 <!-- ============ PERFIL ============ -->
 <section class="view on" id="v-perfil">
+ <section class="hero-inicio" id="heroInicio" aria-labelledby="heroTit">
+  <div class="hero-txt">
+   <p class="hero-sello">Observatorio de datos abiertos</p>
+   <h2 id="heroTit">¿Qué es OVADE?</h2>
+   <p class="hero-p">Un mapa de Ecuador que muestra <b>dónde la desinformación electoral encuentra más terreno</b>. Junta datos oficiales de las 24 provincias en un puntaje de 0 a 100.</p>
+   <p class="hero-p">Te sirve para decidir <b>dónde verificar primero</b> y <b>por qué canal llegar</b>.</p>
+   <p class="hero-no"><span data-ic="info"></span>No dice si algo es falso ni señala personas: describe territorios.</p>
+  </div>
+  <div class="hero-acc">
+   <h3 class="hero-h">¿Qué puedes hacer aquí?</h3>
+   <ul class="hero-lista">
+    <li><button type="button" class="hero-btn" data-enfocar="provFiltro"><span class="hero-ic" data-ic="pen"></span><span class="hero-t"><b>Preparar una nota</b><small>Elige tu provincia y copia una frase lista, con su fuente.</small></span></button></li>
+    <li><button type="button" class="hero-btn" data-ruta="mapas/IVEI"><span class="hero-ic" data-ic="map"></span><span class="hero-t"><b>Ver el mapa del país</b><small>Qué provincias están más expuestas, de un vistazo.</small></span></button></li>
+    <li><button type="button" class="hero-btn" data-ruta="comparar"><span class="hero-ic" data-ic="compare"></span><span class="hero-t"><b>Comparar dos provincias</b><small>Cuál tiene más terreno y por qué.</small></span></button></li>
+    <li><a class="hero-btn ext" href="https://149-130-170-232.sslip.io/#/chat" target="_blank" rel="noopener"><span class="hero-ic" data-ic="chat"></span><span class="hero-t"><b>Chat privado <em>Periodismo Seguro</em></b><small>Charla con colegas en una sala que se borra sola. Se abre en otra pestaña.</small></span></a></li>
+    <li><a class="hero-btn ext" href="https://149-130-170-232.sslip.io/#/boveda" target="_blank" rel="noopener"><span class="hero-ic" data-ic="lock"></span><span class="hero-t"><b>Bóveda segura <em>Periodismo Seguro</em></b><small>Guarda archivos cifrados en tu navegador. Se abre en otra pestaña.</small></span></a></li>
+   </ul>
+  </div>
+ </section>
  <div class="notes-layout">
   <aside class="prov-aside noprint" aria-label="Elegir provincia">
    <div class="aside-buscar">

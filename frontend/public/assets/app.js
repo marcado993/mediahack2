@@ -16,6 +16,7 @@ import { initPalette, initProvLista } from "./mod/inicio.js";
 import { initExtras, initMapTools } from "./mod/descargas.js";
 import { applyFlags } from "./mod/flags.js";
 import { renderInventario } from "./mod/diccionario.js";
+import { iconosEn } from "./ui.js";
 import { initBorradores, initSubir } from "./mod/ayudas.js";
 
 addEventListener("popstate", applyRoute);
@@ -72,6 +73,13 @@ onTenant(applyFlags);
 // Boot
 // ---------------------------------------------------------------------
 (async function init() {
+  iconosEn();
+  // the welcome block is full the first time; after that it is slimmer (still there, shorter)
+  try {
+    const hero = document.getElementById("heroInicio");
+    if (localStorage.getItem("ovade.vistoInicio") === "1") hero?.classList.add("compacto");
+    else localStorage.setItem("ovade.vistoInicio", "1");
+  } catch (_) {}
   initEfectos();
   initEstadosRed();
   const tenantReady = loadTenant();

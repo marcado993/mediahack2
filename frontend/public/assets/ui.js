@@ -37,6 +37,38 @@ export function vacioFlecha({ titulo, texto, donde = "mapa" }) {
   </div>`;
 }
 
+// More icons for labels and buttons: one stroke weight, no fills, so they add meaning without weight.
+const trazo = (d) => svg(`<g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</g>`);
+Object.assign(ICON, {
+  copy: trazo('<rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 3.2V3A1.5 1.5 0 0 0 9 1.5H3.5A1.5 1.5 0 0 0 2 3v5.5A1.5 1.5 0 0 0 3.5 10h2"/>'),
+  link: trazo('<path d="M6.6 9.4a3 3 0 0 0 4.2 0l2-2a3 3 0 0 0-4.2-4.2l-.8.8M9.4 6.6a3 3 0 0 0-4.2 0l-2 2a3 3 0 0 0 4.2 4.2l.8-.8"/>'),
+  download: trazo('<path d="M8 2v8M4.8 7 8 10.2 11.2 7M2.5 13.5h11"/>'),
+  compare: trazo('<path d="M2.5 5.5h10M10 3l2.5 2.5L10 8M13.5 10.5h-10M6 8l-2.5 2.5L6 13"/>'),
+  bookmark: trazo('<path d="M4 2.5h8v11L8 10.5l-4 3z"/>'),
+  share: trazo('<circle cx="4" cy="8" r="1.8"/><circle cx="12" cy="4" r="1.8"/><circle cx="12" cy="12" r="1.8"/><path d="M5.6 7.1l4.8-2.2M5.6 8.9l4.8 2.2"/>'),
+  map: trazo('<path d="M1.8 3.8 5.5 2.5l5 1.3 3.7-1.3v9.7l-3.7 1.3-5-1.3-3.7 1.3z"/><path d="M5.5 2.5v9.7M10.5 3.8v9.7"/>'),
+  pen: trazo('<path d="M10.5 2.5l3 3-8 8L2 14l.5-3.5z"/>'),
+  chat: trazo('<path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"/>'),
+  lock: trazo('<rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.2 7V5a2.8 2.8 0 0 1 5.6 0v2"/>'),
+  wifi: trazo('<path d="M2 6.2a8 8 0 0 1 12 0M4.2 8.6a5 5 0 0 1 7.6 0M6.4 11a2 2 0 0 1 3.2 0"/><path d="M8 13.4v.1"/>'),
+  coin: trazo('<circle cx="8" cy="8" r="5.5"/><path d="M8 4.8v6.4M6.2 6.4h2.9a1.2 1.2 0 0 1 0 2.4H6.9a1.2 1.2 0 0 0 0 2.4h2.9"/>'),
+  book: trazo('<path d="M2.5 3.5h4.2A1.3 1.3 0 0 1 8 4.8v8.7a1.3 1.3 0 0 0-1.3-1H2.5zM13.5 3.5H9.3A1.3 1.3 0 0 0 8 4.8v8.7a1.3 1.3 0 0 1 1.3-1h4.2z"/>'),
+  home: trazo('<path d="M2 7.5 8 2.5l6 5M3.5 6.8v6.7h9V6.8"/>'),
+  info: trazo('<circle cx="8" cy="8" r="6"/><path d="M8 7.2v3.6M8 5.2v.1"/>'),
+  ext: trazo('<path d="M9 2.5h4.5V7M13.5 2.5l-6 6M12 9.5v3a1 1 0 0 1-1 1H3.5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3"/>'),
+});
+
+/** Fills every <span data-ic="name"> under `root` with its icon. */
+export function iconosEn(root = document) {
+  root.querySelectorAll("[data-ic]").forEach((el) => {
+    if (!el.firstChild && ICON[el.dataset.ic]) el.innerHTML = ICON[el.dataset.ic];
+  });
+}
+
+// The sister project (private chat rooms, encrypted vault). Kept as links: its crypto and server
+// are its own, tested code; OVADE does not copy it.
+export const PERIODISMO_SEGURO = "https://149-130-170-232.sslip.io";
+
 /** dataSourceQuality: "alta" | "media" | "baja". Three pips + a word: never colour alone. */
 export function qualityBadge({ dataSourceQuality, detail = "" }) {
   const palabra = { alta: "sólida", media: "media", baja: "débil" }[dataSourceQuality] ?? dataSourceQuality;

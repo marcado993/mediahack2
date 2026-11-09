@@ -99,7 +99,7 @@ export function renderInventario() {
    <div style="overflow-x:auto"><table class="ftab"><thead><tr><th>Base</th><th>Corte</th><th>Solidez</th><th>Cómo se mide</th></tr></thead><tbody>
    ${FUENTES_INV.map((f) => fila([`${esc(f.nombre)}<div class="srcline">${esc(f.org)}</div>`, esc(f.corte), f.solidez.map(pips).join("<br>"), esc(f.como)])).join("")}
    </tbody></table></div>
-   <p class="fnote">${esc(CORTE_FRASE)} El corte es el año de cada censo o encuesta; la fecha exacta de publicación se está confirmando con cada fuente. El umbral de ${MUESTRA_DEBIL} casos para llamar «débil» a una muestra es un criterio de trabajo que se confirma con los microdatos.</p>
+   <p class="fnote"><b>Indicadores generales:</b> OVADE publica indicadores agregados por provincia. Al reducir varias bases a un indicador (por ejemplo, «habilidades digitales») se pierde la especificidad de cada fuente; para ese detalle, consulta la publicación original. ${esc(CORTE_FRASE)} El corte es el año de cada censo o encuesta; la fecha exacta de publicación se está confirmando con cada fuente. El umbral de ${MUESTRA_DEBIL} casos para llamar «débil» a una muestra es un criterio de trabajo que se confirma con los microdatos.</p>
   </div>
   <div class="card" style="margin-bottom:16px" id="inv-variables">
    <h2>Variables que alimentan el índice</h2>

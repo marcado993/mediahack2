@@ -207,7 +207,7 @@ export const CORTE_FRASE = "Datos con corte a la última publicación de cada fu
 export const SEIS_PREGUNTAS = [
   ["¿De dónde viene?", "Fuente, año, cobertura y fecha de corte.", "Censo 2022, ENEMDU 2024, módulo TIC 2024, Latinobarómetro 2024 y MINTEL 2023."],
   ["¿Por qué entra?", "Qué parte de la vulnerabilidad representa.", "Dos formas de llegar a la desinformación: quedar sin conexión (exclusión digital) o vivir saturado de redes (hiperexposición)."],
-  ["¿Qué se transforma?", "Pasos desde el dato crudo hasta el puntaje.", "Suavizado bayesiano, posestratificación, normalización mín–máx y agregación geométrica."],
+  ["¿Qué se transforma?", "Pasos desde el dato publicado hasta el puntaje.", "Se igualan las escalas (0 a 100) y se combinan los factores. Dos ajustes de precisión, que no cambian el indicador: suavizado de muestras pequeñas y posestratificación. Los indicadores oficiales ya publicados se usan como vienen."],
   ["¿Qué significa?", "Cómo leer un puntaje alto o bajo.", "Es un índice relativo entre provincias, no un nivel absoluto de desinformación."],
   ["¿Qué puede fallar?", "Riesgos y límites.", "Muestras débiles, valores imputados en cuatro provincias y una dieta informativa medida solo en su parte digital. Margen orientativo del índice: de ±5 a ±7 puntos."],
   ["¿Qué lo valida?", "Pruebas que respaldan el dato.", "Correlación de 0,92 con la ENEMDU y prueba de ruido de ±2 puntos. El orden de las provincias es estable sin el modulador (ρ = 0,99). Las pruebas de pesos, de variables débiles y de fuente alternativa están en curso."],

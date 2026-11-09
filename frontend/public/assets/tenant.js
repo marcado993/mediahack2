@@ -4,6 +4,7 @@
 // the data colour ramp, methodology and data credits are not themable.
 
 import { getJSON } from "./api.js";
+import { PERIODISMO_SEGURO } from "./ui.js";
 
 const FLAG_KEYS = [
   "vista_mapas", "vista_perfil", "vista_comparar", "vista_datos", "vista_fuentes", "vista_conversacion", "vista_metodologia",
@@ -80,65 +81,67 @@ function paintBrand(cfg) {
   const foot = document.querySelector("#pie .wrap");
   if (foot) {
     foot.replaceChildren();
-    const line = document.createElement("p");
-    line.className = "pie-brand";
-    if (cfg.pie) line.append(cfg.pie + " ");
+    const el = (tag, cls, texto) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (texto) e.textContent = texto;
+      return e;
+    };
+    const btn = (texto, datos) => {
+      const b = el("button", "linkbtn", texto);
+      b.type = "button";
+      Object.assign(b.dataset, datos);
+      return b;
+    };
+    const ext = (texto, href) => {
+      const a = el("a", "pie-ext", texto + " ↗");
+      a.href = href;
+      a.target = "_blank";
+      a.rel = "noopener";
+      return a;
+    };
+    const col = (titulo, hijos) => {
+      const c = el("div", "pie-col");
+      c.append(el("h3", "pie-h", titulo));
+      const ul = el("ul", "pie-lista");
+      hijos.forEach((h) => {
+        const li = el("li");
+        li.append(h);
+        ul.append(li);
+      });
+      c.append(ul);
+      return c;
+    };
+
+    const grid = el("div", "pie-grid");
+    const quees = el("div", "pie-col pie-quees");
+    quees.append(
+      el("h3", "pie-h", "OVADE"),
+      el("p", "", "Muestra dónde la desinformación electoral encuentra más terreno en las 24 provincias de Ecuador. Son datos abiertos; el índice describe territorios, no personas, medios ni candidatos.")
+    );
+    if (cfg.pie) quees.append(el("p", "pie-brand", cfg.pie));
     if (/^https?:\/\//.test(cfg.sitio_url || "")) {
-      const a = document.createElement("a");
+      const a = el("a", "pie-ext", `Volver a ${cfg.nombre}`);
       a.href = cfg.sitio_url;
       a.rel = "noopener";
-      a.textContent = `Volver a ${cfg.nombre}`;
-      line.append(a);
+      quees.append(a);
     }
-    if (line.childNodes.length) foot.append(line);
+    grid.append(quees);
+    // Methodology, open data and sources are reference material: reachable from every page.
+    grid.append(col("Sobre los datos", [btn("Cómo empezar", { ruta: "perfil" }), btn("Metodología y límites", { ir: "meto" }), btn("Fuentes oficiales", { ir: "fuentes" }), btn("Datos abiertos", { ir: "datos" })]));
+    const ayuda = [ext("Chat privado", PERIODISMO_SEGURO + "/#/chat"), ext("Bóveda segura", PERIODISMO_SEGURO + "/#/boveda")];
+    if (cfg.flags.solicitar_informacion !== false) ayuda.push(btn("Solicitar información al observatorio", { solicitar: "" }));
+    if (cfg.flags.retroalimentacion !== false) ayuda.push(btn("Cuéntanos qué necesita tu medio", { retro: "" }));
+    grid.append(col("Herramientas y contacto", ayuda));
+    foot.append(grid);
     // Not editable on purpose: whoever publishes the map, the data keeps its credit.
-    const credit = document.createElement("p");
-    credit.className = "pie-datos";
-    credit.textContent = "Datos y metodología: Observatorio de Vulnerabilidad ante la Desinformación Electoral. Fuentes: Censo 2022 y ENEMDU 2024 (INEC), Latinobarómetro 2024, MINTEL 2023. Datos con corte a la última publicación de cada fuente, sujetos a actualización. El índice describe territorios, no personas, medios ni candidatos. La resolución provincial es una salvaguarda deliberada: ninguna vista ni descarga baja de provincia. Uso ético: los datos son abiertos y se usan para proteger y fortalecer la democracia.";
-    foot.append(credit);
-    // Methodology, open data and sources are reference material: reachable from
-    // every page footer instead of crowding the main tabs.
-    const datos = document.createElement("p");
-    datos.className = "pie-datos-links";
-    datos.append("Sobre los datos: ");
-    [["meto", "Metodología y límites"], ["datos", "Datos abiertos"], ["fuentes", "Fuentes oficiales"]].forEach(([v, t], i) => {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "linkbtn";
-      b.dataset.ir = v;
-      b.textContent = t;
-      if (i) datos.append(" · ");
-      datos.append(b);
-    });
-    foot.append(datos);
-    const guia = document.createElement("p");
-    const gb = document.createElement("button");
-    gb.type = "button";
-    gb.className = "linkbtn";
-    gb.dataset.ruta = "perfil";
-    gb.textContent = "Cómo empezar";
-    guia.append(gb);
-    foot.append(guia);
-    if (cfg.flags.solicitar_informacion !== false) {
-      const ask = document.createElement("p");
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "linkbtn";
-      btn.dataset.solicitar = "";
-      btn.textContent = "Solicitar información al observatorio";
-      ask.append(btn);
-      foot.append(ask);
-    }
-    if (cfg.flags.retroalimentacion !== false) {
-      const retro = document.createElement("p");
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "linkbtn";
-      b.dataset.retro = "";
-      b.textContent = "¿Te sirve el observatorio? Cuéntanos qué necesita tu medio";
-      retro.append(b);
-      foot.append(retro);
-    }
+    foot.append(
+      el(
+        "p",
+        "pie-datos",
+        "Datos y metodología: Observatorio de Vulnerabilidad ante la Desinformación Electoral. Fuentes: Censo 2022 y ENEMDU 2024 (INEC), Latinobarómetro 2024, MINTEL 2023. Datos con corte a la última publicación de cada fuente, sujetos a actualización. La resolución provincial es una salvaguarda deliberada: ninguna vista ni descarga baja de provincia. Uso ético: los datos son abiertos y se usan para proteger y fortalecer la democracia. El chat y la bóveda son de Periodismo Seguro, un proyecto hermano con su propio servidor."
+      )
+    );
   }
 }
 
