@@ -1,0 +1,603 @@
+/* ======================================================================
+   Skin "Periodismo Seguro" for the public observatory.
+   Loaded after app.css, so removing the <link> in app/layout.js gives the
+   previous look back. Same identity as the sister project: newspaper-poster
+   look, Anton headlines, thick navy outlines with a hard offset shadow, red
+   primary, yellow stamp, square-ish corners (3 px), white header, a strip like
+   its "last hour" ticker, a bottom bar on phones with a 4 px top rule.
+   Fonts (Anton, Public Sans, Source Serif 4) are SIL OFL, in /fonts.
+   ====================================================================== */
+@font-face {
+  font-family: Anton;
+  src: url(/fonts/anton.woff2) format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Public Sans";
+  src: url(/fonts/public-sans.woff2) format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif 4";
+  src: url(/fonts/source-serif-4.woff2) format("woff2");
+  font-weight: 200 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Source Serif 4";
+  src: url(/fonts/source-serif-4-italic.woff2) format("woff2");
+  font-weight: 200 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --papel: #fff;
+  --tinta: #12161c;
+  --suave: #394150;
+  --regla: #cdd5e0;
+  --linea: #1b2a41; /* outlines and hard shadows */
+  --sombra: #1b2a41;
+  --primario: #d8132b; /* red: the one call to action */
+  --sobre-primario: #fff;
+  --aviso: #ffc20e;
+  --marcador: #ffd60a;
+  --gris: #eef0f4;
+  --punto: #1b2a4117;
+  --mapa-pais: #e9eef6;
+  --titulos: "Anton", "Arial Narrow Bold", Impact, sans-serif;
+  --cuerpo: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --lectura: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --display: var(--titulos);
+  --body: var(--cuerpo);
+  --bg: var(--papel);
+  --card: #fff;
+  --ink: var(--tinta);
+  --mut: var(--suave);
+  --r: 3px;
+  --sh: 6px 6px 0 var(--sombra);
+}
+
+/* ---- ground: white paper with a dot grid ---- */
+html,
+body {
+  font-family: var(--cuerpo);
+  color: var(--tinta);
+  background-color: var(--papel);
+  background-image: radial-gradient(var(--punto) 1.3px, transparent 1.6px);
+  background-size: 10px 10px;
+}
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* ---- headlines: Anton ---- */
+h1,
+h2,
+h3,
+.big,
+.prov-title,
+.vacio-t {
+  font-family: var(--titulos);
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+h2 {
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  color: var(--tinta);
+}
+h3 {
+  font-size: 1.2rem;
+  color: var(--tinta);
+}
+.card h2,
+.card h3 {
+  letter-spacing: 0.01em;
+}
+/* the poster title: white fill, navy outline, red offset shadow */
+.prov-title {
+  display: inline-block;
+  font-size: clamp(2.4rem, 7vw, 3.8rem);
+  color: #fff;
+  -webkit-text-stroke: 3px var(--linea);
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 0 var(--primario);
+  transform: rotate(-1.2deg);
+  transform-origin: 0 100%;
+  margin: 4px 0 10px;
+}
+.big {
+  font-size: clamp(3rem, 8vw, 4.4rem);
+  color: var(--tinta);
+}
+.ess-titular {
+  font-size: clamp(1.35rem, 2.6vw, 1.75rem);
+}
+.cmp-verdict h2,
+.vacio-t {
+  text-transform: none;
+}
+
+/* ---- header: white, navy ink, boxed wordmark ---- */
+header {
+  --on-acc: var(--linea);
+  background: #fff;
+  color: var(--linea);
+  border-bottom: 4px solid var(--linea);
+  box-shadow: none;
+  border-radius: 0;
+}
+header h1,
+#brandTitle {
+  font-family: var(--titulos);
+  font-weight: 400;
+  font-size: 1.05rem;
+  line-height: 1.12;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--linea);
+  border: 3px solid var(--linea);
+  padding: 0.3rem 0.7rem;
+  display: inline-block;
+  flex: 0 1 auto;
+  transform: skew(-6deg);
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+}
+.brand-mark {
+  animation: none;
+}
+.finder-btn,
+.btn-datos {
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  background: #fff;
+  color: var(--linea);
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+.finder-btn:hover,
+.btn-datos:hover {
+  background: var(--gris);
+}
+.finder-btn em,
+.finder-btn kbd {
+  color: var(--suave);
+}
+.finder-btn kbd {
+  border: 2px solid var(--linea);
+  background: #fff;
+  border-radius: 2px;
+}
+.btn-req {
+  background: var(--primario);
+  color: #fff;
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 3px 3px 0 var(--sombra);
+  font-family: var(--titulos);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.btn-req:hover {
+  background: #b50f24;
+}
+
+/* tabs as underlined links */
+nav button {
+  font-family: var(--cuerpo);
+  font-weight: 700;
+  font-size: 1.02rem;
+  color: var(--linea);
+  opacity: 1;
+  border: 0;
+  border-bottom: 4px solid var(--regla);
+  border-radius: 0;
+  background: none;
+}
+nav button:hover {
+  background: var(--gris);
+  opacity: 1;
+}
+nav button.on {
+  color: var(--linea);
+  border-bottom-color: var(--primario);
+  background: none;
+}
+
+/* "data cut" strip: the observatory's version of the last-hour ticker */
+.cut {
+  background: var(--gris);
+  border-bottom: 1px solid var(--regla);
+  color: var(--tinta);
+  padding: 0;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+}
+.cut .wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 0.8rem;
+}
+.cut .wrap::before {
+  content: "Datos";
+  background: var(--marcador);
+  color: #12161c;
+  font: 400 0.85rem/1 var(--titulos);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.5rem 1rem;
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+.cut .wrap > * {
+  align-self: center;
+  padding: 0.35rem 0;
+}
+
+/* ---- cards, panels: thick outline + hard offset shadow ---- */
+.card,
+.peek,
+.vacio {
+  background: #fff;
+  border: 4px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: var(--sh);
+}
+.card.sk {
+  box-shadow: 4px 4px 0 var(--sombra);
+}
+.kit-main {
+  border-left-width: 4px;
+}
+.vacio {
+  background: var(--gris);
+  border-style: solid;
+  color: var(--linea);
+}
+.vacio-x {
+  color: var(--suave);
+}
+.frase,
+.copiar .frase {
+  font-family: var(--lectura);
+  font-size: 1.05rem;
+  line-height: 1.55;
+  background: var(--gris);
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  color: var(--tinta);
+}
+.precaucion {
+  background: #fff7d6;
+  border: 3px solid var(--linea);
+  border-left: 10px solid var(--aviso);
+  border-radius: var(--r);
+}
+.rel-aviso,
+.insumo {
+  background: var(--gris);
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+}
+
+/* ---- buttons ---- */
+.btn,
+.copybtn,
+.cmp-chip,
+.cmp-swap {
+  font-family: var(--titulos);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+.btn {
+  background: var(--primario);
+  color: #fff;
+  font-size: 1rem;
+  min-height: 44px;
+}
+.btn:hover {
+  background: #b50f24;
+  opacity: 1;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--sombra);
+}
+.btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--sombra);
+}
+.btn.gh,
+.btn.ghost {
+  background: #fff;
+  color: var(--linea);
+}
+.btn.gh:hover {
+  background: var(--gris);
+}
+.copybtn {
+  background: #fff;
+  color: var(--linea);
+  font-size: 0.9rem;
+}
+.copybtn.done,
+.btn.done {
+  background: var(--ok, #1b6e1b);
+  color: #fff;
+}
+.linkbtn {
+  font-family: var(--cuerpo);
+  color: var(--azul2, #1a5fb4);
+}
+
+/* chips, tabs, filters: 2-3 px outlines, the selected one turns red */
+.chip,
+.idx button,
+.fbtn,
+.pl-item,
+.trend-chip,
+.jump button {
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+  background: #fff;
+  color: var(--tinta);
+  font-family: var(--cuerpo);
+  font-weight: 650;
+}
+.idx button.on,
+.fbtn.on,
+.chip.on,
+.pl-item.on {
+  background: var(--primario);
+  border-color: var(--linea);
+  color: #fff;
+}
+.fbtn.on *,
+.pl-item.on * {
+  color: inherit;
+}
+.pl-item {
+  box-shadow: 2px 2px 0 var(--sombra);
+}
+.idx {
+  background: #fff;
+  border-bottom: 4px solid var(--linea);
+}
+.ptag,
+.pill,
+.sol {
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+}
+.pill {
+  font-family: var(--cuerpo);
+  font-weight: 800;
+}
+.cmp-chip {
+  background: #fff;
+  color: var(--linea);
+  font-size: 0.95rem;
+}
+.cmp-chip:hover {
+  background: var(--gris);
+  border-color: var(--linea);
+  box-shadow: 4px 4px 0 var(--sombra);
+}
+
+/* ---- forms ---- */
+input,
+select,
+textarea {
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  background: #fff;
+  color: var(--tinta);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 4px solid var(--primario);
+  outline-offset: 1px;
+}
+:focus-visible {
+  outline: 4px solid var(--primario);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+.cmp-lado.a select {
+  border-color: var(--cmp-a);
+}
+.cmp-lado.b select {
+  border-color: var(--cmp-b);
+}
+
+/* ---- dialogs and toast ---- */
+dialog {
+  border: 4px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 8px 8px 0 var(--sombra);
+  background: #fff;
+  color: var(--tinta);
+}
+dialog::backdrop {
+  background: rgba(27, 42, 65, 0.55);
+}
+#toast {
+  background: #fff;
+  color: var(--tinta);
+  border: 4px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 6px 6px 0 var(--sombra);
+  font-weight: 700;
+}
+#toast button {
+  color: var(--azul2, #1a5fb4);
+}
+
+/* ---- tables ---- */
+table th {
+  font-family: var(--cuerpo);
+  background: var(--gris);
+  color: var(--linea);
+  border-bottom: 3px solid var(--linea);
+}
+
+/* ---- map ---- */
+.map-canvas,
+.tend-map-canvas {
+  background: var(--mapa-pais);
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+}
+
+/* ---- footer: white with the thick red rule ---- */
+footer.pie,
+.pie {
+  background: #fff;
+  color: var(--linea);
+  border-top: 6px solid var(--primario);
+  margin-top: 3rem;
+}
+.pie .wrap {
+  color: var(--suave);
+  font-size: 0.9rem;
+}
+.pie a,
+.pie .linkbtn {
+  color: var(--linea);
+  font-weight: 700;
+}
+
+/* ---- phone: bar at the bottom with a 4 px top rule; the selected one gets a red rule ---- */
+@media (max-width: 640px) {
+  header {
+    padding: 10px 0 12px;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  header h1,
+  #brandTitle {
+    font-size: 0.92rem;
+  }
+  header nav {
+    background: #fff;
+    border-top: 4px solid var(--linea);
+    box-shadow: none;
+  }
+  header nav button {
+    color: var(--linea);
+    border: 0;
+    border-top: 4px solid transparent;
+    margin-top: -4px;
+    font-family: var(--cuerpo);
+    font-weight: 700;
+    font-size: 0.74rem;
+    opacity: 1;
+    background: none;
+  }
+  header nav button.on {
+    border-top-color: var(--primario);
+    background: var(--gris);
+    color: var(--linea);
+  }
+  .card,
+  .peek,
+  .vacio {
+    box-shadow: 4px 4px 0 var(--sombra);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover,
+  .btn:active {
+    transform: none;
+  }
+}
+
+/* ---- refinements after the first pass ---- */
+header h1,
+#brandTitle {
+  font-size: 0.92rem;
+  max-width: 330px;
+}
+.finder-btn {
+  flex: 1 1 200px;
+  max-width: 330px;
+}
+.mod-input,
+.prov-aside .mod-input,
+.aside-buscar .mod-input,
+.fld input,
+.fld select,
+.fld textarea {
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  background: #fff;
+}
+/* a long sentence is not a poster headline: keep Anton for short titles */
+.ess-titular {
+  font-size: clamp(1.15rem, 2vw, 1.4rem);
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+.kit-main .pill {
+  font-size: 0.95rem;
+}
+
+/* map layer chips: a bordered pair (name + "?"), the active layer is red */
+.fchip {
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 2px 2px 0 var(--sombra);
+  background: #fff;
+}
+.fchip .fbtn {
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+.fchip.on {
+  border-color: var(--linea);
+}
+.fchip.on .fbtn {
+  background: var(--primario);
+  color: #fff;
+}
+.fhelp {
+  border-left: 3px solid var(--linea);
+  background: var(--gris);
+  color: var(--linea);
+  font-weight: 800;
+}
+.prov-aside {
+  background: #fff;
+  border: 4px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: var(--sh);
+}
+@media (max-width: 640px) {
+  .prov-aside {
+    box-shadow: 4px 4px 0 var(--sombra);
+  }
+}
+
+/* white-label: each outlet's brand colour still rules the wordmark box (its contrast is validated
+   against white by the backend); the red call-to-action and the navy outlines stay the house style */
+header h1,
+#brandTitle {
+  border-color: var(--acc);
+  color: var(--acc);
+}

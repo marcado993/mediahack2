@@ -22,6 +22,7 @@ export default function RootLayout({ children }) {
     <html lang="es" suppressHydrationWarning>
       <head>
         <link rel="stylesheet" href="/assets/app.css" />
+        <link rel="stylesheet" href="/assets/estilo-ps.css" />
         {MODULOS.map((m) => (
           <link key={m} rel="modulepreload" href={`/assets/${m}.js`} />
         ))}
