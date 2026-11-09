@@ -17,6 +17,7 @@ import { initExtras, initMapTools } from "./mod/descargas.js";
 import { applyFlags } from "./mod/flags.js";
 import { renderInventario } from "./mod/diccionario.js";
 import { iconosEn } from "./ui.js";
+import { initTema } from "./mod/tema.js";
 import { initBorradores, initSubir } from "./mod/ayudas.js";
 
 addEventListener("popstate", applyRoute);
@@ -74,6 +75,7 @@ onTenant(applyFlags);
 // ---------------------------------------------------------------------
 (async function init() {
   iconosEn();
+  initTema();
   // the welcome block is full the first time; after that it is slimmer (still there, shorter)
   try {
     const hero = document.getElementById("heroInicio");

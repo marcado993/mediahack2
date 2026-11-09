@@ -41,7 +41,7 @@ function renderTabla() {
   document.getElementById("tabla").innerHTML = `
   <thead><tr><th data-k="rank">#</th><th data-k="provincia">Provincia</th><th data-k="nivel">Nivel</th>${headCols}</tr></thead>
   <tbody>${bodyRows || `<tr><td colspan="${3 + E.TABLA_DATA.columnas.length}" class="sin-res">No encontramos «${esc(document.getElementById("buscarDatos").value.trim())}» en la tabla. Revisa la ortografía o prueba con el nombre oficial, como «Azuay» o «Guayas».</td></tr>`}</tbody>
-  <tfoot><tr style="font-weight:700;background:#f7f9fb"><td colspan="3">Nacional</td>${footCols}</tr></tfoot>`;
+  <tfoot><tr style="font-weight:700;background:var(--gris)"><td colspan="3">Nacional</td>${footCols}</tr></tfoot>`;
 
   document.querySelectorAll("#tabla th").forEach((th) => {
     th.onclick = () => {

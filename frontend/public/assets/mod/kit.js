@@ -235,7 +235,7 @@ export function renderPerfil(data) {
   else if (conf && conf.cls === "lo") extraNo.push(`Dar como exactas las cifras de opinión de ${data.provincia}: ${conf.detail.charAt(0).toLowerCase()}${conf.detail.slice(1)}`);
   if (isBorderlineCase) extraNo.push(`Tratar el tipo de provincia de ${data.provincia} como una etiqueta fija: es un caso limítrofe.`);
 
-  const diagnostico = `<div style="font-size:13.5px;color:#26313f;max-width:78ch">${data.diagnostico.map((p) => `<p style="margin:0 0 9px">${esc(p)}</p>`).join("")}</div>`;
+  const diagnostico = `<div style="font-size:13.5px;color:var(--tinta);max-width:78ch">${data.diagnostico.map((p) => `<p style="margin:0 0 9px">${esc(p)}</p>`).join("")}</div>`;
 
   const digital = `
    <div class="grid g4" style="gap:10px;margin-bottom:14px">${data.digital.acceso.map((m) => metric(m)).join("")}</div>

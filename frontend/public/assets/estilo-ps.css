@@ -55,7 +55,7 @@
   --display: var(--titulos);
   --body: var(--cuerpo);
   --bg: var(--papel);
-  --card: #fff;
+  --card: var(--superficie);
   --ink: var(--tinta);
   --mut: var(--suave);
   --r: 3px;
@@ -130,7 +130,7 @@ h3 {
 /* ---- header: white, navy ink, boxed wordmark ---- */
 header {
   --on-acc: var(--linea);
-  background: #fff;
+  background: var(--cab);
   color: var(--linea);
   border-bottom: 4px solid var(--linea);
   box-shadow: none;
@@ -160,7 +160,7 @@ header h1,
 .btn-datos {
   border: 3px solid var(--linea);
   border-radius: var(--r);
-  background: #fff;
+  background: var(--superficie);
   color: var(--linea);
   box-shadow: 3px 3px 0 var(--sombra);
 }
@@ -174,7 +174,7 @@ header h1,
 }
 .finder-btn kbd {
   border: 2px solid var(--linea);
-  background: #fff;
+  background: var(--superficie);
   border-radius: 2px;
 }
 .btn-req {
@@ -249,7 +249,7 @@ nav button.on {
 .card,
 .peek,
 .vacio {
-  background: #fff;
+  background: var(--superficie);
   border: 4px solid var(--linea);
   border-radius: var(--r);
   box-shadow: var(--sh);
@@ -322,14 +322,14 @@ nav button.on {
 }
 .btn.gh,
 .btn.ghost {
-  background: #fff;
+  background: var(--superficie);
   color: var(--linea);
 }
 .btn.gh:hover {
   background: var(--gris);
 }
 .copybtn {
-  background: #fff;
+  background: var(--superficie);
   color: var(--linea);
   font-size: 0.9rem;
 }
@@ -352,7 +352,7 @@ nav button.on {
 .jump button {
   border: 2px solid var(--linea);
   border-radius: var(--r);
-  background: #fff;
+  background: var(--superficie);
   color: var(--tinta);
   font-family: var(--cuerpo);
   font-weight: 650;
@@ -373,7 +373,7 @@ nav button.on {
   box-shadow: 2px 2px 0 var(--sombra);
 }
 .idx {
-  background: #fff;
+  background: var(--superficie);
   border-bottom: 4px solid var(--linea);
 }
 .ptag,
@@ -387,7 +387,7 @@ nav button.on {
   font-weight: 800;
 }
 .cmp-chip {
-  background: #fff;
+  background: var(--superficie);
   color: var(--linea);
   font-size: 0.95rem;
 }
@@ -403,7 +403,7 @@ select,
 textarea {
   border: 3px solid var(--linea);
   border-radius: var(--r);
-  background: #fff;
+  background: var(--superficie);
   color: var(--tinta);
 }
 input:focus,
@@ -429,14 +429,14 @@ dialog {
   border: 4px solid var(--linea);
   border-radius: var(--r);
   box-shadow: 8px 8px 0 var(--sombra);
-  background: #fff;
+  background: var(--superficie);
   color: var(--tinta);
 }
 dialog::backdrop {
   background: rgba(27, 42, 65, 0.55);
 }
 #toast {
-  background: #fff;
+  background: var(--superficie);
   color: var(--tinta);
   border: 4px solid var(--linea);
   border-radius: var(--r);
@@ -466,7 +466,7 @@ table th {
 /* ---- footer: white with the thick red rule ---- */
 footer.pie,
 .pie {
-  background: #fff;
+  background: var(--cab);
   color: var(--linea);
   border-top: 6px solid var(--primario);
   margin-top: 3rem;
@@ -493,7 +493,7 @@ footer.pie,
     font-size: 0.92rem;
   }
   header nav {
-    background: #fff;
+    background: var(--cab);
     border-top: 4px solid var(--linea);
     box-shadow: none;
   }
@@ -545,7 +545,7 @@ header h1,
 .fld textarea {
   border: 3px solid var(--linea);
   border-radius: var(--r);
-  background: #fff;
+  background: var(--superficie);
 }
 /* a long sentence is not a poster headline: keep Anton for short titles */
 .ess-titular {
@@ -562,7 +562,7 @@ header h1,
   border: 3px solid var(--linea);
   border-radius: var(--r);
   box-shadow: 2px 2px 0 var(--sombra);
-  background: #fff;
+  background: var(--superficie);
 }
 .fchip .fbtn {
   border: 0;
@@ -583,7 +583,7 @@ header h1,
   font-weight: 800;
 }
 .prov-aside {
-  background: #fff;
+  background: var(--superficie);
   border: 4px solid var(--linea);
   border-radius: var(--r);
   box-shadow: var(--sh);
@@ -643,7 +643,7 @@ header h1,
   gap: 28px;
   padding: 22px 26px;
   margin-bottom: 22px;
-  background: #fff;
+  background: var(--superficie);
   border: 4px solid var(--linea);
   border-radius: var(--r);
   box-shadow: var(--sh);
@@ -710,7 +710,7 @@ header h1,
   height: 100%;
   text-align: left;
   padding: 12px 14px;
-  background: #fff;
+  background: var(--superficie);
   color: var(--tinta);
   border: 3px solid var(--linea);
   border-radius: var(--r);
@@ -735,7 +735,7 @@ header h1,
   width: 40px;
   height: 40px;
   background: var(--linea);
-  color: #fff;
+  color: var(--papel);
   border-radius: var(--r);
 }
 .hero-ic svg.ic {
@@ -1272,4 +1272,215 @@ nav .nav-ext:hover {
   .hero-lista {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* =====================================================================
+   Surfaces as variables, dark theme, theme button, phone tab icons
+   ===================================================================== */
+:root {
+  --superficie: #fff;
+  --cab: #fff;
+  --cab-tinta: #1b2a41;
+  --tinte-aviso: #fff6e5;
+  --tinte-peligro: #fbf2f1;
+  --tinte-ok: #f1f8f4;
+  --ok-t: #1b6e1b;
+  --peligro-t: #a3302a;
+  --ok: #1b6e1b;
+  --peligro: #c1121f;
+  --azul2: #1a5fb4;
+  color-scheme: light;
+}
+
+/* ---- dark theme (same palette logic as Periodismo Seguro's dark mode) ---- */
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
+  --papel: #101728;
+  --superficie: #19223a;
+  --cab: #0c1322;
+  --cab-tinta: #f1f4fa;
+  --tinta: #f1f4fa;
+  --suave: #b8c3d8;
+  --regla: #34425f;
+  --linea: #c9d4ea;
+  --sombra: #05080f;
+  --punto: #c9d4ea12;
+  --mapa-pais: #2a3656;
+  --gris: #1b2540;
+  --tinte-aviso: #3a2f10;
+  --tinte-peligro: #3d1a1f;
+  --tinte-ok: #14301c;
+  --ok-t: #6fd12a;
+  --peligro-t: #ff9aa0;
+  --ok: #6fd12a;
+  --peligro: #ff7b80;
+  --azul2: #8fb8ff;
+  --acc: #9fc2ff !important; /* the outlet's brand colour is set inline; in dark the accent is always light */
+  --acc-soft: #1b2540 !important;
+  --on-acc: #0c1322 !important;
+  --line: var(--regla);
+  --mut: var(--suave);
+}
+:root[data-tema="oscuro"] body {
+  background-image: radial-gradient(var(--punto) 1.3px, transparent 1.6px);
+}
+:root[data-tema="oscuro"] .brand-mark {
+  filter: brightness(0) invert(1);
+}
+:root[data-tema="oscuro"] header h1,
+:root[data-tema="oscuro"] #brandTitle {
+  border-color: var(--linea);
+  color: var(--linea);
+}
+:root[data-tema="oscuro"] .prov-title,
+:root[data-tema="oscuro"] .hero-txt h2 {
+  -webkit-text-stroke-color: #05080f;
+  text-shadow: 4px 4px 0 var(--primario);
+}
+:root[data-tema="oscuro"] .pv,
+:root[data-tema="oscuro"] .pvs,
+:root[data-tema="oscuro"] .tend-pv {
+  stroke: var(--papel);
+}
+:root[data-tema="oscuro"] .tend-pv {
+  fill: #3a4a6e;
+}
+:root[data-tema="oscuro"] .sk-b,
+:root[data-tema="oscuro"] .sk {
+  background-color: #243050;
+}
+:root[data-tema="oscuro"] .hero-sello,
+:root[data-tema="oscuro"] .cut .wrap::before,
+:root[data-tema="oscuro"] .hero-t b em {
+  color: #12161c;
+}
+:root[data-tema="oscuro"] .frase,
+:root[data-tema="oscuro"] .copiar .frase {
+  background: #141c32;
+}
+:root[data-tema="oscuro"] .precaucion,
+:root[data-tema="oscuro"] .mc-nota {
+  background: var(--tinte-aviso);
+  color: var(--tinta);
+}
+:root[data-tema="oscuro"] .ptag.warn {
+  color: #ffd98a;
+  background: #3a2f10;
+  border-color: #6b5a22;
+}
+:root[data-tema="oscuro"] .ptag.pin {
+  color: #c9c3ff;
+  background: #27254d;
+  border-color: #4a468a;
+}
+:root[data-tema="oscuro"] .ptag.ej {
+  color: var(--suave);
+  background: var(--gris);
+}
+:root[data-tema="oscuro"] input::placeholder,
+:root[data-tema="oscuro"] textarea::placeholder {
+  color: #8d9ab3;
+}
+:root[data-tema="oscuro"] a,
+:root[data-tema="oscuro"] .linkbtn {
+  color: var(--azul2);
+}
+:root[data-tema="oscuro"] .pie a,
+:root[data-tema="oscuro"] .pie .linkbtn,
+:root[data-tema="oscuro"] .pie .pie-ext {
+  color: var(--tinta);
+}
+:root[data-tema="oscuro"] table.delta td.up {
+  color: #ff9aa0;
+}
+:root[data-tema="oscuro"] table.delta td.dn {
+  color: #7be08b;
+}
+:root[data-tema="oscuro"] .cmp-lado.b > span,
+:root[data-tema="oscuro"] .cmp-col.b h3 {
+  color: #ffb259;
+}
+:root[data-tema="oscuro"] .cmp-lado.a > span,
+:root[data-tema="oscuro"] .cmp-col.a h3 {
+  color: #8fb8ff;
+}
+:root[data-tema="oscuro"] .btn-req:hover,
+:root[data-tema="oscuro"] .btn:hover {
+  background: #ff3a50;
+}
+:root[data-tema="oscuro"] dialog::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+:root[data-tema="oscuro"] #toast,
+:root[data-tema="oscuro"] #tip {
+  background: var(--superficie);
+  color: var(--tinta);
+}
+
+/* ---- theme button in the header ---- */
+.btn-tema {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  background: var(--superficie);
+  color: var(--linea);
+  box-shadow: 3px 3px 0 var(--sombra);
+  cursor: pointer;
+}
+.btn-tema svg.ic {
+  width: 20px;
+  height: 20px;
+}
+.btn-tema:hover {
+  background: var(--gris);
+}
+
+/* ---- icons in the phone tab bar ---- */
+.nv-ic {
+  display: none;
+}
+@media (max-width: 640px) {
+  header nav .tabs button,
+  header nav .nav-ext {
+    flex-direction: column;
+    gap: 2px;
+  }
+  header nav button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .nv-ic {
+    display: grid;
+  }
+  .nv-ic svg.ic {
+    width: 19px;
+    height: 19px;
+  }
+  header nav button.on .nv-ic {
+    color: var(--primario);
+  }
+}
+@media (max-width: 640px) {
+  /* the "new" dot sits on the icon, not on the label */
+  header nav button.nuevo::after {
+    top: 6px;
+    right: calc(50% - 20px);
+  }
+}
+
+/* dark: buttons that are links keep the normal text colour */
+:root[data-tema="oscuro"] .hero-btn,
+:root[data-tema="oscuro"] nav .nav-ext,
+:root[data-tema="oscuro"] .cmp-chip,
+:root[data-tema="oscuro"] .hero-t b {
+  color: var(--tinta);
+}
+:root[data-tema="oscuro"] .hero-t small {
+  color: var(--suave);
 }
