@@ -1301,29 +1301,30 @@ nav .nav-ext:hover {
 /* ---- dark theme (same palette logic as Periodismo Seguro's dark mode) ---- */
 :root[data-tema="oscuro"] {
   color-scheme: dark;
-  --papel: #101728;
-  --superficie: #19223a;
-  --cab: #0c1322;
-  --cab-tinta: #f1f4fa;
-  --tinta: #f1f4fa;
-  --suave: #b8c3d8;
-  --regla: #34425f;
-  --linea: #c9d4ea;
-  --sombra: #05080f;
-  --punto: #c9d4ea12;
-  --mapa-pais: #2a3656;
-  --gris: #1b2540;
-  --tinte-aviso: #3a2f10;
-  --tinte-peligro: #3d1a1f;
+  /* dark wine: page, cards, header and footer all in deep reds; outlines stay light, the call to action stays red */
+  --papel: #1f090f;
+  --superficie: #2e1019;
+  --cab: #170509;
+  --cab-tinta: #fbeef0;
+  --tinta: #fbeef0;
+  --suave: #e2c3c9;
+  --regla: #5c2632;
+  --linea: #f2cdd3;
+  --sombra: #0a0203;
+  --punto: #f2cdd314;
+  --mapa-pais: #3f1a25;
+  --gris: #37131d;
+  --tinte-aviso: #3d2a0c;
+  --tinte-peligro: #4d1722;
   --tinte-ok: #14301c;
   --ok-t: #6fd12a;
   --peligro-t: #ff9aa0;
   --ok: #6fd12a;
   --peligro: #ff7b80;
-  --azul2: #8fb8ff;
-  --acc: #9fc2ff !important; /* the outlet's brand colour is set inline; in dark the accent is always light */
-  --acc-soft: #1b2540 !important;
-  --on-acc: #0c1322 !important;
+  --azul2: #a9c8ff;
+  --acc: #ffa3ae !important; /* the outlet's brand colour is set inline; in dark the accent is always light */
+  --acc-soft: #37131d !important;
+  --on-acc: #170509 !important;
   --line: var(--regla);
   --mut: var(--suave);
 }
@@ -1349,11 +1350,11 @@ nav .nav-ext:hover {
   stroke: var(--papel);
 }
 :root[data-tema="oscuro"] .tend-pv {
-  fill: #3a4a6e;
+  fill: #5d2a37;
 }
 :root[data-tema="oscuro"] .sk-b,
 :root[data-tema="oscuro"] .sk {
-  background-color: #243050;
+  background-color: #44202b;
 }
 :root[data-tema="oscuro"] .hero-sello,
 :root[data-tema="oscuro"] .cut .wrap::before,
@@ -1362,7 +1363,7 @@ nav .nav-ext:hover {
 }
 :root[data-tema="oscuro"] .frase,
 :root[data-tema="oscuro"] .copiar .frase {
-  background: #141c32;
+  background: #260b12;
 }
 :root[data-tema="oscuro"] .precaucion,
 :root[data-tema="oscuro"] .mc-nota {
