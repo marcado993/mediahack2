@@ -1236,3 +1236,40 @@ nav .nav-ext:hover {
     padding: 6px 2px;
   }
 }
+
+/* Galápagos inset: bottom-right corner, over the empty sea/Peru area. At the top-left it covered
+   Esmeraldas and Manabí (the mainland map leaves x > ~285 free below y ~440 in its 560 x 640 grid). */
+.inset-gal,
+.inset-sel,
+.tend-inset-gal {
+  top: auto;
+  left: auto;
+  right: 8px;
+  bottom: 8px;
+  border: 2px solid var(--linea);
+  box-shadow: 3px 3px 0 var(--sombra);
+  border-radius: var(--r);
+}
+
+/* welcome buttons: columns may shrink below their content, long tags wrap (the second column was cut off on narrow screens) */
+.hero-lista {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.hero-btn {
+  min-width: 0;
+}
+.hero-t {
+  min-width: 0;
+}
+.hero-t b {
+  overflow-wrap: anywhere;
+}
+.hero-t b em {
+  white-space: normal;
+  max-width: 100%;
+}
+@media (max-width: 380px) {
+  .hero-lista {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
