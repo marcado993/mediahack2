@@ -3,13 +3,21 @@
 import { E } from "./estado.js";
 import { GREEN, RAMP } from "./datos.js";
 
+// Five fixed classes (equal steps over the observed range): the colour of a province is one of the
+// five palette colours, never a mix of two.
+export function claseDe(t, n = RAMP.length) {
+  return Math.max(0, Math.min(n - 1, Math.floor(Math.max(0, Math.min(1, t)) * n)));
+}
+
 function rampColor(t, arr = RAMP) {
-  t = Math.max(0, Math.min(1, t)) * (arr.length - 1);
-  const i = Math.min(Math.floor(t), arr.length - 2);
-  const f = t - i;
-  const a = arr[i],
-    b = arr[i + 1];
-  return `rgb(${a.map((c, j) => Math.round(c + (b[j] - c) * f)).join(",")})`;
+  const c = arr[claseDe(t, arr.length)];
+  return `rgb(${c.join(",")})`;
+}
+
+/** CSS gradient with hard stops: five blocks, the legend of the five classes. */
+export function gradienteClases(arr = RAMP) {
+  const n = arr.length;
+  return "linear-gradient(90deg," + arr.map((c, i) => `rgb(${c.join(",")}) ${(i * 100) / n}% ${((i + 1) * 100) / n}%`).join(",") + ")";
 }
 
 // RES and HABDIG both read "higher = better" (more resilient / more

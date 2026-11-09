@@ -5,7 +5,7 @@ import { flag } from "../tenant.js";
 import { MARGEN_GENERAL, esc, fmt, fmtInt, importedTag, borderlineTag } from "../ui.js";
 import { E } from "./estado.js";
 import { $, provinceKey } from "./util.js";
-import { col, inkFor, isPositiveKey, scaleFor } from "./color.js";
+import { col, gradienteClases, inkFor, isPositiveKey, scaleFor } from "./color.js";
 import { CAPA_DESC, CAPA_FLAG, CAPA_LG, FACTORES, LABEL_PROVINCES, PERFILES, PERFIL_CAPA, esLimite, perfilColor, perfilInfo, perfilPlano } from "./datos.js";
 import { navigate } from "./nav.js";
 import { tipHide, tipMove, tipShow } from "./tooltip.js";
@@ -78,7 +78,7 @@ export function paintMap() {
   const [lgA, lgB] = CAPA_LG[E.capa] ?? ["menor", "mayor"];
   document.getElementById("lgA").textContent = lgA;
   document.getElementById("lgB").textContent = lgB;
-  if (!isPerfil) document.getElementById("lgBar").style.background = "linear-gradient(90deg," + scaleFor(E.capa).map(([r, g, b]) => `rgb(${r},${g},${b})`).join(",") + ")";
+  if (!isPerfil) document.getElementById("lgBar").style.background = gradienteClases(scaleFor(E.capa));
   $("lgWrap").hidden = isPerfil;
   const cat = $("lgCat");
   cat.hidden = !isPerfil;

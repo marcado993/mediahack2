@@ -7,7 +7,7 @@ import { MARGEN_GENERAL, esc, fmt, ICON, provinceFlags, scoreRange, vacioFlecha 
 import { E } from "./estado.js";
 import { $, provinceKey } from "./util.js";
 import { DECISIONES, RAMP, RECIENTES_KEY, SIN_RESULTADOS, enc, esLimite, perfilColor, perfilPlano } from "./datos.js";
-import { col, indicatorRange, inkFor } from "./color.js";
+import { col, gradienteClases, indicatorRange, inkFor } from "./color.js";
 import { applyRoute, copiarBtn, errorBox, navigate, toast } from "./nav.js";
 import { tipHide, tipMove, tipShow } from "./tooltip.js";
 import { byKey, paintMap } from "./mapa.js";
@@ -170,7 +170,6 @@ function criterioLista() {
   }).join("")}</ul>`;
 }
 
-// What a reporter can do here, as three tasks they can start with one tap.
 // The methodology in thirty seconds, visible from the start: sources, one common scale, what it does and does not measure.
 function metodoCortoHTML() {
   return `<section class="card metodo-corto" id="metodoCorto" aria-labelledby="mcTit"><h2 id="mcTit">Cómo se calcula, en 30 segundos</h2>
@@ -190,25 +189,13 @@ function metodoCortoHTML() {
   </section>`;
 }
 
-const TAREAS = [
-  ["Encuentra por qué Bolívar es vulnerable", "perfil/" + enc("Bolívar")],
-  ["Compara Guayas y Pichincha", "comparar/" + enc("Guayas") + "/" + enc("Pichincha")],
-  ["Revisa qué tan firme es una cifra", "meto"],
-];
-
-function guiaHTML() {
-  return `<section class="card guia" aria-labelledby="guiaTit"><h2 id="guiaTit">Empieza por aquí</h2>
-   <p class="guia-lee">El puntaje va de 0 a 100: más alto, más vulnerable. Compara provincias entre sí y puede variar ${esc(MARGEN_GENERAL)}.</p>
-   <ul class="guia-tareas">${TAREAS.map(([t, ruta]) => `<li><button type="button" class="btn gh" data-ruta="${esc(ruta)}">${esc(t)}</button><span class="ptag ej">Ejemplo</span></li>`).join("")}</ul>
-  </section>`;
-}
-
 function siguiendoHTML() {
   const provs = provinciasQueSigo();
   const temas = temasQueSigo();
-  const vacio = !provs.length && !temas.length;
+  if (!provs.length && !temas.length) {
+    return `<p class="sigo sigo-vacio">${ICON.bookmark}<span>Aún no sigues nada. Abre una provincia y pulsa «Seguir esta provincia»: la verás aquí.</span></p>`;
+  }
   return `<section class="card sigo" aria-labelledby="sigoTit"><h2 id="sigoTit">Lo que sigues</h2>
-   ${vacio ? `<p class="note" style="margin:4px 0 10px">Aún no sigues nada. Abre una provincia y pulsa «Seguir esta provincia», o escribe un tema.</p>` : ""}
    <div class="sigo-chips">${provs.map((p) => `<a class="chip" href="#perfil/${enc(p)}">${esc(p)}</a>`).join("")}${temas
      .map((t) => `<span class="chip tema">${esc(t)}<button type="button" class="chip-x" data-quitar="${esc(t)}" aria-label="Dejar de seguir ${esc(t)}">×</button></span>`)
      .join("")}</div>
@@ -245,7 +232,7 @@ export function renderInicio() {
   const tareas = flag("inicio_guiado");
   $("perfil").innerHTML = `
   ${metodoCortoHTML()}
-  <div class="grid g2" style="margin-top:16px">${guiaHTML()}${siguiendoHTML()}</div>
+  ${siguiendoHTML()}
   ${
     tareas
       ? `<div class="grid g2" style="margin-top:16px">
@@ -264,7 +251,7 @@ export function renderInicio() {
 export function escalaHTML(valor, nacional, provincia) {
   const { lo, hi } = indicatorRange("IVEI");
   const pos = (v) => Math.max(0, Math.min(100, ((v - lo) / (hi - lo || 1)) * 100));
-  const grad = `linear-gradient(90deg,${RAMP.map(([r, g, b]) => `rgb(${r},${g},${b})`).join(",")})`;
+  const grad = gradienteClases(RAMP);
   return `<div class="escala" role="img" aria-label="${esc(provincia)}: ${fmt(valor)}. Promedio del país: ${fmt(nacional)}. Va de ${fmt(lo)} a ${fmt(hi)}">
    <div class="esc-bar" style="background:${grad}"><span class="esc-pais" style="left:${pos(nacional)}%"></span><span class="esc-mark" style="left:${pos(valor)}%"></span></div>
    <div class="esc-lab"><span>${fmt(lo)} · la menos vulnerable</span><span>la más vulnerable · ${fmt(hi)}</span></div>

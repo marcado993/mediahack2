@@ -292,7 +292,6 @@ export function renderPerfil(data) {
     ["afondo", "Investigar a fondo"],
   ];
   const segunda = [
-    conEscucha ? `<section class="card" id="sec-escucha" aria-live="polite"></section>` : "",
     showGuide ? `<section class="card" id="sec-decidir"><h2>Qué puedes y qué no afirmar</h2>${decisionBlock({ extraSi: [`Para ${data.provincia}: ${canalSugerido(rec)}`], extraNo })}</section>` : "",
   ].filter(Boolean);
 
@@ -335,6 +334,7 @@ export function renderPerfil(data) {
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
    </section>
 
+   <div class="kit-side">
    ${
      showGuide
        ? `<section class="card" id="sec-angulos">
@@ -343,10 +343,12 @@ export function renderPerfil(data) {
    </section>`
        : ""
    }
+   ${flag("vista_comparar") ? comparaCard(data.provincia) : ""}
+   ${conEscucha ? `<section class="card" id="sec-escucha" aria-live="polite"></section>` : ""}
+   </div>
   </div>
 
-  ${flag("vista_comparar") ? comparaCard(data.provincia) : ""}
-  ${segunda.length ? `<div class="grid ${segunda.length > 1 ? "g2" : ""}" style="margin-top:16px">${segunda.join("")}</div>` : ""}
+  ${segunda.length ? `<div style="margin-top:16px">${segunda.join("")}</div>` : ""}
 
   <div class="kit-actions noprint">
    ${flag("ficha_descargable") ? `<button class="btn gh" type="button" id="btnFicha">${ICON.download}Descargar la ficha</button>` : ""}
@@ -446,7 +448,7 @@ function comparaCard(prov) {
         .sort((a, b) => Math.abs(a.IVEI - yo.IVEI) - Math.abs(b.IVEI - yo.IVEI))
         .slice(0, 3)
     : [];
-  return `<section class="card cmp-sug" id="sec-comparar" style="margin-top:16px"><h2>¿Quieres comparar ${esc(prov)} con otra provincia?</h2>
+  return `<section class="card cmp-sug" id="sec-comparar"><h2>¿Quieres comparar ${esc(prov)} con otra provincia?</h2>
    <p class="note" style="margin:2px 0 12px">Estas son las más parecidas en puntaje. Toca una, o elige otra abajo.</p>
    <div class="cmp-chips">${cerca.map((p) => `<button type="button" class="cmp-chip" data-ruta="comparar/${enc(prov)}/${enc(p.provincia)}"><i class="cdot a"></i>${esc(prov)}<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 7h13m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><i class="cdot b"></i>${esc(p.provincia)}</button>`).join("")}
     <label class="sr" for="essComparar">Comparar con otra provincia</label>

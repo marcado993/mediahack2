@@ -104,8 +104,10 @@ export function renderInventario() {
   <div class="card" style="margin-bottom:16px" id="inv-variables">
    <h2>Variables que alimentan el índice</h2>
    <p class="fintro" style="margin-bottom:12px">Cada variable con su base y el factor donde entra. Desde la ficha de una provincia, «Qué es» te trae aquí.</p>
-   <div style="overflow-x:auto"><table class="ftab"><thead><tr><th>Variable</th><th>Base</th><th>Dónde entra</th></tr></thead><tbody>
-   ${vars.map((e) => `<tr id="var-${slug(e.nombre)}"><td style="font-weight:650">${esc(e.nombre)}</td><td>${[...e.fuentes].map((k) => `<span class="fdot" style="background:${FUENTE_VAR[k][1]}"></span>${esc(FUENTE_VAR[k][0])}`).join("<br>")}</td><td>${esc(dondeEntra(e))}</td></tr>`).join("")}
-   </tbody></table></div>
+   <div class="dic-grid">${vars
+     .map(
+       (e) => `<div class="dic-item" id="var-${slug(e.nombre)}"><b>${esc(e.nombre)}</b><span class="dic-base">${[...e.fuentes].map((k) => `<span class="fdot" style="background:${FUENTE_VAR[k][1]}"></span>${esc(FUENTE_VAR[k][0])}`).join(" · ")}</span><span class="dic-donde">${esc(dondeEntra(e))}</span></div>`
+     )
+     .join("")}</div>
   </div>`;
 }

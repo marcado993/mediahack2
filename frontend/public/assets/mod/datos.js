@@ -12,21 +12,18 @@ export const NAME_ALIASES = { "santo domingo": "santo domingo de los tsachilas" 
 // dark = more. No traffic-light colours, nothing that shouts or stigmatises. RES (resilience) reads the
 // opposite direction, so it gets the ramp reversed rather than the value
 // inverted, which keeps the legend gradient itself green-first for RES too.
-// Green -> yellow -> orange -> red: low to high. Lightness falls from yellow to dark red,
-// so the order still reads for people who confuse red and green; the ranking numbers and
-// the legend always travel with the colour.
+// One standard palette for every "more is worse" measure: ColorBrewer RdYlGn, 5 classes, low to high.
+// The map, the ranking badges, the score bar and the legend all use these five colours and nothing in
+// between, so a colour always means the same class. Layers where higher is better use it reversed.
 export const RAMP = [
-  [120, 200, 130],
-  [170, 214, 120],
-  [245, 224, 110],
-  [243, 174, 70],
-  [232, 120, 52],
-  [200, 55, 45],
-  [140, 25, 28],
+  [26, 150, 65],
+  [166, 217, 106],
+  [255, 255, 191],
+  [253, 174, 97],
+  [215, 25, 28],
 ];
-
-// Layers where higher is better (capacity to verify, digital skills) read the other way round
 export const GREEN = [...RAMP].reverse();
+export const CLASES = ["muy baja", "baja", "media", "alta", "muy alta"];
 
 // ---------------------------------------------------------------------
 // The six territorial profiles keep one fixed colour in every view. They sit
@@ -34,11 +31,11 @@ export const GREEN = [...RAMP].reverse();
 // never mistaken for a level of vulnerability.
 // ---------------------------------------------------------------------
 export const PERFILES = [
-  { nombre: "Exclusión digital con carencia estructural", plano: "Poca conexión y muchas carencias", corto: "Poca conexión, carencias", color: "#693875" },
-  { nombre: "Alta exposición con capacidad de filtro", plano: "Muy conectada y con capacidad de verificar", corto: "Conectada, verifica", color: "#40bf84" },
-  { nombre: "Exposición alta sobre base estructural sólida", plano: "Muy conectada, con buena base social", corto: "Conectada, base sólida", color: "#bf9540" },
-  { nombre: "Hiperexposición con baja resiliencia", plano: "Saturada de redes y sin herramientas de contraste", corto: "Saturada de redes", color: "#914650" },
-  { nombre: "Carencia estructural y déficit de resiliencia", plano: "Muchas carencias y poca capacidad de contrastar", corto: "Carencias, poco contraste", color: "#4c29ae" },
+  { nombre: "Exclusión digital con carencia estructural", plano: "Poca conexión y muchas carencias", corto: "Poca conexión, carencias", color: "#3d5a80" },
+  { nombre: "Alta exposición con capacidad de filtro", plano: "Muy conectada y con capacidad de verificar", corto: "Conectada, verifica", color: "#0e8a96" },
+  { nombre: "Exposición alta sobre base estructural sólida", plano: "Muy conectada, con buena base social", corto: "Conectada, base sólida", color: "#a8327d" },
+  { nombre: "Hiperexposición con baja resiliencia", plano: "Saturada de redes y sin herramientas de contraste", corto: "Saturada de redes", color: "#6b3fa0" },
+  { nombre: "Carencia estructural y déficit de resiliencia", plano: "Muchas carencias y poca capacidad de contrastar", corto: "Carencias, poco contraste", color: "#1a5fb4" },
   { nombre: "Perfil intermedio", plano: "Perfil intermedio", corto: "Intermedio", color: "#7d8a9c" },
 ];
 
