@@ -25,6 +25,9 @@ function pintarBoton() {
 }
 
 function aplicar(t) {
+  // the logo has two versions: white rings in dark, blue rings in light; the centre dot is red in both
+  const marca = document.getElementById("brandMark");
+  if (marca) marca.src = t === "oscuro" ? "/marca-blanco.svg" : "/marca-azul.svg";
   document.documentElement.dataset.tema = t;
   document.documentElement.style.colorScheme = t === "oscuro" ? "dark" : "light";
   pintarBoton();
