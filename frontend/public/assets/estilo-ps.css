@@ -1331,9 +1331,6 @@ nav .nav-ext:hover {
 :root[data-tema="oscuro"] body {
   background-image: radial-gradient(var(--punto) 1.3px, transparent 1.6px);
 }
-:root[data-tema="oscuro"] .brand-mark {
-  filter: brightness(0) invert(1);
-}
 :root[data-tema="oscuro"] header h1,
 :root[data-tema="oscuro"] #brandTitle {
   border-color: var(--linea);
