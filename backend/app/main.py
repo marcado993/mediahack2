@@ -5,7 +5,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import ask, contrast, media, meta, news, origin, provinces, retroalimentacion, segmentadores, solicitudes, tenants, trends
+from app.routers import ask, chat, contrast, media, meta, news, origin, provinces, retroalimentacion, segmentadores, solicitudes, tenants, trends
 
 app = FastAPI(
     title="Mapa de Vulnerabilidad a Desinformación - API",
@@ -24,6 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(chat.router)
 app.include_router(provinces.router)
 app.include_router(media.router)
 app.include_router(meta.router)

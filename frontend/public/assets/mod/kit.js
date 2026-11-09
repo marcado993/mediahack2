@@ -353,6 +353,7 @@ export function renderPerfil(data) {
   <div class="kit-actions noprint">
    ${flag("ficha_descargable") ? `<button class="btn gh" type="button" id="btnFicha">${ICON.download}Descargar la ficha</button>` : ""}
    <button class="btn gh" type="button" id="btnVerMapa">${ICON.map}Verla en el mapa</button>
+   ${flag("vista_chat") ? `<button class="btn gh" type="button" data-ruta="chat/${enc(data.provincia)}">${ICON.chat}Charlar sobre ${esc(data.provincia)}</button>` : ""}
    <button class="btn gh" type="button" id="btnEnlace">${ICON.link}Copiar enlace para compartir</button>
    ${typeof navigator !== "undefined" && navigator.share ? `<button class="btn gh" type="button" id="btnCompartir">${ICON.share}Compartir</button>` : ""}
    <button class="btn gh" type="button" id="btnSeguir" aria-pressed="false"></button>

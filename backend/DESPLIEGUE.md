@@ -114,3 +114,17 @@ Los archivos de datos nuevos no estorban a la versión anterior.
 - Si prefieres no tocar producción primero: repite estos pasos en una copia
   (`/opt/mediahack2-staging`, puerto 8010, otro `.env` y otro `ADMIN_TOKEN`) y apunta la
   vista previa de Vercel a esa URL.
+
+## Chat (WebSocket)
+
+El chat vive en el mismo servicio: `GET /api/chat/salas` y `wss://…/ws/chat/{sala}`. Guarda todo en la
+memoria del proceso (nada en disco), así que **el servicio debe correr con un solo worker** (como ahora)
+y al reiniciarlo se borran las salas. `uvicorn[standard]` ya trae `websockets`; no hay que instalar nada.
+
+- Orígenes permitidos: el sitio de Vercel y `localhost`. Un medio con dominio propio se agrega en el `.env`
+  con `CHAT_ORIGINS=https://sitio.medio.ec,https://otro.medio.ec` y se reinicia.
+- Verificar tras actualizar: `curl -s https://mediahack-api.apiprueba.online/api/chat/salas | head -c 200`.
+  Para el canal en vivo, abrir el sitio y entrar a la pestaña Chat: debe decir «En línea».
+- Si el túnel de Cloudflare cortara los WebSocket, el chat dice «Sin conexión. Reintentando…» y el resto
+  del sitio sigue igual; apagarlo es el flag `vista_chat` del panel de medios.
+- Pruebas: `python -m pytest backend/tests -q`.

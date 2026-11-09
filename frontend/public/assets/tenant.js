@@ -129,7 +129,7 @@ function paintBrand(cfg) {
     grid.append(quees);
     // Methodology, open data and sources are reference material: reachable from every page.
     grid.append(col("Sobre los datos", [btn("Cómo empezar", { ruta: "perfil" }), btn("Metodología y límites", { ir: "meto" }), btn("Fuentes oficiales", { ir: "fuentes" }), btn("Datos abiertos", { ir: "datos" })]));
-    const ayuda = [ext("Chat privado", PERIODISMO_SEGURO + "/#/chat"), ext("Bóveda segura", PERIODISMO_SEGURO + "/#/boveda")];
+    const ayuda = [btn("Chat con colegas", { ruta: "chat" }), ext("Bóveda segura", PERIODISMO_SEGURO + "/#/boveda")];
     if (cfg.flags.solicitar_informacion !== false) ayuda.push(btn("Solicitar información al observatorio", { solicitar: "" }));
     if (cfg.flags.retroalimentacion !== false) ayuda.push(btn("Cuéntanos qué necesita tu medio", { retro: "" }));
     grid.append(col("Herramientas y contacto", ayuda));
@@ -139,7 +139,7 @@ function paintBrand(cfg) {
       el(
         "p",
         "pie-datos",
-        "Datos y metodología: Observatorio de Vulnerabilidad ante la Desinformación Electoral. Fuentes: Censo 2022 y ENEMDU 2024 (INEC), Latinobarómetro 2024, MINTEL 2023. Datos con corte a la última publicación de cada fuente, sujetos a actualización. La resolución provincial es una salvaguarda deliberada: ninguna vista ni descarga baja de provincia. Uso ético: los datos son abiertos y se usan para proteger y fortalecer la democracia. El chat y la bóveda son de Periodismo Seguro, un proyecto hermano con su propio servidor."
+        "Datos y metodología: Observatorio de Vulnerabilidad ante la Desinformación Electoral. Fuentes: Censo 2022 y ENEMDU 2024 (INEC), Latinobarómetro 2024, MINTEL 2023. Datos con corte a la última publicación de cada fuente, sujetos a actualización. La resolución provincial es una salvaguarda deliberada: ninguna vista ni descarga baja de provincia. Uso ético: los datos son abiertos y se usan para proteger y fortalecer la democracia. El chat es temporal y anónimo: los mensajes se borran a los 30 minutos. La bóveda es de Periodismo Seguro, un proyecto hermano con su propio servidor."
       )
     );
   }
