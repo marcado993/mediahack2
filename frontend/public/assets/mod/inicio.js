@@ -7,7 +7,7 @@ import { MARGEN_GENERAL, esc, fmt, ICON, provinceFlags, scoreRange, vacioFlecha 
 import { E } from "./estado.js";
 import { $, provinceKey } from "./util.js";
 import { DECISIONES, RAMP, RECIENTES_KEY, SIN_RESULTADOS, enc, esLimite, perfilColor, perfilPlano } from "./datos.js";
-import { col, indicatorRange, inkFor } from "./color.js";
+import { col, gradienteClases, indicatorRange, inkFor } from "./color.js";
 import { applyRoute, copiarBtn, errorBox, navigate, toast } from "./nav.js";
 import { tipHide, tipMove, tipShow } from "./tooltip.js";
 import { byKey, paintMap } from "./mapa.js";
@@ -170,26 +170,32 @@ function criterioLista() {
   }).join("")}</ul>`;
 }
 
-// What a reporter can do here, as three tasks they can start with one tap.
-const TAREAS = [
-  ["Encuentra por qué Bolívar es vulnerable", "perfil/" + enc("Bolívar")],
-  ["Compara Guayas y Pichincha", "comparar/" + enc("Guayas") + "/" + enc("Pichincha")],
-  ["Revisa qué tan firme es una cifra", "meto"],
-];
-
-function guiaHTML() {
-  return `<section class="card guia" aria-labelledby="guiaTit"><h2 id="guiaTit">Empieza por aquí</h2>
-   <p class="guia-lee">El puntaje va de 0 a 100: más alto, más vulnerable. Compara provincias entre sí y puede variar ${esc(MARGEN_GENERAL)}.</p>
-   <ul class="guia-tareas">${TAREAS.map(([t, ruta]) => `<li><button type="button" class="btn gh" data-ruta="${esc(ruta)}">${esc(t)}</button><span class="ptag ej">Ejemplo</span></li>`).join("")}</ul>
+// The methodology in thirty seconds, visible from the start: sources, one common scale, what it does and does not measure.
+function metodoCortoHTML() {
+  return `<section class="card metodo-corto" id="metodoCorto" aria-labelledby="mcTit"><h2 id="mcTit">Cómo se calcula, en 30 segundos</h2>
+   <div class="mc-grid">
+    <div class="mc-col"><h3>1. Qué datos usa</h3>
+     <ul class="mc-fuentes"><li>Censo 2022</li><li>ENEMDU 2024</li><li>ENEMDU-TIC 2024</li><li>Latinobarómetro 2024</li><li>MINTEL 2023</li></ul>
+     <p>Datos oficiales y abiertos. Los indicadores ya publicados por el INEC (ENEMDU) se usan tal cual.</p></div>
+    <div class="mc-col"><h3>2. Una misma escala, de 0 a 100</h3>
+     <div class="mc-escala" aria-hidden="true"><span>0</span><i></i><span>100</span></div>
+     <p>Cada dato se lleva a la misma escala: la provincia con el valor más bajo recibe 0 y la más alta, 100. Solo se igualan escalas; no se recalculan los indicadores.</p></div>
+    <div class="mc-col"><h3>3. Qué mide y qué no</h3>
+     <ul class="mc-si"><li>${ICON.check}<span>Qué tan fértil es el territorio para la desinformación.</span></li></ul>
+     <ul class="mc-no"><li>${ICON.cross}<span>Si un contenido es falso.</span></li><li>${ICON.cross}<span>Radio, televisión ni chats privados.</span></li><li>${ICON.cross}<span>Personas, medios ni candidatos.</span></li></ul></div>
+   </div>
+   <p class="mc-nota"><b>Son indicadores generales, agregados por provincia.</b> Al juntar varias bases en un solo indicador se pierde el detalle de cada fuente. Para muestras pequeñas se aplica un ajuste de precisión (suavizado), que no cambia el indicador.</p>
+   <p style="margin:10px 0 0"><button type="button" class="btn gh" data-ir="meto">${ICON.book}Ver la metodología completa</button></p>
   </section>`;
 }
 
 function siguiendoHTML() {
   const provs = provinciasQueSigo();
   const temas = temasQueSigo();
-  const vacio = !provs.length && !temas.length;
+  if (!provs.length && !temas.length) {
+    return `<p class="sigo sigo-vacio">${ICON.bookmark}<span>Aún no sigues nada. Abre una provincia y pulsa «Seguir esta provincia»: la verás aquí.</span></p>`;
+  }
   return `<section class="card sigo" aria-labelledby="sigoTit"><h2 id="sigoTit">Lo que sigues</h2>
-   ${vacio ? `<p class="note" style="margin:4px 0 10px">Aún no sigues nada. Abre una provincia y pulsa «Seguir esta provincia», o escribe un tema.</p>` : ""}
    <div class="sigo-chips">${provs.map((p) => `<a class="chip" href="#perfil/${enc(p)}">${esc(p)}</a>`).join("")}${temas
      .map((t) => `<span class="chip tema">${esc(t)}<button type="button" class="chip-x" data-quitar="${esc(t)}" aria-label="Dejar de seguir ${esc(t)}">×</button></span>`)
      .join("")}</div>
@@ -225,9 +231,8 @@ export function renderInicio() {
   E.PERFIL_DATA = null;
   const tareas = flag("inicio_guiado");
   $("perfil").innerHTML = `
-  <section class="card inicio-main"><h2>¿Sobre qué provincia escribes?</h2>
-   <p class="inicio-lead"><b>Elige tu provincia</b> y te llevas una frase lista para tu nota, con su fuente y su advertencia.</p></section>
-  <div class="grid g2" style="margin-top:16px">${guiaHTML()}${siguiendoHTML()}</div>
+  ${metodoCortoHTML()}
+  ${siguiendoHTML()}
   ${
     tareas
       ? `<div class="grid g2" style="margin-top:16px">
@@ -246,7 +251,7 @@ export function renderInicio() {
 export function escalaHTML(valor, nacional, provincia) {
   const { lo, hi } = indicatorRange("IVEI");
   const pos = (v) => Math.max(0, Math.min(100, ((v - lo) / (hi - lo || 1)) * 100));
-  const grad = `linear-gradient(90deg,${RAMP.map(([r, g, b]) => `rgb(${r},${g},${b})`).join(",")})`;
+  const grad = gradienteClases(RAMP);
   return `<div class="escala" role="img" aria-label="${esc(provincia)}: ${fmt(valor)}. Promedio del país: ${fmt(nacional)}. Va de ${fmt(lo)} a ${fmt(hi)}">
    <div class="esc-bar" style="background:${grad}"><span class="esc-pais" style="left:${pos(nacional)}%"></span><span class="esc-mark" style="left:${pos(valor)}%"></span></div>
    <div class="esc-lab"><span>${fmt(lo)} · la menos vulnerable</span><span>la más vulnerable · ${fmt(hi)}</span></div>

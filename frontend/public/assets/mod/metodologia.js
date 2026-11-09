@@ -121,6 +121,7 @@ export function renderMetodoExtra() {
   $("metoExtra").innerHTML = `
   <nav class="jump noprint" aria-label="Ir a una sección">
    <button type="button" data-j="decisiones">Qué puedo afirmar</button>
+   <button type="button" data-j="agregados">Qué es un indicador general</button>
    <button type="button" data-j="casos">Casos de uso</button>
    <button type="button" data-j="solidez">Qué tan firme es</button>
    <button type="button" data-j="sensibilidad">Qué tan estable es</button>
@@ -132,6 +133,17 @@ export function renderMetodoExtra() {
    <h2>Qué puedes afirmar con el índice y qué no</h2>
    <p class="fintro" style="margin-bottom:12px">El índice dice dónde un mensaje encuentra un terreno más frágil. No reemplaza el criterio editorial.</p>
    ${metodoTabla(["Decisión", "El índice puede apoyarla", "El índice no puede apoyarla"], DECISIONES.map(([d, si, no]) => [d, si, no]))}
+  </div>
+
+  <div class="card" id="agregados" style="margin-bottom:16px">
+   <h2>Indicadores generales, no el detalle de cada fuente</h2>
+   <p class="fintro" style="margin-bottom:10px">OVADE mide indicadores generales, agregados por provincia. Al juntar varias bases en un solo indicador (por ejemplo, «habilidades digitales») se pierde la especificidad de cada fuente.</p>
+   <ul class="mc-lista">
+    <li><b>Lo que hace:</b> lleva cada dato a una escala de 0 a 100 para poder compararlo y combinarlo. Solo se igualan escalas.</li>
+    <li><b>Lo que no hace:</b> no vuelve a calcular los indicadores oficiales que ya publica el INEC (como los de la ENEMDU): se usan tal cual. El Censo se suma a nivel provincia desde sus microdatos y coincide con la cifra oficial.</li>
+    <li><b>Ajustes de precisión:</b> el suavizado de muestras pequeñas y la posestratificación mejoran qué tan estable es una cifra de encuesta. No cambian lo que mide el indicador.</li>
+    <li><b>Para el detalle de una fuente,</b> consulta la publicación original: cada base ya trae su propia justificación estadística.</li>
+   </ul>
   </div>
 
   <div class="card" id="casos" style="margin-bottom:16px">

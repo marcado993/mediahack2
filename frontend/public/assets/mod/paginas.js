@@ -2,7 +2,7 @@
 
 import { getJSON } from "../api.js";
 import { skTable } from "../estados.js";
-import { esc, fmt } from "../ui.js";
+import { esc, fmt, fmtInt } from "../ui.js";
 import { E } from "./estado.js";
 import { $, normalize } from "./util.js";
 import { goToPerfil } from "./kit.js";
@@ -33,10 +33,10 @@ function renderTabla() {
   const bodyRows = filas
     .map(
       (f) => `<tr data-p="${f.provincia}"><td>${f.rank != null ? Math.round(f.rank) : "—"}</td><td>${f.provincia}</td><td>${f.nivel}</td>
-    ${E.TABLA_DATA.columnas.map((c) => `<td class="num">${f[c.key] != null ? fmt(f[c.key]) : "—"}</td>`).join("")}</tr>`
+    ${E.TABLA_DATA.columnas.map((c) => `<td class="num">${f[c.key] != null ? (c.unit === "hab." ? fmtInt(f[c.key]) : fmt(f[c.key])) : "—"}</td>`).join("")}</tr>`
     )
     .join("");
-  const footCols = E.TABLA_DATA.columnas.map((c) => `<td class="num">${E.TABLA_DATA.nacional[c.key] != null ? fmt(E.TABLA_DATA.nacional[c.key]) : "—"}</td>`).join("");
+  const footCols = E.TABLA_DATA.columnas.map((c) => `<td class="num">${E.TABLA_DATA.nacional[c.key] != null ? (c.unit === "hab." ? fmtInt(E.TABLA_DATA.nacional[c.key]) : fmt(E.TABLA_DATA.nacional[c.key])) : "—"}</td>`).join("");
 
   document.getElementById("tabla").innerHTML = `
   <thead><tr><th data-k="rank">#</th><th data-k="provincia">Provincia</th><th data-k="nivel">Nivel</th>${headCols}</tr></thead>

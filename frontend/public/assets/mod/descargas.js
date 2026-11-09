@@ -99,9 +99,10 @@ function mapaSVG() {
   if (E.capa === "PERFIL") {
     legend = PERFILES.map((pf, i) => `<rect x="${16 + (i % 2) * 270}" y="${650 + Math.floor(i / 2) * 15}" width="10" height="10" fill="${pf.color}"/><text x="${32 + (i % 2) * 270}" y="${659 + Math.floor(i / 2) * 15}" font-size="10" fill="#26313f">${esc(pf.plano)}</text>`).join("");
   } else {
-    const stops = scaleFor(E.capa).map(([r, g, b], i, a) => `<stop offset="${i / (a.length - 1)}" stop-color="rgb(${r},${g},${b})"/>`).join("");
+    const cls = scaleFor(E.capa);
+    const bloques = cls.map(([r, g, b], i) => `<rect x="${16 + (i * 240) / cls.length}" y="652" width="${240 / cls.length}" height="10" fill="rgb(${r},${g},${b})"/>`).join("");
     const [lo, hi] = CAPA_LG[E.capa] ?? ["menor", "mayor"];
-    legend = `<defs><linearGradient id="lg">${stops}</linearGradient></defs><rect x="16" y="652" width="240" height="10" rx="3" fill="url(#lg)"/><text x="16" y="678" font-size="10" fill="#26313f">${esc(lo)}</text><text x="256" y="678" font-size="10" text-anchor="end" fill="#26313f">${esc(hi)}</text><text x="276" y="662" font-size="10" fill="#5f6b7d">Borde punteado: valor nacional imputado</text>`;
+    legend = `${bloques}<text x="16" y="678" font-size="10" fill="#26313f">${esc(lo)}</text><text x="256" y="678" font-size="10" text-anchor="end" fill="#26313f">${esc(hi)}</text><text x="276" y="662" font-size="10" fill="#5f6b7d">Borde punteado: valor nacional imputado</text>`;
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -46 560 748" width="840" height="1122" font-family="Arial, Helvetica, sans-serif">
 <rect x="0" y="-46" width="560" height="748" fill="#fff"/>

@@ -194,11 +194,11 @@ function datosClave(data) {
   const add = (m, frase) => {
     if (m && m.valor != null) out.push({ ...frase(m), source: m.source });
   };
-  add(metaOf(data, "uso_internet"), (m) => ({ texto: `En ${prov}, ${fmt(m.valor)} % de las personas de 5 años y más usó internet (promedio del país: ${fmt(m.nacional)} %).`, corto: `<b>Usó internet</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>`, variable: "Usó internet" }));
-  add(metaOf(data, "analf_digital"), (m) => ({ texto: `El analfabetismo digital en ${prov} es de ${fmt(m.valor)} % (país: ${fmt(m.nacional)} %).`, corto: `<b>Analfabetismo digital</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>`, variable: "Analfabetismo digital" }));
-  add(metaOf(data, "pobreza_ingresos"), (m) => ({ texto: `La pobreza por ingresos en ${prov} es de ${fmt(m.valor)} % (país: ${fmt(m.nacional)} %).`, corto: `<b>Pobreza por ingresos</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>`, variable: "Pobreza por ingresos" }));
+  add(metaOf(data, "uso_internet"), (m) => ({ texto: `En ${prov}, ${fmt(m.valor)} % de las personas de 5 años y más usó internet (promedio del país: ${fmt(m.nacional)} %).`, corto: `<b>${ICON.wifi}Usó internet</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>`, variable: "Usó internet" }));
+  add(metaOf(data, "analf_digital"), (m) => ({ texto: `El analfabetismo digital en ${prov} es de ${fmt(m.valor)} % (país: ${fmt(m.nacional)} %).`, corto: `<b>${ICON.book}Analfabetismo digital</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>`, variable: "Analfabetismo digital" }));
+  add(metaOf(data, "pobreza_ingresos"), (m) => ({ texto: `La pobreza por ingresos en ${prov} es de ${fmt(m.valor)} % (país: ${fmt(m.nacional)} %).`, corto: `<b>${ICON.coin}Pobreza por ingresos</b> ${fmt(m.valor)} % <span class="pais">país ${fmt(m.nacional)} %</span>`, variable: "Pobreza por ingresos" }));
   if (data.identificacion.pct_rural != null) {
-    out.push({ texto: `El ${fmt(data.identificacion.pct_rural)} % de la población de ${prov} vive en el área rural (país: ${fmt(E.MAPA.nacional.pct_rural)} %).`, corto: `<b>Vive en área rural</b> ${fmt(data.identificacion.pct_rural)} % <span class="pais">país ${fmt(E.MAPA.nacional.pct_rural)} %</span>`, source: "Censo 2022 (INEC)" });
+    out.push({ texto: `El ${fmt(data.identificacion.pct_rural)} % de la población de ${prov} vive en el área rural (país: ${fmt(E.MAPA.nacional.pct_rural)} %).`, corto: `<b>${ICON.home}Vive en área rural</b> ${fmt(data.identificacion.pct_rural)} % <span class="pais">país ${fmt(E.MAPA.nacional.pct_rural)} %</span>`, source: "Censo 2022 (INEC)" });
   }
   return out;
 }
@@ -292,7 +292,6 @@ export function renderPerfil(data) {
     ["afondo", "Investigar a fondo"],
   ];
   const segunda = [
-    conEscucha ? `<section class="card" id="sec-escucha" aria-live="polite"></section>` : "",
     showGuide ? `<section class="card" id="sec-decidir"><h2>Qué puedes y qué no afirmar</h2>${decisionBlock({ extraSi: [`Para ${data.provincia}: ${canalSugerido(rec)}`], extraNo })}</section>` : "",
   ].filter(Boolean);
 
@@ -314,13 +313,13 @@ export function renderPerfil(data) {
        <p class="copiar-h">Para tu nota</p>
        <p class="frase" id="fraseTexto">${esc(fraseVista)}</p>
        ${aviso ? `<p class="copiar-nota">Al copiar se añade la advertencia de arriba.</p>` : ""}
-       <div class="cita-act"><button class="btn" id="btnFrase" type="button">Copiar para mi nota</button><button class="btn gh" id="btnCita" type="button">Copiar con más contexto</button></div>
+       <div class="cita-act"><button class="btn" id="btnFrase" type="button">${ICON.copy}Copiar para mi nota</button><button class="btn gh" id="btnCita" type="button">${ICON.copy}Copiar con más contexto</button></div>
       </div>`
         : ""
     }
     <div class="km-top">
      <div class="km-num">
-      <span class="big">${fmt(data.ivei.indice)}</span>
+      <span class="big">${fmt(data.ivei.indice)}<small class="de100">/100</small></span>
       <span class="pill" style="background:${nivelColor};color:${inkFor(nivelColor)}">${esc(data.ivei.nivel)}</span>
       ${scoreRange({ confidenceRange: data.ivei.rango ?? null })}
      </div>
@@ -335,26 +334,29 @@ export function renderPerfil(data) {
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
    </section>
 
+   <div class="kit-side">
    ${
      showGuide
        ? `<section class="card" id="sec-angulos">
     <div class="sec-h"><h2>Datos para tu nota</h2><button type="button" class="copybtn noprint" id="btnTodo">Copiar todo</button></div>
-    <ul class="angulos">${angulos.map((a) => `<li><div>${a.html}${a.variable ? enlaceVariable(a.variable) : ""}</div><button type="button" class="copybtn noprint" data-copy="${esc(a.copia)}">Copiar</button></li>`).join("")}</ul>
+    <ul class="angulos">${angulos.map((a) => `<li><div>${a.html}${a.variable ? enlaceVariable(a.variable) : ""}</div><button type="button" class="copybtn noprint" data-copy="${esc(a.copia)}">${ICON.copy}Copiar</button></li>`).join("")}</ul>
    </section>`
        : ""
    }
+   ${flag("vista_comparar") ? comparaCard(data.provincia) : ""}
+   ${conEscucha ? `<section class="card" id="sec-escucha" aria-live="polite"></section>` : ""}
+   </div>
   </div>
 
-  ${flag("vista_comparar") ? comparaCard(data.provincia) : ""}
-  ${segunda.length ? `<div class="grid ${segunda.length > 1 ? "g2" : ""}" style="margin-top:16px">${segunda.join("")}</div>` : ""}
+  ${segunda.length ? `<div style="margin-top:16px">${segunda.join("")}</div>` : ""}
 
   <div class="kit-actions noprint">
-   ${flag("ficha_descargable") ? `<button class="btn gh" type="button" id="btnFicha">Descargar ficha</button>` : ""}
-   <button class="btn gh" type="button" id="btnVerMapa">Ver en el mapa</button>
-   <button class="btn gh" type="button" id="btnEnlace">Copiar enlace</button>
-   ${typeof navigator !== "undefined" && navigator.share ? `<button class="btn gh" type="button" id="btnCompartir">Compartir</button>` : ""}
+   ${flag("ficha_descargable") ? `<button class="btn gh" type="button" id="btnFicha">${ICON.download}Descargar la ficha</button>` : ""}
+   <button class="btn gh" type="button" id="btnVerMapa">${ICON.map}Verla en el mapa</button>
+   <button class="btn gh" type="button" id="btnEnlace">${ICON.link}Copiar enlace para compartir</button>
+   ${typeof navigator !== "undefined" && navigator.share ? `<button class="btn gh" type="button" id="btnCompartir">${ICON.share}Compartir</button>` : ""}
    <button class="btn gh" type="button" id="btnSeguir" aria-pressed="false"></button>
-   ${flag("solicitar_informacion") ? `<button class="btn gh" type="button" data-solicitar>Pedir más información</button>` : ""}
+   ${flag("solicitar_informacion") ? `<button class="btn gh" type="button" data-solicitar>${ICON.mail}¿Necesitas más datos? Pídelos</button>` : ""}
   </div>
 
   <details class="a-fondo" id="sec-afondo"${aFondoAbierto() ? " open" : ""}>
@@ -370,7 +372,7 @@ export function renderPerfil(data) {
   ${detalle("resiliencia", "Capacidad de contrastar y clima electoral", "Educación, fuentes y ambiente", resiliencia)}
   ${detalle("contexto", "Contexto social", "Edad, etnia, pobreza y educación", contexto)}
   </details>
-  ${flag("cita_lista") ? `<div class="copy-bar noprint"><button class="btn" id="btnFraseBar" type="button">Copiar para mi nota</button></div>` : ""}`;
+  ${flag("cita_lista") ? `<div class="copy-bar noprint"><button class="btn" id="btnFraseBar" type="button">${ICON.copy}Copiar para mi nota</button></div>` : ""}`;
 
   // the section nav stays on screen and shows where you are
   const botones = [...target.querySelectorAll(".idx [data-sec]")];
@@ -446,8 +448,8 @@ function comparaCard(prov) {
         .sort((a, b) => Math.abs(a.IVEI - yo.IVEI) - Math.abs(b.IVEI - yo.IVEI))
         .slice(0, 3)
     : [];
-  return `<section class="card cmp-sug" id="sec-comparar" style="margin-top:16px"><h2>Compara ${esc(prov)} con otra provincia</h2>
-   <p class="note" style="margin:2px 0 12px">Las más parecidas en puntaje, a un toque. O elige cualquiera.</p>
+  return `<section class="card cmp-sug" id="sec-comparar"><h2>¿Quieres comparar ${esc(prov)} con otra provincia?</h2>
+   <p class="note" style="margin:2px 0 12px">Estas son las más parecidas en puntaje. Toca una, o elige otra abajo.</p>
    <div class="cmp-chips">${cerca.map((p) => `<button type="button" class="cmp-chip" data-ruta="comparar/${enc(prov)}/${enc(p.provincia)}"><i class="cdot a"></i>${esc(prov)}<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M3 7h13m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><i class="cdot b"></i>${esc(p.provincia)}</button>`).join("")}
     <label class="sr" for="essComparar">Comparar con otra provincia</label>
     <select id="essComparar"><option value="">Otra provincia…</option>${E.PROVINCIAS.filter((p) => p !== prov).map((p) => `<option value="${esc(p)}">${esc(p)}</option>`).join("")}</select></div>
@@ -457,7 +459,7 @@ function comparaCard(prov) {
 function pintarSeguir(btn, provincia) {
   const on = sigue(provincia);
   btn.setAttribute("aria-pressed", String(on));
-  btn.textContent = on ? "Siguiendo ✓" : "Seguir esta provincia";
+  btn.innerHTML = on ? `${ICON.bookmark}Siguiendo ✓` : `${ICON.bookmark}Seguir esta provincia`;
 }
 
 function aFondoAbierto() {

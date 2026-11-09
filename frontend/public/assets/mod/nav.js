@@ -48,6 +48,14 @@ export function initDatosNav() {
     if (b) navigate(pathFor(b.dataset.ir));
     const r = e.target.closest("[data-ruta]");
     if (r) navigate(r.dataset.ruta);
+    const f = e.target.closest("[data-enfocar]");
+    if (f) {
+      const campo = $(f.dataset.enfocar);
+      if (campo) {
+        campo.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+        setTimeout(() => campo.focus({ preventScroll: true }), 250);
+      }
+    }
   });
 }
 
@@ -93,7 +101,7 @@ export function applyRoute() {
   }
 }
 
-export const tabs = () => [...document.querySelectorAll("nav > button:not([hidden])")];
+export const tabs = () => [...document.querySelectorAll("nav [role=tab]:not([hidden])")];
 
 export function barraOn() {
   const b = $("progress");
@@ -140,14 +148,15 @@ export async function copiarBtn(btn, texto, contexto) {
   const ok = await copyText(texto);
   if (!ok) return toast("No se pudo copiar. Selecciona el texto y cópialo a mano.");
   if (contexto) pedirOpinion(contexto);
-  const prev = btn.dataset.label || btn.textContent;
-  btn.dataset.label = prev;
+  // keep the button's icon: remember its markup, not just its text
+  const prev = btn.dataset.html ?? btn.innerHTML;
+  btn.dataset.html = prev;
   btn.textContent = "Copiado ✓";
   btn.classList.add("done");
   pop(btn);
   clearTimeout(btn._t);
   btn._t = setTimeout(() => {
-    btn.textContent = prev;
+    btn.innerHTML = prev;
     btn.classList.remove("done");
   }, 1600);
 }

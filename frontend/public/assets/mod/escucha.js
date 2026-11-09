@@ -60,6 +60,7 @@ function drawTendMapSVG(svgEl, pathsMap) {
     path.setAttribute("role", "button");
     path.setAttribute("tabindex", "0");
     const displayName = E.PROVINCIAS.find((p) => provinceKey(p) === key) || key;
+    path.setAttribute("aria-label", `${displayName}: ver de qué se habla`);
     path.addEventListener("mouseenter", (e) => {
       tipShow(e.clientX, e.clientY, `<b>${displayName}</b>`);
     });
@@ -72,6 +73,13 @@ function drawTendMapSVG(svgEl, pathsMap) {
       runTendencias(displayName);
       // on a phone the result sits under the map: bring it into view, no scrolling needed
       if (innerWidth <= 760) setTimeout(() => document.getElementById("tendProvLabel").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }), 30);
+    });
+    // keyboard: Enter or Space does what a tap does
+    path.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        path.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      }
     });
     svgEl.appendChild(path);
   }

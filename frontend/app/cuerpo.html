@@ -4,7 +4,7 @@
 <a class="skip" href="#main">Saltar al contenido</a>
 <header><div class="wrap">
 <div class="brand-row">
-<img src="/marca-blanco.svg" alt="" class="brand-mark" id="brandMark" width="32" height="32" aria-hidden="true">
+<img src="/marca-azul.svg" alt="" class="brand-mark" id="brandMark" width="32" height="32" aria-hidden="true">
 <img id="brandLogo" class="brand-logo" alt="" hidden>
 <h1 id="brandTitle">Observatorio de Vulnerabilidad ante la Desinformación Electoral</h1>
 <button type="button" class="finder-btn" id="buscador" aria-haspopup="dialog" aria-keyshortcuts="/ Control+K" title="Buscar provincia: pulsa / o Ctrl+K desde cualquier pantalla">
@@ -13,16 +13,20 @@
 <button type="button" class="btn-datos" id="btnSobreDatos" data-ir="meto" aria-label="Sobre los datos: metodología, datos abiertos y fuentes" title="Sobre los datos: metodología, datos abiertos y fuentes"><span class="sd-t">Sobre los datos</span><span class="sd-c" aria-hidden="true">i</span></button>
 <button type="button" class="btn-req" id="btnSolicitar" data-solicitar><span class="rq-ic" aria-hidden="true"></span><span class="rq-t">Solicitar información</span></button>
 </div>
-<nav role="tablist" aria-label="Secciones">
- <button role="tab" class="on" data-v="perfil">Preparar mi nota</button>
- <button role="tab" data-v="mapas">Mapa del país</button>
- <button role="tab" data-v="comparar">Comparar provincias</button>
- <button role="tab" data-v="asistente">Escucha digital</button>
+<nav aria-label="Secciones">
+ <div class="tabs" role="tablist" aria-label="Vistas del observatorio">
+  <button role="tab" class="on" data-v="perfil"><span class="nv-l">Preparar mi nota</span><span class="nv-c" aria-hidden="true">Mi nota</span></button>
+  <button role="tab" data-v="mapas"><span class="nv-l">Mapa del país</span><span class="nv-c" aria-hidden="true">Mapa</span></button>
+  <button role="tab" data-v="comparar"><span class="nv-l">Comparar provincias</span><span class="nv-c" aria-hidden="true">Comparar</span></button>
+  <button role="tab" data-v="asistente"><span class="nv-l">Escucha digital</span><span class="nv-c" aria-hidden="true">Escucha</span></button>
+ </div>
+ <a class="nav-ext" href="https://149-130-170-232.sslip.io/#/chat" target="_blank" rel="noopener" title="Chat privado de Periodismo Seguro (se abre en otra pestaña)"><span data-ic="chat"></span><span class="nv-t">Chat</span><span class="visually-hidden"> (Periodismo Seguro, otra pestaña)</span></a>
+ <a class="nav-ext" href="https://149-130-170-232.sslip.io/#/boveda" target="_blank" rel="noopener" title="Bóveda segura de Periodismo Seguro (se abre en otra pestaña)"><span data-ic="lock"></span><span class="nv-t">Bóveda</span><span class="visually-hidden"> (Periodismo Seguro, otra pestaña)</span></a>
 </nav>
 </div></header>
 <p class="cut"><span class="wrap">Datos con corte a la última publicación de cada fuente · sujetos a actualización continua. <span id="brandSub"></span></span></p>
 
-<div class="wrap" id="main" tabindex="-1">
+<div class="wrap" id="main" role="main" tabindex="-1">
 
 <!-- ============ MAPAS ============ -->
 <section class="view" id="v-mapas">
@@ -83,6 +87,25 @@
 
 <!-- ============ PERFIL ============ -->
 <section class="view on" id="v-perfil">
+ <section class="hero-inicio" id="heroInicio" aria-labelledby="heroTit">
+  <div class="hero-txt">
+   <p class="hero-sello">Observatorio de datos abiertos</p>
+   <h2 id="heroTit">¿Qué es OVADE?</h2>
+   <p class="hero-p">Un mapa de Ecuador que muestra <b>dónde la desinformación electoral encuentra más terreno</b>. Junta datos oficiales de las 24 provincias en un puntaje de 0 a 100.</p>
+   <p class="hero-p">Te sirve para decidir <b>dónde verificar primero</b> y <b>por qué canal llegar</b>.</p>
+   <p class="hero-no"><span data-ic="info"></span>No dice si algo es falso ni señala personas: describe territorios.</p>
+  </div>
+  <div class="hero-acc">
+   <h3 class="hero-h">¿Qué puedes hacer aquí?</h3>
+   <ul class="hero-lista">
+    <li><button type="button" class="hero-btn" data-enfocar="provFiltro"><span class="hero-ic" data-ic="pen"></span><span class="hero-t"><b>Preparar una nota</b><small>Elige tu provincia y copia una frase lista, con su fuente.</small></span></button></li>
+    <li><button type="button" class="hero-btn" data-ruta="mapas/IVEI"><span class="hero-ic" data-ic="map"></span><span class="hero-t"><b>Ver el mapa del país</b><small>Qué provincias están más expuestas, de un vistazo.</small></span></button></li>
+    <li><button type="button" class="hero-btn" data-ruta="comparar"><span class="hero-ic" data-ic="compare"></span><span class="hero-t"><b>Comparar dos provincias</b><small>Cuál tiene más terreno y por qué.</small></span></button></li>
+    <li><a class="hero-btn ext" href="https://149-130-170-232.sslip.io/#/chat" target="_blank" rel="noopener"><span class="hero-ic" data-ic="chat"></span><span class="hero-t"><b>Chat privado <em>Periodismo Seguro</em></b><small>Charla con colegas en una sala que se borra sola. Se abre en otra pestaña.</small></span></a></li>
+    <li><a class="hero-btn ext" href="https://149-130-170-232.sslip.io/#/boveda" target="_blank" rel="noopener"><span class="hero-ic" data-ic="lock"></span><span class="hero-t"><b>Bóveda segura <em>Periodismo Seguro</em></b><small>Guarda archivos cifrados en tu navegador. Se abre en otra pestaña.</small></span></a></li>
+   </ul>
+  </div>
+ </section>
  <div class="notes-layout">
   <aside class="prov-aside noprint" aria-label="Elegir provincia">
    <div class="aside-buscar">
@@ -95,7 +118,7 @@
     <svg id="map-sel" viewBox="0 0 560 640" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Mapa de Ecuador"></svg>
     <div class="inset-gal inset-sel"><span class="inset-gal-label">GALÁPAGOS</span><svg id="map-sel-gal" viewBox="0 0 110 110"></svg></div>
    </div>
-   <p class="pais" style="margin:6px 2px 12px"><i class="cdot" style="background:#78c882"></i>Verde = menos vulnerable · <i class="cdot" style="background:#c8372d"></i>rojo = más vulnerable.</p>
+   <p class="pais" style="margin:6px 2px 12px"><i class="cdot" style="background:#1a9641"></i>Verde = menos vulnerable · <i class="cdot" style="background:#d7191c"></i>rojo = más vulnerable.</p>
    </div>
    <div class="aside-find">
    <div id="provRecientes" class="recent"></div>
