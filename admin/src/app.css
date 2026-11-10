@@ -1,19 +1,40 @@
-@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap");
+/* Same identity as the public observatory (frontend/public/assets/estilo-ps.css): white paper with a
+   dot grid, Anton headlines, thick navy outlines with a hard offset shadow, red for the one call to
+   action, yellow marker, 3 px corners. Fonts are SIL OFL and served from /fonts (no third-party request). */
+@font-face {
+  font-family: Anton;
+  src: url(/fonts/anton.woff2) format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Public Sans";
+  src: url(/fonts/public-sans.woff2) format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
-/* Palette of a newsroom: newsprint, ink, proofreader's red, highlighter. */
 :root {
-  --paper: #f2f1ed;
+  --paper: #fff;
   --card: #fff;
-  --ink: #14161a;
-  --mut: #5d636c;
-  --line: #d9d8d2;
-  --red: #b3141f;
-  --red-ink: #8f0f19;
-  --hl: #fff1a8;
-  --ok: #1f6b4a;
-  --display: "Source Serif 4", Georgia, serif;
-  --body: "IBM Plex Sans", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --gris: #eef0f4;
+  --text: #12161c;
+  --ink: #1b2a41; /* outlines, hard shadows, headings */
+  --mut: #394150;
+  --line: #cdd5e0;
+  --red: #d8132b;
+  --red-ink: #b50f24;
+  --hl: #ffd60a;
+  --ok: #1b6e1b;
+  --ok-bg: #f1f8f4;
+  --warn-bg: #fff6e5;
+  --err-bg: #fbf2f1;
+  --r: 3px;
+  --sh: 3px 3px 0 var(--ink);
+  --display: "Anton", "Arial Narrow Bold", Impact, sans-serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: Consolas, "Courier New", ui-monospace, monospace;
 }
 * {
   box-sizing: border-box;
@@ -22,11 +43,13 @@ html,
 body {
   margin: 0;
   height: 100%;
-  background: var(--paper);
+  background-color: var(--paper);
+  background-image: radial-gradient(#1b2a4117 1.3px, transparent 1.6px);
+  background-size: 10px 10px;
 }
 body {
-  color: var(--ink);
-  font: 14px/1.5 var(--body);
+  color: var(--text);
+  font: 14.5px/1.5 var(--body);
   -webkit-font-smoothing: antialiased;
 }
 button,
@@ -37,15 +60,19 @@ textarea {
   color: inherit;
 }
 :focus-visible {
-  outline: 2.5px solid var(--ink);
+  outline: 3px solid var(--red);
   outline-offset: 2px;
 }
 h1,
 h2,
 h3 {
   font-family: var(--display);
+  font-weight: 400;
+  color: var(--ink);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  text-wrap: balance;
 }
 .sr {
   position: absolute;
@@ -57,41 +84,58 @@ h3 {
 }
 
 .btn {
-  font-weight: 600;
-  font-size: 13.5px;
-  padding: 9px 16px;
-  border-radius: 6px;
-  border: 1.5px solid var(--ink);
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  min-height: 40px;
+  padding: 7px 16px;
+  border-radius: var(--r);
+  border: 3px solid var(--ink);
   background: var(--ink);
   color: #fff;
+  box-shadow: var(--sh);
   cursor: pointer;
 }
 .btn:hover:not(:disabled) {
-  background: #000;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+.btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
 }
 .btn.red {
   background: var(--red);
-  border-color: var(--red);
 }
 .btn.red:hover:not(:disabled) {
   background: var(--red-ink);
-  border-color: var(--red-ink);
 }
 .btn.ghost {
-  background: transparent;
+  background: var(--card);
   color: var(--ink);
 }
 .btn.ghost:hover:not(:disabled) {
-  background: var(--card);
+  background: var(--gris);
 }
 .btn.danger {
-  background: transparent;
-  color: var(--red);
-  border-color: var(--red);
+  background: var(--card);
+  color: var(--red-ink);
+  border-color: var(--red-ink);
+  box-shadow: 3px 3px 0 var(--red-ink);
 }
 .btn:disabled {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover:not(:disabled),
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 .field {
@@ -101,13 +145,13 @@ h3 {
 .field > span,
 .field > legend {
   display: block;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   margin-bottom: 5px;
 }
 .field small {
   display: block;
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--mut);
   margin-top: 4px;
   line-height: 1.45;
@@ -118,15 +162,14 @@ h3 {
 .field textarea {
   width: 100%;
   padding: 9px 11px;
-  border: 1.5px solid var(--line);
-  border-radius: 6px;
+  border: 2px solid var(--ink);
+  border-radius: var(--r);
   background: var(--card);
 }
 .field input:focus,
 .field textarea:focus {
-  border-color: var(--ink);
-  outline: none;
-  box-shadow: 0 0 0 3px var(--hl);
+  outline: 3px solid var(--red);
+  outline-offset: 1px;
 }
 .field textarea {
   resize: vertical;
@@ -138,6 +181,6 @@ h3 {
 }
 .msg-err {
   color: var(--red-ink);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 13.5px;
+  font-weight: 600;
 }

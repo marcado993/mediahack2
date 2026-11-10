@@ -82,8 +82,9 @@
     font-size: 18px;
   }
   .small {
-    padding: 5px 10px;
-    font-size: 12.5px;
+    min-height: 34px;
+    padding: 4px 10px;
+    font-size: 13px;
   }
   .new {
     padding: 14px 18px 4px;
@@ -112,16 +113,18 @@
     cursor: pointer;
   }
   .row:hover {
-    background: rgba(255, 255, 255, 0.6);
+    background: var(--gris);
   }
   .row.sel {
-    background: var(--card);
-    border-left-color: var(--red);
+    background: var(--gris);
+    border-left: 8px solid var(--red);
+    padding-left: 14px;
   }
   .chipcolor {
     flex: none;
     width: 14px;
     height: 34px;
+    border: 2px solid var(--ink);
     border-radius: 2px;
   }
   .meta {
@@ -155,7 +158,7 @@
   .draft {
     font-size: 11px;
     font-weight: 600;
-    border: 1.5px solid var(--mut);
+    border: 2px solid var(--mut);
     color: var(--mut);
     padding: 0 6px;
     border-radius: 3px;

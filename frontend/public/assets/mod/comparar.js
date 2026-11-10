@@ -65,7 +65,7 @@ export function compareText(d) {
     .filter((x) => x.va != null && x.vb != null)
     .sort((p, q) => Math.abs(q.va - q.vb) - Math.abs(p.va - p.vb))[0];
   const detalle = top ? `Lo que más los separa: ${top.nombre} (${a.provincia} ${fmt(top.va)}, ${b.provincia} ${fmt(top.vb)}).` : "";
-  const copia = `${frase} ${detalle} Fuente: Observatorio de Vulnerabilidad ante la Desinformación Electoral (IVEI 2024). El índice describe territorios, no personas.`.replace(/\s+/g, " ");
+  const copia = `${frase} ${detalle} Fuente: Observatorio de Vulnerabilidad ante la Desinformación Electoral (índice OVADE 2024). El índice describe territorios, no personas.`.replace(/\s+/g, " ");
   return { frase, detalle, copia };
 }
 

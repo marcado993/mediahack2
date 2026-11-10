@@ -38,13 +38,13 @@ NAME_ALIASES = {
 # direction: 1 = higher reads as more vulnerable/worse, -1 = higher is
 # better/more resilient, 0 = descriptive only (no inherent "better/worse").
 INDICATORS = {
-    "IVEI": ("IVEI_indice_integrado", "Nivel de vulnerabilidad", "pts/100", "IVEI 2024", 1),
-    "EST": ("dim1_vulnerab_estructural", "Carencias de base", "pts/100", "IVEI 2024", 1),
-    "EXP": ("dim2_exposicion_informativa", "Dependencia de redes", "pts/100", "IVEI 2024", 1),
-    "RES": ("dim3_resiliencia_informativa", "Capacidad de contrastar", "pts/100", "IVEI 2024", -1),
-    "PRE": ("dim4_presion_coyuntural", "Clima electoral", "pts/100", "IVEI 2024", 1),
-    "EXCLUSION": ("idx_exclusion_digital", "Sin conexión", "pts/100", "IVEI 2024", 1),
-    "HIPEREXP": ("idx_hiperexposicion_digital", "Saturación de redes", "pts/100", "IVEI 2024", 1),
+    "IVEI": ("IVEI_indice_integrado", "Nivel de vulnerabilidad", "pts/100", "OVADE 2024", 1),
+    "EST": ("dim1_vulnerab_estructural", "Carencias de base", "pts/100", "OVADE 2024", 1),
+    "EXP": ("dim2_exposicion_informativa", "Dependencia de redes", "pts/100", "OVADE 2024", 1),
+    "RES": ("dim3_resiliencia_informativa", "Capacidad de contrastar", "pts/100", "OVADE 2024", -1),
+    "PRE": ("dim4_presion_coyuntural", "Clima electoral", "pts/100", "OVADE 2024", 1),
+    "EXCLUSION": ("idx_exclusion_digital", "Sin conexión", "pts/100", "OVADE 2024", 1),
+    "HIPEREXP": ("idx_hiperexposicion_digital", "Saturación de redes", "pts/100", "OVADE 2024", 1),
     "ivd_original": ("IVD_original_fase1", "IVD original (fase 1)", "pts/100", "IVD 2024", 1),
     "poblacion": ("poblacion_2022", "Población", "hab.", "Censo 2022 (INEC)", 0),
     "densidad": ("densidad_hab_km2", "Densidad poblacional", "hab/km²", "Censo 2022 (INEC)", 0),

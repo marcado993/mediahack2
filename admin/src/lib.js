@@ -1,5 +1,5 @@
 export const DEFAULT_TITULO = "Observatorio de Vulnerabilidad ante la Desinformación Electoral";
-export const DEFAULT_LEMA = "IVEI 2024 · 24 provincias + Galápagos · Censo 2022, ENEMDU 2024 y Latinobarómetro 2024";
+export const DEFAULT_LEMA = "Índice OVADE 2024 · 24 provincias + Galápagos · Censo 2022, ENEMDU 2024 y Latinobarómetro 2024";
 export const INK = "#131a24";
 
 export const newTenant = (nombre) => ({

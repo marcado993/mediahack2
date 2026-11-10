@@ -1,0 +1,2 @@
+Anton, Public Sans and Source Serif 4: SIL Open Font License 1.1.
+Same files as the sister project "Periodismo Seguro" (web/app/fonts), used for the shared look.

@@ -235,15 +235,15 @@
   }
   .seg {
     display: flex;
-    border: 1.5px solid var(--ink);
-    border-radius: 6px;
+    border: 3px solid var(--ink);
+    border-radius: var(--r);
     overflow: hidden;
   }
   .seg button {
     border: 0;
     background: transparent;
     padding: 7px 13px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 13px;
     cursor: pointer;
   }
@@ -265,8 +265,10 @@
   }
   li {
     background: var(--card);
-    border: 1px solid var(--line);
-    border-left: 5px solid var(--line);
+    border: 3px solid var(--ink);
+    border-left: 10px solid var(--line);
+    border-radius: var(--r);
+    box-shadow: var(--sh);
     padding: 14px 18px 16px;
   }
   li.pend {
@@ -316,7 +318,7 @@
     display: grid;
     gap: 10px;
     padding-top: 12px;
-    border-top: 1px solid var(--paper);
+    border-top: 1px solid var(--line);
   }
   .edit label span {
     display: block;
@@ -327,14 +329,13 @@
   .edit input {
     width: 100%;
     padding: 8px 10px;
-    border: 1.5px solid var(--line);
-    border-radius: 6px;
+    border: 2px solid var(--ink);
+    border-radius: var(--r);
     background: var(--card);
   }
   .edit input:focus {
-    border-color: var(--ink);
-    outline: none;
-    box-shadow: 0 0 0 3px var(--hl);
+    outline: 3px solid var(--red);
+    outline-offset: 1px;
   }
   .acts {
     display: flex;

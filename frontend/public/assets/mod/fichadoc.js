@@ -76,7 +76,7 @@ function buildFichaHTML(data, all, nacIdent) {
   ${data.dimensiones
     .map((d) => fichaRow(d.nombre, d.valor, d.nacional, rankAmong(all, data.provincia, (p) => (p.dimensiones.find((x) => x.codigo === d.codigo) || {}).valor, dimDir[d.codigo]), "", dimDesc[d.codigo]))
     .join("")}
-  <tr><td><b>Índice integrado (IVEI)</b></td><td class="n"><b>${fmt(data.ivei.indice)}</b></td>
+  <tr><td><b>Índice integrado OVADE</b></td><td class="n"><b>${fmt(data.ivei.indice)}</b></td>
   <td class="n">${fmt(data.ivei.nacional)}</td><td class="n">${data.ivei.puesto}/24</td>
   <td class="s">Combina carencias de base × dependencia de redes × falta de capacidad de contrastar; el clima electoral lo ajusta hasta ±7,5%</td></tr>
   ${(() => {

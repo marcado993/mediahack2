@@ -221,7 +221,7 @@ export const DECISIONES = [
 ];
 
 export const GLOSARIO = [
-  ["Nivel de vulnerabilidad", "IVEI", "Cuántos factores del territorio facilitan que la desinformación llegue y prospere, de 0 a 100. No mide a las personas ni cuánta desinformación circula."],
+  ["Nivel de vulnerabilidad", "Índice OVADE", "Cuántos factores del territorio facilitan que la desinformación llegue y prospere, de 0 a 100. No mide a las personas ni cuánta desinformación circula."],
   ["Carencias de base", "vulnerabilidad estructural", FACTORES.EST.que],
   ["Dependencia de redes", "exposición informativa", FACTORES.EXP.que],
   ["Capacidad de contrastar", "resiliencia informativa", FACTORES.RES.que],
@@ -236,7 +236,7 @@ export const GLOSARIO = [
 
 // Inline glossary: a short definition one tap away, without leaving the sheet.
 export const GL_TERMS = {
-  ivei: ["IVEI", "Índice de Vulnerabilidad Electoral Integrada. Va de 0 a 100 y dice qué tan fértil es el territorio para que la desinformación llegue y prospere. Describe territorios, no personas."],
+  ivei: ["Índice OVADE", "Índice de vulnerabilidad electoral integrada del observatorio. Va de 0 a 100 y dice qué tan fértil es el territorio para que la desinformación llegue y prospere. Describe territorios, no personas."],
   imputado: ["Valor imputado", GLOSARIO.find(([t]) => t === "Valor imputado")[2]],
   factor: ["Factor", "Cada uno de los cuatro bloques que forman el índice: carencias de base, dependencia de redes, capacidad de contrastar y clima electoral."],
 };

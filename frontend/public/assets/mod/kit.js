@@ -88,7 +88,7 @@ function precaucion(nLb, provincia) {
 function citaTexto({ provincia, indice, nivel, puesto, nacional, nLb }) {
   const aviso = precaucion(nLb, provincia);
   return (
-    `${provincia} obtiene ${fmt(indice)} sobre 100 en el Índice de Vulnerabilidad Electoral Integrada (IVEI), ` +
+    `${provincia} obtiene ${fmt(indice)} sobre 100 en el índice OVADE de vulnerabilidad electoral, ` +
     `de vulnerabilidad ${(nivel || "").toLowerCase()}: puesto ${puesto} de 24 provincias (1 = la más vulnerable), con un promedio nacional de ${fmt(nacional)}. ` +
     `${FUENTE_OVADE.slice(0, -1)}, con datos del Censo 2022 y la ENEMDU 2024 (INEC) y el Latinobarómetro 2024. ` +
     `El índice describe condiciones del territorio, no el comportamiento de sus habitantes.` +
@@ -99,7 +99,7 @@ function citaTexto({ provincia, indice, nivel, puesto, nacional, nLb }) {
 // Short sentence for the reporter in a hurry; same source line, same warning.
 function fraseCorta({ provincia, indice, puesto, nLb }) {
   const aviso = precaucion(nLb, provincia);
-  return `${provincia}: puesto ${puesto} de 24 en vulnerabilidad electoral (IVEI ${fmt(indice)} de 100). ${FUENTE_OVADE}` + (aviso ? ` Precaución editorial: ${aviso}` : "");
+  return `${provincia}: puesto ${puesto} de 24 en vulnerabilidad electoral (índice OVADE: ${fmt(indice)} de 100). ${FUENTE_OVADE}` + (aviso ? ` Precaución editorial: ${aviso}` : "");
 }
 
 const buildCita = (d) => citaTexto({ provincia: d.provincia, indice: d.ivei.indice, nivel: d.ivei.nivel, puesto: d.ivei.puesto, nacional: d.ivei.nacional, nLb: d.n_lb });
@@ -132,7 +132,7 @@ export const driversHTML = (rec) => {
 function reporterGuide(d) {
   const conf = reliability(d.n_lb);
   const si = [
-    `${d.provincia} ocupa el puesto ${d.ivei.puesto} de 24 en el IVEI 2024.`,
+    `${d.provincia} ocupa el puesto ${d.ivei.puesto} de 24 en el índice OVADE 2024.`,
     `Sus condiciones (carencias de base, dependencia de redes, capacidad de contrastar y clima electoral) la ubican en el nivel de vulnerabilidad ${(d.ivei.nivel || "").toLowerCase()}.`,
     `Comparar con el promedio nacional (${fmt(d.ivei.nacional)}) o con otra provincia, nombrando la fuente de cada indicador.`,
   ];
@@ -283,17 +283,28 @@ export function renderPerfil(data) {
   const conEscucha = viewEnabled("asistente");
   // Quick-note mode: only what a reporter on deadline needs is open; the
   // evidence is folded under "Investigar a fondo" and remembered per browser.
-  const chips = [
-    ["esencial", "Resumen"],
-    ...(showGuide ? [["angulos", "Datos para tu nota"]] : []),
-    ...(flag("vista_comparar") ? [["comparar", "Comparar"]] : []),
-    ...(conEscucha ? [["escucha", "Qué se dice"]] : []),
-    ...(showGuide ? [["decidir", "Qué afirmar"]] : []),
-    ["afondo", "Investigar a fondo"],
-  ];
-  const segunda = [
-    showGuide ? `<section class="card" id="sec-decidir"><h2>Qué puedes y qué no afirmar</h2>${decisionBlock({ extraSi: [`Para ${data.provincia}: ${canalSugerido(rec)}`], extraNo })}</section>` : "",
-  ].filter(Boolean);
+  // One screen, one job: the paragraph to paste. Everything else is a closed drawer with a plain
+  // question for a title, so a reporter on deadline reads five lines instead of five thousand pixels.
+  const cajon = (id, titulo, sub, cuerpo, abierto = false) =>
+    cuerpo ? `<details class="a-fondo kit-pleg" id="pleg-${id}"${abierto ? " open" : ""}><summary><span class="af-t">${titulo}</span><span class="af-s">${sub}</span></summary>${cuerpo}</details>` : "";
+  const cajones = [
+    showGuide
+      ? cajon("decidir", "Qué puedes afirmar y qué no", "Léelo antes de publicar: evita el error más común con este índice.", `<section class="card" id="sec-decidir">${decisionBlock({ extraSi: [`Para ${data.provincia}: ${canalSugerido(rec)}`], extraNo })}</section>`, true)
+      : "",
+    showGuide
+      ? cajon(
+          "angulos",
+          "Más datos para citar",
+          `${angulos.length} frases cortas de ${esc(data.provincia)}, cada una con su fuente.`,
+          `<section class="card" id="sec-angulos">
+    <div class="sec-h"><h2>Frases con dato y fuente</h2><button type="button" class="copybtn noprint" id="btnTodo">Copiar todo</button></div>
+    <ul class="angulos">${angulos.map((a) => `<li><div>${a.html}${a.variable ? enlaceVariable(a.variable) : ""}</div><button type="button" class="copybtn noprint" data-copy="${esc(a.copia)}">${ICON.copy}Copiar</button></li>`).join("")}</ul>
+   </section>`,
+        )
+      : "",
+    conEscucha ? cajon("escucha", `Qué se dice hoy en ${esc(data.provincia)}`, "Temas que se mueven en X y en medios. Tarda unos segundos en cargar.", `<section class="card" id="sec-escucha" aria-live="polite"></section>`) : "",
+    flag("vista_comparar") ? cajon("comparar", "Comparar con otra provincia", "Te damos la diferencia lista para copiar.", comparaCard(data.provincia)) : "",
+  ].join("");
 
   target.innerHTML = `
   <nav class="migas noprint" aria-label="Dónde estás"><button type="button" class="linkbtn" data-ruta="perfil">Inicio</button><span aria-hidden="true">›</span><span aria-current="page">${esc(data.provincia)}</span></nav>
@@ -301,19 +312,17 @@ export function renderPerfil(data) {
    <h2 class="prov-title">${esc(data.provincia)}</h2>
    ${provinceFlags({ isImputed, isBorderlineCase, compact: true })}
   </div>
-  <div class="idx noprint" role="navigation" aria-label="Ir a una sección">${chips.map(([id, l]) => `<button type="button" data-sec="${id}">${l}</button>`).join("")}</div>
 
-  <div class="kit-grid">
    <section class="card kit-main" id="sec-esencial">
     <h3 class="ess-titular">${esc(titular)}</h3>
     ${aviso ? `<div class="precaucion" role="note"><span class="pc-h">${ICON.warn}Precaución editorial</span><p>${esc(aviso)} ${data.n_lb === 0 ? gl("imputado", "¿Qué es un valor imputado?") : ""}</p></div>` : ""}
     ${
       flag("cita_lista")
         ? `<div class="copiar">
-       <p class="copiar-h">Para tu nota</p>
+       <p class="copiar-h">Tu párrafo, listo para pegar</p>
        <p class="frase" id="fraseTexto">${esc(fraseVista)}</p>
        ${aviso ? `<p class="copiar-nota">Al copiar se añade la advertencia de arriba.</p>` : ""}
-       <div class="cita-act"><button class="btn" id="btnFrase" type="button">${ICON.copy}Copiar para mi nota</button><button class="btn gh" id="btnCita" type="button">${ICON.copy}Copiar con más contexto</button></div>
+       <div class="cita-act"><button class="btn" id="btnFrase" type="button">${ICON.copy}Copiar para mi nota</button><button class="linkbtn" id="btnCita" type="button">o copiar una versión más larga, con fuentes</button></div>
       </div>`
         : ""
     }
@@ -334,34 +343,10 @@ export function renderPerfil(data) {
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
    </section>
 
-   <div class="kit-side">
-   ${
-     showGuide
-       ? `<section class="card" id="sec-angulos">
-    <div class="sec-h"><h2>Datos para tu nota</h2><button type="button" class="copybtn noprint" id="btnTodo">Copiar todo</button></div>
-    <ul class="angulos">${angulos.map((a) => `<li><div>${a.html}${a.variable ? enlaceVariable(a.variable) : ""}</div><button type="button" class="copybtn noprint" data-copy="${esc(a.copia)}">${ICON.copy}Copiar</button></li>`).join("")}</ul>
-   </section>`
-       : ""
-   }
-   ${flag("vista_comparar") ? comparaCard(data.provincia) : ""}
-   ${conEscucha ? `<section class="card" id="sec-escucha" aria-live="polite"></section>` : ""}
-   </div>
-  </div>
-
-  ${segunda.length ? `<div style="margin-top:16px">${segunda.join("")}</div>` : ""}
-
-  <div class="kit-actions noprint">
-   ${flag("ficha_descargable") ? `<button class="btn gh" type="button" id="btnFicha">${ICON.download}Descargar la ficha</button>` : ""}
-   <button class="btn gh" type="button" id="btnVerMapa">${ICON.map}Verla en el mapa</button>
-   ${flag("vista_chat") ? `<button class="btn gh" type="button" data-ruta="chat/${enc(data.provincia)}">${ICON.chat}Charlar sobre ${esc(data.provincia)}</button>` : ""}
-   <button class="btn gh" type="button" id="btnEnlace">${ICON.link}Copiar enlace para compartir</button>
-   ${typeof navigator !== "undefined" && navigator.share ? `<button class="btn gh" type="button" id="btnCompartir">${ICON.share}Compartir</button>` : ""}
-   <button class="btn gh" type="button" id="btnSeguir" aria-pressed="false"></button>
-   ${flag("solicitar_informacion") ? `<button class="btn gh" type="button" data-solicitar>${ICON.mail}¿Necesitas más datos? Pídelos</button>` : ""}
-  </div>
+  ${cajones ? `<h3 class="kit-mas-h">Si necesitas algo más</h3>${cajones}` : ""}
 
   <details class="a-fondo" id="sec-afondo"${aFondoAbierto() ? " open" : ""}>
-  <summary><span class="af-t">Investigar a fondo</span><span class="af-s">Qué explica este nivel, ideas para cubrirla, perfil digital, dieta informativa y contexto social de ${esc(data.provincia)}</span></summary>
+  <summary><span class="af-t">Investigar a fondo</span><span class="af-s">Para un reportaje largo: qué explica este nivel, ideas para cubrirla y todos los datos de ${esc(data.provincia)}.</span></summary>
   ${showGuide ? `<section class="card" id="sec-ideas" style="margin-bottom:16px"><h2>Ideas para cubrirla</h2>${data.recomendaciones_periodismo.map((r) => `<div class="rec"><b>${esc(r.titulo)}</b><p>${esc(r.texto)}</p></div>`).join("")}</section>` : ""}
   <section class="card sec-open" id="sec-factores" style="margin-bottom:16px">
    <div class="sec-h"><h2>Qué explica este nivel</h2><span class="sub-s">Cuatro factores, de 0 a 100. La marca vertical es el promedio del país.</span></div>
@@ -373,6 +358,20 @@ export function renderPerfil(data) {
   ${detalle("resiliencia", "Capacidad de contrastar y clima electoral", "Educación, fuentes y ambiente", resiliencia)}
   ${detalle("contexto", "Contexto social", "Edad, etnia, pobreza y educación", contexto)}
   </details>
+  <div class="kit-actions noprint">
+   ${flag("ficha_descargable") ? `<button class="btn gh" type="button" id="btnFicha">${ICON.download}Descargar la ficha</button>` : ""}
+   ${flag("vista_chat") ? `<button class="btn gh" type="button" data-ruta="chat/${enc(data.provincia)}">${ICON.chat}Chat de ${esc(data.provincia)}</button>` : ""}
+   <button class="btn gh" type="button" id="btnVerMapa">${ICON.map}Verla en el mapa</button>
+   <details class="kit-mas">
+    <summary class="btn gh">Más opciones</summary>
+    <div class="kit-mas-in">
+     <button class="btn gh" type="button" id="btnEnlace">${ICON.link}Copiar enlace</button>
+     ${typeof navigator !== "undefined" && navigator.share ? `<button class="btn gh" type="button" id="btnCompartir">${ICON.share}Compartir</button>` : ""}
+     <button class="btn gh" type="button" id="btnSeguir" aria-pressed="false"></button>
+     ${flag("solicitar_informacion") ? `<button class="btn gh" type="button" data-solicitar>${ICON.mail}Pedir más datos</button>` : ""}
+    </div>
+   </details>
+  </div>
   ${flag("cita_lista") ? `<div class="copy-bar noprint"><button class="btn" id="btnFraseBar" type="button">${ICON.copy}Copiar para mi nota</button></div>` : ""}`;
 
   // the section nav stays on screen and shows where you are

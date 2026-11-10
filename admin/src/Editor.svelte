@@ -55,8 +55,25 @@
   const activeCount = $derived(flags.filter(flagOn).length);
   const link = $derived(`${PUBLIC_URL}/?medio=${slug}`);
 
+  const changedFlags = $derived(flags.filter((f) => !f.locked && flagOn(f) !== f.default).length);
+
   function setFlag(f, v) {
     draft.flags = { ...draft.flags, [f.key]: v };
+  }
+
+  // Back to what a new medio starts with. Nothing is saved until "Guardar cambios", so "Descartar" undoes it.
+  function resetFlags() {
+    draft.flags = {};
+  }
+
+  // Left/right arrows move between the editor's tabs, as in any tab list.
+  const TABS = ["marca", "funciones", "publicacion"];
+  function tabKeys(e) {
+    const step = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    tab = TABS[(TABS.indexOf(tab) + step + TABS.length) % TABS.length];
+    e.currentTarget.querySelector(`#tab-${tab}`)?.focus();
   }
 
   function onLogoFile(e) {
@@ -95,18 +112,21 @@
     </div>
     <div class="actions">
       {#if dirty}<button class="btn ghost" type="button" onclick={onrevert} disabled={saving}>Descartar</button>{/if}
-      <button class="btn red" type="button" onclick={onsave} disabled={!dirty || saving || tooLight || !colorOk}>{saving ? "Guardando…" : "Guardar cambios"}</button>
+      <button class="btn red" type="button" onclick={onsave} disabled={!dirty || saving || tooLight || !colorOk} aria-keyshortcuts="Control+S" title="Guardar (Ctrl+S)">{saving ? "Guardando…" : "Guardar cambios"}</button>
     </div>
+    <p class="estado" role="status">
+      {#if saving}Guardando…{:else if dirty && (tooLight || !colorOk)}No se puede guardar: corrige el color en «Marca».{:else if dirty}Tienes cambios sin guardar (Ctrl+S). La vista previa ya los muestra; tu audiencia todavía no.{:else}Todo guardado. Lo que ves es lo que ve la audiencia.{/if}
+    </p>
   </header>
   {#if error}<p class="msg-err top" role="alert">{error}</p>{/if}
 
-  <div class="tabs" role="tablist" aria-label="Secciones del medio">
+  <div class="tabs" role="tablist" tabindex="-1" aria-label="Secciones del medio" onkeydown={tabKeys}>
     {#each [["marca", "Marca"], ["funciones", `Funciones (${activeCount}/${flags.length})`], ["publicacion", "Publicación"]] as [id, label]}
-      <button type="button" role="tab" aria-selected={tab === id} class:on={tab === id} onclick={() => (tab = id)}>{label}</button>
+      <button type="button" role="tab" id="tab-{id}" aria-selected={tab === id} aria-controls="panel" tabindex={tab === id ? 0 : -1} class:on={tab === id} onclick={() => (tab = id)}>{label}</button>
     {/each}
   </div>
 
-  <div class="body">
+  <div class="body" id="panel" role="tabpanel" aria-labelledby="tab-{tab}">
     {#if tab === "marca"}
       <label class="field">
         <span>Nombre del medio</span>
@@ -180,20 +200,24 @@
         <small>Debajo siempre aparece el crédito de datos y metodología del Observatorio; no se puede quitar.</small>
       </label>
     {:else if tab === "funciones"}
-      <p class="lead">Lo que apagues desaparece de la plataforma de este medio. Las vistas marcadas «Siempre activa» sostienen la transparencia del índice.</p>
+      <p class="lead">Lo que apagues desaparece de la plataforma de este medio. Míralo en la vista previa antes de guardar. Las marcadas «Siempre activa» sostienen la transparencia del índice y no se pueden apagar.</p>
+      <div class="resetrow">
+        <span>{changedFlags ? `${changedFlags} ${changedFlags === 1 ? "función cambiada" : "funciones cambiadas"} respecto a la configuración inicial.` : "Todas las funciones están como en la configuración inicial."}</span>
+        <button class="btn ghost small" type="button" onclick={resetFlags} disabled={!changedFlags}>Restablecer</button>
+      </div>
       {#each groups as [grupo, items]}
-        <h3>{grupo}</h3>
+        <h3>{grupo} <span class="count">{items.filter(flagOn).length} de {items.length} activas</span></h3>
         <ul class="flags">
           {#each items as f (f.key)}
             <li>
               <div class="ftxt">
-                <span class="fname">{f.nombre}</span>
+                <span class="fname">{f.nombre}{#if !f.locked && flagOn(f) !== f.default}<mark>cambiada</mark>{/if}</span>
                 <span class="fdet">{f.detalle}</span>
               </div>
               {#if f.locked}
                 <span class="locked">Siempre activa</span>
               {:else}
-                <Switch checked={flagOn(f)} label={f.nombre} onchange={(v) => setFlag(f, v)} />
+                <span class="sw-wrap"><span class="sw-state" class:off={!flagOn(f)} aria-hidden="true">{flagOn(f) ? "Activa" : "Apagada"}</span><Switch checked={flagOn(f)} label={f.nombre} onchange={(v) => setFlag(f, v)} /></span>
               {/if}
             </li>
           {/each}
@@ -204,7 +228,7 @@
         <span>Enlace para tu audiencia</span>
         <div class="linkrow">
           <input type="text" class="mono" readonly value={link} onfocus={(e) => e.currentTarget.select()} aria-label="Enlace" />
-          <button class="btn ghost" type="button" onclick={copyLink}>{copied ? "Copiado" : "Copiar"}</button>
+          <button class="btn ghost" type="button" onclick={copyLink}>{copied ? "Copiado ✓" : "Copiar"}</button>
           <a class="btn ghost" href={link} target="_blank" rel="noopener">Abrir</a>
         </div>
         <small>Compártelo tal cual o inclúyelo en un iframe en el sitio del medio.</small>
@@ -259,7 +283,7 @@
     display: flex;
     flex-direction: column;
     background: var(--card);
-    border-inline: 1px solid var(--line);
+    border-inline: 4px solid var(--ink);
     min-width: 0;
   }
   header {
@@ -274,7 +298,7 @@
     min-width: 0;
   }
   h2 {
-    font-size: 22px;
+    font-size: 26px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -292,22 +316,75 @@
     margin: 0;
     padding: 0 22px 10px;
   }
+  .estado {
+    flex: 1 1 100%;
+    margin: 0;
+    font-size: 13px;
+    color: var(--mut);
+  }
+  .resetrow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    background: var(--gris);
+    border: 2px solid var(--ink);
+    border-radius: var(--r);
+    font-size: 13px;
+  }
+  .small {
+    min-height: 32px;
+    padding: 3px 10px;
+    font-size: 13px;
+  }
+  .count {
+    font: 600 12.5px var(--body);
+    color: var(--mut);
+    letter-spacing: 0;
+    margin-left: 6px;
+  }
+  .fname mark {
+    background: var(--hl);
+    color: var(--text);
+    font-size: 11.5px;
+    font-weight: 700;
+    padding: 0 6px;
+    margin-left: 8px;
+    border-radius: 2px;
+  }
+  .sw-wrap {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sw-state {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ok);
+    min-width: 58px;
+    text-align: right;
+  }
+  .sw-state.off {
+    color: var(--mut);
+  }
   .tabs {
     display: flex;
     gap: 2px;
     padding: 0 14px;
-    border-bottom: 1.5px solid var(--ink);
+    border-bottom: 4px solid var(--ink);
   }
   .tabs button {
     border: 0;
     background: none;
     padding: 9px 12px;
-    font-weight: 600;
-    font-size: 13.5px;
+    font-weight: 700;
+    font-size: 14px;
     color: var(--mut);
     cursor: pointer;
     border-bottom: 4px solid transparent;
-    margin-bottom: -1.5px;
   }
   .tabs button.on {
     color: var(--ink);
@@ -338,7 +415,7 @@
   .sw {
     width: 30px;
     height: 30px;
-    border-radius: 4px;
+    border-radius: var(--r);
     border: 2px solid var(--card);
     box-shadow: 0 0 0 1.5px var(--line);
     cursor: pointer;
@@ -356,16 +433,16 @@
     width: 44px;
     height: 38px;
     padding: 2px;
-    border: 1.5px solid var(--line);
-    border-radius: 6px;
+    border: 2px solid var(--ink);
+    border-radius: var(--r);
     background: var(--card);
     cursor: pointer;
   }
   .colorrow input[type="text"] {
     width: 110px;
     padding: 9px 11px;
-    border: 1.5px solid var(--line);
-    border-radius: 6px;
+    border: 2px solid var(--ink);
+    border-radius: var(--r);
   }
   .colorrow input[aria-invalid="true"] {
     border-color: var(--red);
@@ -379,11 +456,11 @@
   .logoprev {
     width: 150px;
     height: 56px;
-    border-radius: 6px;
+    border-radius: var(--r);
     display: grid;
     place-items: center;
     overflow: hidden;
-    border: 1.5px solid var(--line);
+    border: 2px solid var(--ink);
   }
   .logoprev img {
     max-width: 130px;
@@ -433,14 +510,14 @@
     font-size: 15px;
   }
   .serif {
-    font-family: var(--display);
+    font-family: Georgia, "Times New Roman", serif;
     font-weight: 700;
   }
   h3 {
-    font-size: 15px;
+    font-size: 18px;
     margin: 22px 0 4px;
     padding-bottom: 4px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 3px solid var(--ink);
   }
   .flags {
     list-style: none;
@@ -453,7 +530,7 @@
     align-items: center;
     gap: 16px;
     padding: 11px 0;
-    border-bottom: 1px solid var(--paper);
+    border-bottom: 1px solid var(--line);
   }
   .ftxt {
     display: flex;
@@ -470,10 +547,11 @@
   }
   .locked {
     flex: none;
-    font-size: 11.5px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
     color: var(--ok);
-    border: 1.5px solid var(--ok);
+    background: var(--ok-bg);
+    border: 2px solid var(--ok);
     padding: 1px 8px;
     border-radius: 3px;
   }
@@ -485,9 +563,9 @@
     flex: 1;
     min-width: 0;
     padding: 9px 11px;
-    border: 1.5px solid var(--line);
-    border-radius: 6px;
-    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-radius: var(--r);
+    background: var(--gris);
   }
   .linkrow a.btn {
     text-decoration: none;
@@ -497,8 +575,9 @@
   .danger {
     margin-top: 28px;
     padding: 14px 16px;
-    border: 1.5px solid var(--red);
-    border-radius: 6px;
+    border: 3px solid var(--red-ink);
+    border-radius: var(--r);
+    background: var(--err-bg);
   }
   .danger h3 {
     margin: 0 0 6px;

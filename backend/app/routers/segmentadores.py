@@ -54,7 +54,7 @@ def mapa():
 def perfil(provincia: str):
     result = ivei.perfil_completo(provincia)
     if result is None:
-        raise HTTPException(status_code=404, detail=f"No hay datos IVEI para '{provincia}'")
+        raise HTTPException(status_code=404, detail=f"No hay datos del índice OVADE para '{provincia}'")
     return result
 
 
@@ -62,7 +62,7 @@ def perfil(provincia: str):
 def comparar(a: str, b: str):
     result = ivei.comparar(a, b)
     if result is None:
-        raise HTTPException(status_code=404, detail="Alguna de las provincias no tiene datos IVEI")
+        raise HTTPException(status_code=404, detail="Alguna de las provincias no tiene datos del índice OVADE")
     return result
 
 
@@ -75,7 +75,7 @@ def tabla():
 def metodologia():
     return {
         "descripcion": (
-            "Índice de Vulnerabilidad Electoral Informativa (IVEI) - segunda generación del IVD, "
+            "Índice OVADE de vulnerabilidad electoral informativa - segunda generación del IVD, "
             "que integra cuatro dimensiones en lugar de tres: vulnerabilidad estructural, exposición "
             "informativa, resiliencia informativa y presión coyuntural."
         ),

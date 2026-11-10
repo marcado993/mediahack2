@@ -14,6 +14,12 @@
       "port": 8000
     },
     {
+      "name": "backend-py313",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-3.13", "-m", "uvicorn", "--app-dir", "backend", "app.main:app", "--port", "8000"],
+      "port": 8000
+    },
+    {
       "name": "admin",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "admin", "run", "dev"],
