@@ -1,6 +1,6 @@
 export const metadata = {
   title: "Observatorio de Vulnerabilidad ante la Desinformación Electoral",
-  icons: { icon: { url: "/favicon.svg", type: "image/svg+xml" } },
+  icons: { icon: { url: "/favicon.svg?v=2", type: "image/svg+xml" } },
 };
 
 export const viewport = {
