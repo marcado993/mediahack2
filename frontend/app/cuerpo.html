@@ -20,8 +20,8 @@
   <button role="tab" data-v="comparar"><span class="nv-ic" data-ic="compare"></span><span class="nv-l">Comparar provincias</span><span class="nv-c" aria-hidden="true">Comparar</span></button>
   <button role="tab" data-v="asistente"><span class="nv-ic" data-ic="escucha"></span><span class="nv-l">Escucha digital</span><span class="nv-c" aria-hidden="true">Escucha</span></button>
   <button role="tab" data-v="chat"><span class="nv-ic" data-ic="chat"></span><span class="nv-l">Chat</span><span class="nv-c" aria-hidden="true">Chat</span></button>
+  <button role="tab" data-v="boveda"><span class="nv-ic" data-ic="lock"></span><span class="nv-l">Bóveda</span><span class="nv-c" aria-hidden="true">Bóveda</span></button>
  </div>
- <a class="nav-ext" href="https://149-130-170-232.sslip.io/#/boveda" target="_blank" rel="noopener" title="Bóveda segura de Periodismo Seguro (se abre en otra pestaña)"><span data-ic="lock"></span><span class="nv-t">Bóveda</span><span class="visually-hidden"> (Periodismo Seguro, otra pestaña)</span></a>
 </nav>
 </div></header>
 <p class="cut"><span class="wrap">Datos con corte a la última publicación de cada fuente · sujetos a actualización continua. <span id="brandSub"></span></span></p>
@@ -102,7 +102,7 @@
     <li><button type="button" class="hero-btn" data-ruta="mapas/IVEI"><span class="hero-ic" data-ic="map"></span><span class="hero-t"><b>Ver el mapa del país</b><small>Qué provincias están más expuestas, de un vistazo.</small></span></button></li>
     <li><button type="button" class="hero-btn" data-ruta="comparar"><span class="hero-ic" data-ic="compare"></span><span class="hero-t"><b>Comparar dos provincias</b><small>Cuál tiene más terreno y por qué.</small></span></button></li>
     <li><button type="button" class="hero-btn" data-ruta="chat"><span class="hero-ic" data-ic="chat"></span><span class="hero-t"><b>Chat con colegas</b><small>Una sala general y una por provincia. Anónimo y temporal.</small></span></button></li>
-    <li><a class="hero-btn ext" href="https://149-130-170-232.sslip.io/#/boveda" target="_blank" rel="noopener"><span class="hero-ic" data-ic="lock"></span><span class="hero-t"><b>Bóveda segura <em>Periodismo Seguro</em></b><small>Guarda archivos cifrados en tu navegador. Se abre en otra pestaña.</small></span></a></li>
+    <li><button type="button" class="hero-btn" data-ruta="boveda"><span class="hero-ic" data-ic="lock"></span><span class="hero-t"><b>Bóveda segura</b><small>Guarda notas y archivos cifrados en tu navegador. Nadie más los lee.</small></span></button></li>
    </ul>
   </div>
  </section>
@@ -213,6 +213,11 @@
   </form>
   <p class="chat-pie"><span>Tu nombre temporal: <b id="chatYo">—</b></span><span id="chatCuenta" class="chat-cuenta">0/280</span></p>
  </div>
+</section>
+
+<!-- ============ BÓVEDA ============ -->
+<section class="view" id="v-boveda" aria-labelledby="bovTitulo">
+ <div class="card boveda-card" id="boveda"></div>
 </section>
 
 <!-- ============ METODOLOGÍA ============ -->

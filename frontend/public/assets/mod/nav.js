@@ -12,6 +12,7 @@ import { pedirOpinion } from "./formularios.js";
 import { renderInicio } from "./inicio.js";
 import { entradaVista, pop } from "./efectos.js";
 import { abrirChat, cerrarChat } from "./chat.js";
+import { cerrarBoveda, mostrarBoveda } from "./boveda.js";
 
 export const viewEnabled = (v) => v in VIEW_FLAG && flag(VIEW_FLAG[v]);
 
@@ -32,6 +33,7 @@ export function showView(v) {
   document.querySelectorAll(".view").forEach((el) => el.classList.toggle("on", el.id === "v-" + v));
   if (cambio) entradaVista($("v-" + v));
   if (v !== "chat") cerrarChat();
+  if (v !== "boveda") cerrarBoveda(); // leaving the vault locks it
 }
 
 export function initDatosNav() {
@@ -83,6 +85,7 @@ export function applyRoute() {
   const [v = "perfil", a, b] = parts;
   showView(v);
   if (E.currentView === "chat" && E.PROVINCIAS.length) abrirChat(a);
+  if (E.currentView === "boveda") mostrarBoveda();
   if (E.currentView === "mapas" && a && E.MAPA && capasAll().some((c) => c.codigo === a && capaEnabled(c)) && a !== E.capa) {
     E.capa = a;
     renderCapas();

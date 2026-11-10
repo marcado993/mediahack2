@@ -91,6 +91,7 @@ export const VIEW_FLAG = {
   fuentes: "vista_fuentes",
   asistente: "vista_conversacion",
   chat: "vista_chat",
+  boveda: "vista_boveda",
   meto: "vista_metodologia",
 };
 

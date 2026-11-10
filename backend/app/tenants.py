@@ -49,6 +49,8 @@ FLAGS: list[dict] = [
      "detalle": "Temas y actores más mencionados por provincia en X y medios. Apágala si tu redacción no quiere mostrar datos de redes."},
     {"key": "vista_chat", "grupo": "Vistas", "nombre": "Chat", "default": True, "locked": False,
      "detalle": "Salas temporales y anónimas (una general y una por provincia). Apágala si tu redacción no quiere ofrecer un chat."},
+    {"key": "vista_boveda", "grupo": "Vistas", "nombre": "Bóveda segura", "default": True, "locked": False,
+     "detalle": "Notas y archivos cifrados en el navegador de cada persona; no se guardan en el servidor."},
     {"key": "vista_metodologia", "grupo": "Vistas", "nombre": "Metodología", "default": True, "locked": True,
      "detalle": "Cómo se calcula el índice y sus límites. Siempre visible."},
 
