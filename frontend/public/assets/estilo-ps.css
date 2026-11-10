@@ -2324,3 +2324,111 @@ details.a-fondo[open] > summary {
   gap: 10px;
   margin-top: 12px;
 }
+
+/* =====================================================================
+   Information cards (methodology, sources, data): every piece of text
+   sits inside its own box or between rules. Title ruled off, intro
+   marked as a lead, tables boxed with ruled rows and columns, notes in
+   a tinted box.
+   ===================================================================== */
+#v-meto .card > h2,
+#v-fuentes .card > h2,
+#v-datos .card > h2,
+.kit-pleg .card > h2,
+#sec-afondo .card > h2 {
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 3px solid var(--linea);
+}
+.fintro {
+  max-width: 96ch;
+  margin: 0 0 16px;
+  padding: 2px 0 2px 12px;
+  border-left: 5px solid var(--regla);
+  font-size: 0.98rem;
+  color: var(--tinta);
+}
+.ftab {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  font-size: 0.95rem;
+  background: var(--superficie);
+}
+.ftab th {
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--tinta);
+  background: var(--gris);
+  border-bottom: 3px solid var(--linea);
+}
+.ftab td {
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--regla);
+  line-height: 1.45;
+}
+.ftab th + th,
+.ftab td + td {
+  border-left: 2px solid var(--regla);
+}
+.ftab tbody tr:last-child td {
+  border-bottom: 0;
+}
+.ftab tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--gris) 55%, transparent);
+}
+.ftab code {
+  font-size: 0.85rem;
+}
+.fnote {
+  max-width: none;
+  margin: 14px 0 0;
+  padding: 10px 14px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--tinta);
+  background: var(--gris);
+  border: 2px solid var(--linea);
+  border-left: 8px solid var(--linea);
+  border-radius: var(--r);
+}
+.fnote.fnote-2 {
+  margin-top: 8px;
+  background: none;
+  border: 0;
+  border-top: 2px solid var(--regla);
+  border-radius: 0;
+  padding: 8px 2px 0;
+  color: var(--suave);
+}
+.metric {
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+}
+.warn {
+  border: 2px solid var(--linea);
+  border-left: 8px solid var(--aviso);
+  border-radius: var(--r);
+  color: var(--tinta);
+  font-size: 0.9rem;
+}
+.rec {
+  margin: 0;
+  padding: 10px 0;
+}
+.rec + .rec {
+  border-top: 2px solid var(--regla);
+}
+.meth h4 {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 2px solid var(--regla);
+}
+@media (max-width: 640px) {
+  /* on a phone the table scrolls sideways; columns keep a readable width instead of wrapping word by word */
+  .ftab {
+    min-width: 620px;
+  }
+}

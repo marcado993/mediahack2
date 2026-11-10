@@ -166,7 +166,7 @@ export function renderMetodoExtra() {
    <p class="fnote"><b>En este momento:</b> ${r.debiles} de ${r.total} provincias tienen menos de ${MUESTRA_DEBIL} casos del Latinobarómetro. ${
      r.sinMuestra.length ? `${r.sinMuestra.length} no tienen ninguno (${r.sinMuestra.join(", ")}) y reciben el valor nacional; en el mapa se marcan con borde punteado.` : ""
    } El umbral de ${MUESTRA_DEBIL} casos es el criterio de trabajo y se está confirmando con los microdatos.</p>
-   <p class="fnote" style="border:0;margin-top:4px;padding-top:0">${CORTE_FRASE}</p>
+   <p class="fnote fnote-2">${CORTE_FRASE}</p>
   </div>
 
   <div class="card" id="sensibilidad" style="margin-bottom:16px">
