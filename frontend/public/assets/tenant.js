@@ -14,7 +14,7 @@ const FALLBACK = {
   slug: "default",
   nombre: "Observatorio",
   titulo: "Observatorio de Vulnerabilidad ante la Desinformación Electoral",
-  lema: "IVEI 2024 · 24 provincias + Galápagos · Censo 2022, ENEMDU 2024 y Latinobarómetro 2024",
+  lema: "Índice OVADE 2024 · 24 provincias + Galápagos · Censo 2022, ENEMDU 2024 y Latinobarómetro 2024",
   color: "#1b3a5c",
   logo: "",
   logo_placa: false,
@@ -131,7 +131,7 @@ function paintBrand(cfg) {
       el(
         "p",
         "pie-datos",
-        "Datos y metodología: Observatorio de Vulnerabilidad ante la Desinformación Electoral. Fuentes: Censo 2022 y ENEMDU 2024 (INEC), Latinobarómetro 2024, MINTEL 2023. Datos con corte a la última publicación de cada fuente, sujetos a actualización. La resolución provincial es una salvaguarda deliberada: ninguna vista ni descarga baja de provincia. Uso ético: los datos son abiertos y se usan para proteger y fortalecer la democracia. El chat es temporal y anónimo: los mensajes se borran a los 30 minutos. La bóveda cifra en tu navegador: nada de lo que guardas sale de tu equipo."
+        "Datos y metodología: Observatorio de Vulnerabilidad ante la Desinformación Electoral. Fuentes: Censo 2022 y ENEMDU 2024 (INEC), Latinobarómetro 2024, MINTEL 2023. Datos con corte a la última publicación de cada fuente, sujetos a actualización. La resolución provincial es una salvaguarda deliberada: ninguna vista ni descarga baja de provincia. Uso ético: los datos son abiertos y se usan para proteger y fortalecer la democracia. El chat y la bóveda piden una cuenta: solo un seudónimo y una contraseña, sin correo. El chat es temporal: los mensajes se borran a los 30 minutos. La bóveda cifra en tu navegador: nada de lo que guardas sale de tu equipo."
       )
     );
   }

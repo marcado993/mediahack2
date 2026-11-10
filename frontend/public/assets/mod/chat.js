@@ -1,11 +1,12 @@
-// Module: chat. Temporary, anonymous chat rooms inside OVADE: one general room and one per province.
-// Messages live 30 minutes on the server's memory and are never stored. Each connection gets a
-// temporary name from the server. Text is always inserted as text (never as HTML).
+// Module: chat. Temporary chat rooms inside OVADE: one general room and one per province.
+// Messages live 30 minutes on the server's memory and are never stored. Entering needs an account
+// (mod/cuenta.js): people write under their pseudonym. Text is always inserted as text (never as HTML).
 
 import { API_BASE } from "../api.js";
 import { ICON } from "../ui.js";
 import { E } from "./estado.js";
 import { $ } from "./util.js";
+import { barraCuenta, puertaCuenta, sesion, sesionVencida } from "./cuenta.js";
 
 const slug = (t) =>
   String(t)
@@ -32,28 +33,33 @@ let timerReconectar = 0;
 let timerSalas = 0;
 let listo = false;
 
-const nombreGuardado = () => {
-  try {
-    return sessionStorage.getItem("ovade.chat.nombre") || "";
-  } catch (_) {
-    return "";
-  }
-};
-const guardarNombre = (n) => {
-  try {
-    sessionStorage.setItem("ovade.chat.nombre", n);
-  } catch (_) {}
-};
-
-const urlWs = (id) => {
-  const n = nombreGuardado();
-  return `${API_BASE.replace(/^http/, "ws")}/ws/chat/${id}${n ? `?n=${encodeURIComponent(n)}` : ""}`;
-};
+// the session token goes in the first message, never in the address (it would end up in logs)
+const urlWs = (id) => `${API_BASE.replace(/^http/, "ws")}/ws/chat/${id}`;
 
 function estado(texto, tono = "info") {
   const e = $("chatEstado");
   e.textContent = texto;
   e.dataset.tono = tono;
+  // a way out when the connection is refused or lost for good, instead of a dead end
+  $("chatReintentar").hidden = tono !== "error";
+}
+
+function escribible(si, motivo = "") {
+  $("chatEnviar").disabled = !si;
+  $("chatTexto").disabled = !si;
+  $("chatTexto").placeholder = si ? "Escribe un mensaje y pulsa Enter…" : motivo;
+}
+
+/** Shows the account door instead of the room, or the room once signed in. */
+function puerta(aviso = "") {
+  const sinSesion = !sesion();
+  $("chatPuerta").hidden = !sinSesion;
+  $("chatCard").hidden = sinSesion;
+  if (sinSesion) {
+    cerrarSocket();
+    puertaCuenta($("chatPuerta"), "chat", () => abierto && abrirChat(sala), aviso);
+  } else barraCuenta($("chatCuentaBarra"));
+  return sinSesion;
 }
 
 function cercaDelFinal(log) {
@@ -152,19 +158,19 @@ function conectar(id) {
   $("chatTitulo").textContent = id === "general" ? "Sala general" : `Sala de ${$("chatSala").selectedOptions[0]?.textContent.split(" · ")[0] ?? id}`;
   $("chatLog").replaceChildren();
   $("chatNuevos").hidden = true;
-  $("chatEnviar").disabled = true;
-  $("chatTexto").disabled = true;
+  escribible(false, "Conectando con la sala…");
   estado("Conectando…", "info");
   let socket;
   try {
     socket = new WebSocket(urlWs(id));
   } catch (_) {
     estado("No se pudo conectar", "error");
+    escribible(false, "Sin conexión con la sala");
     return;
   }
   ws = socket;
   socket.onopen = () => {
-    intento = 0;
+    socket.send(JSON.stringify({ t: "sesion", k: sesion()?.ficha ?? "" }));
     clearInterval(timerPing);
     timerPing = setInterval(() => socket.readyState === 1 && socket.send(JSON.stringify({ t: "ping" })), 25000);
   };
@@ -176,16 +182,15 @@ function conectar(id) {
       return;
     }
     if (d.t === "hola") {
+      intento = 0;
       yo = d.yo;
       maximo = d.max || 280;
-      guardarNombre(yo);
-      $("chatYo").textContent = yo;
       $("chatTexto").maxLength = maximo;
+      $("chatCuenta").textContent = `${$("chatTexto").value.length}/${maximo}`;
       $("chatTtl").textContent = d.ttl;
       enLinea(d.n);
       estado("En línea", "ok");
-      $("chatEnviar").disabled = false;
-      $("chatTexto").disabled = false;
+      escribible(true);
       const log = $("chatLog");
       log.replaceChildren(...(d.hist || []).map(lineaMensaje));
       if (!d.hist?.length) pintarVacio();
@@ -194,17 +199,29 @@ function conectar(id) {
     else if (d.t === "n") enLinea(d.n);
     else if (d.t === "aviso") aviso(d.x);
     else if (d.t === "error") {
-      estado(d.x, "error");
-      aviso(d.x);
       intento = 99; // do not retry a refusal
+      if (d.c === "sesion") {
+        // signed out elsewhere, or the session expired: back to the door, saying why
+        sesionVencida();
+        return;
+      }
+      estado(d.x, "error");
+      escribible(false, "No se puede escribir en esta sala ahora");
+      aviso(d.x);
     }
   };
   socket.onclose = () => {
     if (!abierto || socket !== ws) return;
-    $("chatEnviar").disabled = true;
-    $("chatTexto").disabled = true;
     if (intento >= 99) return;
+    if (intento >= 6) {
+      // stop hammering after about a minute and hand the decision back to the person
+      estado("Sin conexión", "error");
+      escribible(false, "Sin conexión con la sala");
+      intento = 99;
+      return;
+    }
     estado("Sin conexión. Reintentando…", "warn");
+    escribible(false, "Reconectando… tu mensaje sigue aquí");
     const espera = Math.min(15000, 1000 * 2 ** intento++);
     timerReconectar = setTimeout(() => abierto && conectar(sala), espera);
   };
@@ -220,13 +237,28 @@ function iniciarUna() {
     e.preventDefault();
     const campo = $("chatTexto");
     const texto = campo.value.trim();
-    if (!texto || !ws || ws.readyState !== 1) return;
+    if (!texto) return void campo.focus();
+    if (!ws || ws.readyState !== 1) return; // the field is disabled while offline; the text stays
     ws.send(JSON.stringify({ t: "msg", x: texto }));
     campo.value = "";
     $("chatCuenta").textContent = `0/${maximo}`;
     campo.focus();
   };
-  $("chatTexto").oninput = (e) => ($("chatCuenta").textContent = `${e.target.value.length}/${maximo}`);
+  $("chatTexto").oninput = (e) => {
+    const n = e.target.value.length;
+    $("chatCuenta").textContent = `${n}/${maximo}`;
+    $("chatCuenta").classList.toggle("lleno", n >= maximo);
+  };
+  $("chatReintentar").onclick = () => {
+    intento = 0;
+    conectar(sala);
+  };
+  // signing in or out anywhere (this view, the vault, another action) updates the room at once
+  addEventListener("ovade:cuenta", () => {
+    if (!abierto) return;
+    if (puerta(sesion() ? "" : "Tu sesión se cerró. Entra de nuevo para seguir en el chat.")) return;
+    if (!ws) conectar(sala);
+  });
   $("chatNuevos").onclick = () => {
     const log = $("chatLog");
     log.scrollTop = log.scrollHeight;
@@ -244,6 +276,10 @@ export function abrirChat(arg) {
   const valida = id === "general" || E.PROVINCIAS.some((p) => slug(p) === id);
   const destino = valida ? id : "general";
   if (!$("chatSala").options.length) poblarSalas();
+  if (puerta()) {
+    sala = destino; // remembered, so signing in lands in the room that was asked for
+    return;
+  }
   if (!ws || sala !== destino) conectar(destino);
   clearInterval(timerSalas);
   refrescarSalas();

@@ -1,9 +1,9 @@
-"""Chat temporal y anónimo de OVADE.
+"""Chat temporal de OVADE.
 
 Salas en memoria: una general y una por provincia. Nada se guarda en disco ni en base de datos:
 los mensajes viven 30 minutos (los últimos 60 por sala) y desaparecen al reiniciar el servicio.
-No hay cuentas: cada conexión recibe un nombre temporal («Colibrí-42») que el servidor asigna, así que
-nadie puede hacerse pasar por otra persona ni escribir con su nombre real por accidente.
+Para entrar hace falta una cuenta (app/cuentas.py): cada quien escribe con su seudónimo, que es único,
+así que nadie puede hacerse pasar por otra persona.
 
 No está cifrado de extremo a extremo: el servidor retransmite los mensajes. Se dice así en la pantalla.
 Un servicio público junto a un observatorio de desinformación necesita límites claros:
@@ -13,7 +13,6 @@ mensajes cortos, velocidad limitada, pocas conexiones por dirección y por sala,
 from __future__ import annotations
 
 import asyncio
-import random
 import re
 import time
 import unicodedata
@@ -46,11 +45,6 @@ def slug(texto: str) -> str:
 
 SALAS: dict[str, str] = {"general": "General", **{slug(p): p for p in PROVINCIAS}}
 
-ANIMALES = [
-    "Colibrí", "Cóndor", "Tucán", "Jaguar", "Delfín", "Tortuga", "Iguana", "Pingüino", "Tapir", "Llama",
-    "Quetzal", "Oso", "Ocelote", "Capibara", "Manatí", "Búho", "Garza", "Mono", "Venado", "Pelícano",
-]
-PATRON_NOMBRE = re.compile(r"^(" + "|".join(ANIMALES) + r")-\d{2}$")
 _CONTROL = re.compile(r"[​-‏‪-‮⁠-⁤﻿]")
 
 
@@ -92,16 +86,6 @@ class Gestor:
         self._contador = 0
 
     # ---- conexión ----
-    def _nombre_libre(self, sala: Sala, pedido: Optional[str]) -> str:
-        usados = {c.nombre for c in sala.clientes}
-        if pedido and PATRON_NOMBRE.match(pedido) and pedido not in usados:
-            return pedido  # quien se reconecta conserva su nombre si sigue libre
-        for _ in range(200):
-            n = f"{random.choice(ANIMALES)}-{random.randint(10, 99)}"
-            if n not in usados:
-                return n
-        return f"Anon-{random.randint(100, 999)}"
-
     def puede_entrar(self, sala_id: str, ip: str) -> Optional[str]:
         """None si puede entrar; si no, el motivo en lenguaje claro."""
         if sala_id not in self.salas:
@@ -112,9 +96,10 @@ class Gestor:
             return "Demasiadas ventanas abiertas desde tu conexión."
         return None
 
-    async def conectar(self, ws: Any, sala_id: str, ip: str, nombre_pedido: Optional[str]) -> Cliente:
+    async def conectar(self, ws: Any, sala_id: str, ip: str, seudonimo: str) -> Cliente:
+        """`seudonimo` viene de la cuenta ya comprobada. La misma persona puede tener la sala en dos pestañas."""
         sala = self.salas[sala_id]
-        c = Cliente(ws=ws, nombre=self._nombre_libre(sala, nombre_pedido), ip=ip, sala=sala_id)
+        c = Cliente(ws=ws, nombre=seudonimo, ip=ip, sala=sala_id)
         sala.clientes.add(c)
         self.por_ip[ip] += 1
         self._purgar(sala)

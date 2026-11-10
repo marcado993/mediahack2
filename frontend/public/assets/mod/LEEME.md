@@ -28,6 +28,9 @@ vive aquí como módulos ES nativos: no hay build, el navegador los carga tal cu
 | `etica.js` | Compromiso de uso ético al descargar los datos |
 | `descargas.js` | Ayuda por capa y descargas (SVG, PNG, CSV) |
 | `flags.js` | Aplica los feature flags de cada medio |
+| `cuenta.js` | La cuenta (seudónimo y contraseña) que abre el chat y la bóveda: puerta de entrada, sesión y cierre |
+| `chat.js` | Salas temporales por WebSocket; se entra con la cuenta |
+| `boveda.js` | Bóveda cifrada en el navegador (`boveda-cripto.js`, `boveda-almacen.js`); se entra con la cuenta |
 
 Junto a `app.js` siguen `api.js` (cliente del backend), `tenant.js` (marca blanca),
 `ui.js` (componentes de certeza) y `estados.js` (estados de carga).

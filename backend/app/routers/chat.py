@@ -1,4 +1,4 @@
-"""Chat temporal y anónimo: un canal WebSocket por sala y un listado de salas con quién está en línea."""
+"""Chat temporal: un canal WebSocket por sala (solo con cuenta) y un listado de salas con quién está en línea."""
 
 from __future__ import annotations
 
@@ -8,9 +8,10 @@ import os
 import re
 from typing import Optional
 
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.chat import gestor
+from app.cuentas import cuentas
 
 router = APIRouter()
 
@@ -20,6 +21,7 @@ _ORIGEN_BASE = re.compile(r"^(https://mediahack2-frontend[a-z0-9-]*\.vercel\.app
 _EXTRA = {o.strip().rstrip("/") for o in os.getenv("CHAT_ORIGINS", "").split(",") if o.strip()}
 SIN_LIMITE_DE_FRAME = 2048
 INACTIVIDAD = 300  # segundos sin ningún mensaje ni latido
+ESPERA_SESION = 10  # segundos para presentar la sesión después de conectar
 
 
 def origen_permitido(origen: Optional[str]) -> bool:
@@ -34,7 +36,7 @@ def salas():
 
 
 @router.websocket("/ws/chat/{sala}")
-async def canal(ws: WebSocket, sala: str, n: Optional[str] = Query(None, max_length=20)):
+async def canal(ws: WebSocket, sala: str):
     if not origen_permitido(ws.headers.get("origin")):
         await ws.close(code=1008)
         return
@@ -45,7 +47,23 @@ async def canal(ws: WebSocket, sala: str, n: Optional[str] = Query(None, max_len
         await ws.send_json({"t": "error", "x": motivo})
         await ws.close(code=1013)
         return
-    c = await gestor.conectar(ws, sala, ip, n)
+    # La sesión llega en el primer mensaje, no en la dirección: así no queda en registros ni historiales.
+    seudonimo = None
+    try:
+        bruto = await asyncio.wait_for(ws.receive_text(), timeout=ESPERA_SESION)
+        datos = json.loads(bruto) if len(bruto) <= SIN_LIMITE_DE_FRAME else None
+        if isinstance(datos, dict) and datos.get("t") == "sesion":
+            seudonimo = cuentas.quien(datos.get("k"))
+    except (asyncio.TimeoutError, ValueError, WebSocketDisconnect):
+        pass
+    if not seudonimo:
+        try:
+            await ws.send_json({"t": "error", "c": "sesion", "x": "Para entrar al chat necesitas iniciar sesión."})
+            await ws.close(code=1008)
+        except Exception:
+            pass
+        return
+    c = await gestor.conectar(ws, sala, ip, seudonimo)
     try:
         while True:
             try:

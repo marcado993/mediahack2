@@ -20,10 +20,10 @@
 <style>
   button {
     flex: none;
-    width: 40px;
-    height: 22px;
-    border-radius: 11px;
-    border: 1.5px solid var(--ink);
+    width: 46px;
+    height: 26px;
+    border-radius: var(--r);
+    border: 3px solid var(--ink);
     background: var(--card);
     padding: 0;
     cursor: pointer;
@@ -32,20 +32,20 @@
   }
   .knob {
     position: absolute;
-    top: 2px;
-    left: 2px;
+    top: 3px;
+    left: 3px;
     width: 14px;
     height: 14px;
-    border-radius: 50%;
+    border-radius: 1px;
     background: var(--ink);
     transition: transform 0.12s;
   }
   button.on {
-    background: var(--ink);
+    background: var(--ok);
   }
   button.on .knob {
     background: #fff;
-    transform: translateX(18px);
+    transform: translateX(20px);
   }
   button:disabled {
     cursor: not-allowed;

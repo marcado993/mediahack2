@@ -75,8 +75,8 @@
   }
   .seg {
     display: flex;
-    border: 1.5px solid var(--ink);
-    border-radius: 6px;
+    border: 3px solid var(--ink);
+    border-radius: var(--r);
     overflow: hidden;
   }
   .seg button {
@@ -101,9 +101,9 @@
   iframe {
     width: 100%;
     height: 100%;
-    border: 1.5px solid var(--ink);
+    border: 3px solid var(--ink);
     background: #fff;
-    border-radius: 4px;
+    border-radius: var(--r);
   }
   iframe.mobile {
     width: 390px;

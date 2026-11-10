@@ -28,7 +28,7 @@ from pydantic import BaseModel, Field, field_validator
 STORE_PATH = Path(__file__).parent / "data" / "tenants.json"
 DEFAULT_SLUG = "default"
 DEFAULT_TITULO = "Observatorio de Vulnerabilidad ante la Desinformación Electoral"
-DEFAULT_LEMA = "IVEI 2024 · 24 provincias + Galápagos · Censo 2022, ENEMDU 2024 y Latinobarómetro 2024"
+DEFAULT_LEMA = "Índice OVADE 2024 · 24 provincias + Galápagos · Censo 2022, ENEMDU 2024 y Latinobarómetro 2024"
 DEFAULT_COLOR = "#1b3a5c"
 
 # Single source of truth for the flags: the admin panel renders its form from
@@ -48,9 +48,9 @@ FLAGS: list[dict] = [
     {"key": "vista_conversacion", "grupo": "Vistas", "nombre": "Conversación pública", "default": True, "locked": False,
      "detalle": "Temas y actores más mencionados por provincia en X y medios. Apágala si tu redacción no quiere mostrar datos de redes."},
     {"key": "vista_chat", "grupo": "Vistas", "nombre": "Chat", "default": True, "locked": False,
-     "detalle": "Salas temporales y anónimas (una general y una por provincia). Apágala si tu redacción no quiere ofrecer un chat."},
+     "detalle": "Salas temporales (una general y una por provincia). Se entra con cuenta: seudónimo y contraseña, sin correo. Apágala si tu redacción no quiere ofrecer un chat."},
     {"key": "vista_boveda", "grupo": "Vistas", "nombre": "Bóveda segura", "default": True, "locked": False,
-     "detalle": "Notas y archivos cifrados en el navegador de cada persona; no se guardan en el servidor."},
+     "detalle": "Notas y archivos cifrados en el navegador de cada persona; no se guardan en el servidor. Se entra con la misma cuenta del chat."},
     {"key": "vista_metodologia", "grupo": "Vistas", "nombre": "Metodología", "default": True, "locked": True,
      "detalle": "Cómo se calcula el índice y sus límites. Siempre visible."},
 

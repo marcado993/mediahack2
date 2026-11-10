@@ -140,7 +140,7 @@ export function paintMap() {
         e.clientX,
         e.clientY,
         `<b>${p.provincia}</b><br>${active.nombre}: ${capaValueText(p)}<br>
-        <span class="r">IVEI</span> ${fmt(p.IVEI)} <span class="r">(puede variar ${MARGEN_GENERAL})</span> · <span class="r">Puesto</span> ${p.rank}/24<br>
+        <span class="r">Índice OVADE</span> ${fmt(p.IVEI)} <span class="r">(puede variar ${MARGEN_GENERAL})</span> · <span class="r">Puesto</span> ${p.rank}/24<br>
         ${fmtInt(p.poblacion)} hab.${p.n_lb === 0 ? '<br><span class="r">Sin muestra propia: valor nacional imputado</span>' : ""}`
       );
     };

@@ -19,6 +19,10 @@ backend/app/data/x_cache.json
 scraper/ig_session.json
 scraper/instagram_cache.json
 
+# accounts: pseudonyms and password hashes, never in the repo
+backend/app/data/cuentas.json
+backend/app/data/cuentas.tmp
+
 # python
 __pycache__/
 *.pyc

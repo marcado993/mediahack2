@@ -1,5 +1,6 @@
 """Pruebas del chat temporal. Se corren con:  python -m pytest backend/tests -q"""
 
+import contextlib
 import os
 import sys
 
@@ -9,20 +10,30 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from app import chat as chat_mod  # noqa: E402
+from app import cuentas as cuentas_mod  # noqa: E402
 from app.main import app  # noqa: E402
+
+FICHAS = {}
 
 
 @pytest.fixture(autouse=True)
-def limpio():
+def limpio(tmp_path):
     chat_mod.gestor.__init__()  # salas y contadores vacíos para cada prueba
+    cuentas_mod.cuentas.__init__(tmp_path / "cuentas.json")  # cuentas de prueba, nunca las reales
+    for nombre in ("Ana", "Beto"):
+        FICHAS[nombre] = cuentas_mod.cuentas.registrar(nombre + " prueba", "una frase larga de prueba")["ficha"]
     yield
 
 
 cliente = TestClient(app)
 
 
-def abrir(sala="general", **extra):
-    return cliente.websocket_connect(f"/ws/chat/{sala}", **extra)
+@contextlib.contextmanager
+def abrir(sala="general", quien="Ana", ficha=None, **extra):
+    """Conecta y presenta la sesión, como hace el sitio. `ficha=""` entra sin sesión."""
+    with cliente.websocket_connect(f"/ws/chat/{sala}", **extra) as ws:
+        ws.send_json({"t": "sesion", "k": FICHAS[quien] if ficha is None else ficha})
+        yield ws
 
 
 def test_limpiar_quita_invisibles_y_recorta():
@@ -38,10 +49,10 @@ def test_salas_incluyen_general_y_24_provincias():
     assert "bolivar" in ids and "santo-domingo-de-los-tsachilas" in ids
 
 
-def test_entrar_da_nombre_temporal_y_reglas():
+def test_entrar_usa_el_seudonimo_de_la_cuenta():
     with abrir() as ws:
         hola = ws.receive_json()
-    assert hola["t"] == "hola" and chat_mod.PATRON_NOMBRE.match(hola["yo"])
+    assert hola["t"] == "hola" and hola["yo"] == "Ana prueba"
     assert hola["max"] == 280 and hola["ttl"] == 30 and hola["hist"] == []
 
 
@@ -53,7 +64,7 @@ def test_sala_inexistente_es_rechazada_con_motivo():
 def test_un_mensaje_llega_a_los_dos_y_queda_en_el_historial():
     with abrir("bolivar") as a:
         ya = a.receive_json()["yo"]
-        with abrir("bolivar") as b:
+        with abrir("bolivar", "Beto") as b:
             b.receive_json()
             assert a.receive_json() == {"t": "n", "n": 2}
             a.send_json({"t": "msg", "x": "  Hola   a todos  "})
@@ -89,16 +100,21 @@ def test_velocidad_limitada_y_repetidos():
         assert recibidos <= chat_mod.RAFAGA + 1  # la ráfaga se corta
 
 
-def test_conserva_nombre_al_reconectar_si_esta_libre():
+def test_sin_sesion_no_se_entra():
+    with abrir(ficha="") as ws:
+        r = ws.receive_json()
+    assert r["t"] == "error" and r["c"] == "sesion"
+
+
+def test_sesion_inventada_no_se_acepta():
+    with abrir(ficha="no-es-una-ficha") as ws:
+        assert ws.receive_json()["c"] == "sesion"
+
+
+def test_al_cerrar_sesion_ya_no_se_entra():
+    cuentas_mod.cuentas.salir(FICHAS["Ana"])
     with abrir() as ws:
-        nombre = ws.receive_json()["yo"]
-    with abrir("general?n=" + nombre) as ws:
-        assert ws.receive_json()["yo"] == nombre
-
-
-def test_no_acepta_nombre_inventado():
-    with abrir("general?n=Presidente-01") as ws:
-        assert ws.receive_json()["yo"] != "Presidente-01"
+        assert ws.receive_json()["c"] == "sesion"
 
 
 def test_origen_ajeno_es_rechazado():

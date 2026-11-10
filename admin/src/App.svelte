@@ -159,8 +159,19 @@
         e.returnValue = "";
       }
     };
+    // Ctrl+S / Cmd+S saves the open medio instead of the browser's "save page"
+    const keys = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s" && authed && view === "medios") {
+        e.preventDefault();
+        if (dirty && !saving) save();
+      }
+    };
     window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
+    window.addEventListener("keydown", keys);
+    return () => {
+      window.removeEventListener("beforeunload", warn);
+      window.removeEventListener("keydown", keys);
+    };
   });
 </script>
 
@@ -171,7 +182,8 @@
 {:else if draft}
   <div class="shell">
     <header class="top">
-      <h1>Panel de medios</h1>
+      <img src="/marca-azul.svg" alt="" width="34" height="34" class="mark" />
+      <h1>OVADE · Panel de medios</h1>
       <nav class="views" aria-label="Secciones del panel">
         <button type="button" class:on={view === "medios"} aria-current={view === "medios" ? "page" : undefined} onclick={() => (view = "medios")}>Medios</button>
         <button type="button" class:on={view === "solicitudes"} aria-current={view === "solicitudes" ? "page" : undefined} onclick={() => (view = "solicitudes")}>
@@ -181,8 +193,8 @@
           Retroalimentación{#if retroPend}<mark>{retroPend}</mark>{/if}
         </button>
       </nav>
-      <span class="sub"></span>
-      <button class="btn ghost out" type="button" onclick={logout}>Salir</button>
+      <span class="sub" role="status">{#if view === "medios" && dirty}<mark>Cambios sin guardar</mark>{/if}</span>
+      <button class="btn ghost out" type="button" onclick={logout}>Cerrar sesión</button>
     </header>
     {#if view === "solicitudes"}
       <div class="scroll"><Requests {call} oncount={(n) => (nuevas = n)} /></div>
@@ -222,49 +234,69 @@
   }
   .top {
     display: flex;
-    align-items: baseline;
-    gap: 14px;
-    padding: 12px 22px;
-    background: var(--ink);
-    color: #fff;
-    border-bottom: 4px solid var(--red);
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    padding: 10px 22px 0;
+    background: var(--card);
+    color: var(--ink);
+    border-bottom: 4px solid var(--ink);
+  }
+  .mark {
+    flex: none;
+    margin-bottom: 10px;
   }
   .top h1 {
-    font-size: 20px;
+    font-size: 16px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 3px solid var(--ink);
+    padding: 5px 11px;
+    transform: skew(-6deg);
+    margin-bottom: 10px;
   }
   .sub {
-    font-size: 12.5px;
-    opacity: 0.7;
+    font-size: 13px;
     flex: 1;
+    text-align: right;
+    margin-bottom: 10px;
+  }
+  .sub mark {
+    background: var(--hl);
+    color: var(--text);
+    font-weight: 700;
+    padding: 2px 8px;
+    border: 2px solid var(--ink);
+    border-radius: var(--r);
   }
   .views {
     display: flex;
     gap: 4px;
     margin-left: 12px;
+    align-self: flex-end;
   }
   .views button {
     border: 0;
     background: transparent;
-    color: #fff;
-    opacity: 0.7;
-    font-weight: 600;
-    font-size: 14px;
-    padding: 4px 12px;
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 15px;
+    padding: 8px 12px 10px;
     cursor: pointer;
-    border-bottom: 3px solid transparent;
+    border-bottom: 4px solid var(--line);
+  }
+  .views button:hover {
+    background: var(--gris);
   }
   .views button.on {
-    opacity: 1;
-    border-bottom-color: var(--hl);
-  }
-  .views button:focus-visible {
-    outline-color: #fff;
+    border-bottom-color: var(--red);
   }
   .views mark {
-    background: var(--hl);
-    color: var(--ink);
-    font-size: 11.5px;
-    padding: 0 6px;
+    background: var(--red);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 0 7px;
     margin-left: 6px;
     border-radius: 9px;
   }
@@ -274,13 +306,10 @@
     overflow-y: auto;
   }
   .out {
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.5);
-    padding: 5px 12px;
-    align-self: center;
-  }
-  .out:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.12) !important;
+    min-height: 34px;
+    padding: 4px 12px;
+    font-size: 13.5px;
+    margin-bottom: 10px;
   }
   .cols {
     flex: 1;
@@ -298,10 +327,11 @@
     transform: translate(-50%, 14px);
     background: var(--ink);
     color: #fff;
-    font-size: 13.5px;
+    font-size: 14px;
+    font-weight: 600;
     padding: 10px 16px;
-    border-left: 5px solid var(--hl);
-    border-radius: 4px;
+    border-left: 8px solid var(--hl);
+    border-radius: var(--r);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s, transform 0.15s;
@@ -320,7 +350,7 @@
       grid-template-columns: minmax(0, 1fr);
     }
     aside {
-      border-bottom: 1px solid var(--line);
+      border-bottom: 4px solid var(--ink);
     }
     :global(section[aria-label^="Vista previa"]) {
       height: 80vh !important;
