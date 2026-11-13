@@ -796,13 +796,6 @@ header h1,
   .hero-t b {
     font-size: 0.92rem;
   }
-  .hero-inicio.compacto .hero-p,
-  .hero-inicio.compacto .hero-no {
-    display: none;
-  }
-  .hero-inicio.compacto .hero-txt h2 {
-    margin-bottom: 0;
-  }
 }
 
 /* ---- the methodology in 30 seconds ---- */
@@ -3192,9 +3185,7 @@ html.nota-abierta {
   font-size: 0.88rem;
   color: var(--suave);
 }
-.hero-inicio.compacto .hero-p {
-  display: none;
-}
+/* the explanation of what OVADE is stays for everyone, every visit */
 /* the folded methodology sits quietly under the start */
 #perfil > .metodo-corto {
   max-width: none;
