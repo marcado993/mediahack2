@@ -33,7 +33,8 @@ export default function RootLayout({ children }) {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              '(function(){var s=null;try{s=JSON.parse(localStorage.getItem("ovade.licencia")||"null")}catch(e){}if(!s||!s.ficha||!(Date.parse(s.vence)>Date.now()))document.documentElement.dataset.acceso="bloqueado"})()',
+              // open day: no gate until this moment (same date as ABIERTO_HASTA in acceso.js)
+              '(function(){if(Date.parse("2026-11-13T23:59:00-05:00")>Date.now())return;var s=null;try{s=JSON.parse(localStorage.getItem("ovade.licencia")||"null")}catch(e){}if(!s||!s.ficha||!(Date.parse(s.vence)>Date.now()))document.documentElement.dataset.acceso="bloqueado"})()',
           }}
         />
         <link rel="stylesheet" href="/assets/app.css" />
