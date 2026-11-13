@@ -3251,3 +3251,49 @@ details.a-fondo .card,
 .inset-gal {
   box-shadow: none;
 }
+
+/* =====================================================================
+   Top bar in navy: the navigation is told apart from the content at a
+   glance. Same colour in both themes; on phones the tab bar at the
+   bottom keeps its own light look.
+   ===================================================================== */
+header {
+  background: #1b2a41;
+  color: #fff;
+  border-bottom: 4px solid var(--primario);
+}
+:root[data-tema="oscuro"] header {
+  background: #0c1322;
+}
+header h1,
+#brandTitle {
+  color: #fff;
+  border-color: #fff;
+}
+.finder-btn,
+.btn-datos,
+.btn-tema,
+.btn-req {
+  border-color: #fff;
+}
+@media (min-width: 641px) {
+  header nav button,
+  header nav .nav-ext {
+    color: rgba(255, 255, 255, 0.82);
+    border-bottom-color: rgba(255, 255, 255, 0.22);
+    background: none;
+  }
+  header nav button:hover,
+  header nav .nav-ext:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  header nav button.on {
+    color: #fff;
+    border-bottom-color: var(--primario);
+    background: none;
+  }
+  header nav button.nuevo::after {
+    border-color: #1b2a41;
+  }
+}
