@@ -8,6 +8,9 @@
   "use strict";
 
   var LLAVE = "ovade.licencia";
+  // Open day: until this moment (Ecuador time) the site needs no licence. Keep in sync with the
+  // same date in app/layout.js. After it passes, everything works as before.
+  var ABIERTO_HASTA = "2026-11-13T23:59:00-05:00";
 
   // Bridge while the production backend has no /api/licencia yet (it answers 404): the provisional
   // key, same SHA-256 and same end date the backend seeds (backend/app/licencias.py). Once the backend
@@ -145,6 +148,15 @@
   function iniciar() {
     puerta = document.getElementById("puerta");
     if (!puerta) { raiz.removeAttribute("data-acceso"); return; }
+    // Open access until ABIERTO_HASTA: no gate at all. A page left open reloads at that minute,
+    // so the gate comes back by itself without anyone touching the site.
+    var falta = Date.parse(ABIERTO_HASTA) - Date.now();
+    if (falta > 0) {
+      puerta.remove();
+      raiz.removeAttribute("data-acceso");
+      setTimeout(function () { location.reload(); }, falta + 1000);
+      return;
+    }
     form = puerta.querySelector("form");
     campo = document.getElementById("puertaClave");
     aviso = document.getElementById("puertaAviso");
