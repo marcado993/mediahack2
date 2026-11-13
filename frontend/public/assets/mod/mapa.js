@@ -1,6 +1,7 @@
 // Module: mapa. Part of the app.js split into native ES modules (no build step).
 
 import { getJSON } from "../api.js";
+import { barridoMapa } from "./efectos.js";
 import { flag } from "../tenant.js";
 import { MARGEN_GENERAL, esc, fmt, fmtInt, importedTag, borderlineTag } from "../ui.js";
 import { E } from "./estado.js";
@@ -70,6 +71,7 @@ function capaValueText(p) {
 
 export function paintMap() {
   const idx = byKey();
+  const capaNueva = E.capaPintada !== undefined && E.capaPintada !== E.capa;
   if (!capasAll().some((c) => c.codigo === E.capa && capaEnabled(c))) E.capa = "IVEI";
   const active = capasAll().find((c) => c.codigo === E.capa);
   const isPerfil = E.capa === "PERFIL";
@@ -97,6 +99,8 @@ export function paintMap() {
     el.classList.toggle("sel", key === E.mapSel);
     el.classList.toggle("imp", rec?.n_lb === 0 && E.capa !== "HABDIG");
   });
+  if (capaNueva) barridoMapa(document.querySelectorAll("#map .pv"));
+  E.capaPintada = E.capa;
 
   // Nulls (no data for this layer) always sink to the bottom of the
   // ranking, regardless of which direction the layer sorts in.
