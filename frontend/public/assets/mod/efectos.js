@@ -18,6 +18,7 @@ export function initEfectos() {
   g().defaults({ ease: "power3.out", duration: 0.45 });
   // GSAP now drives the motion that CSS used to: switch the CSS versions off
   document.documentElement.classList.add("gsap");
+  initToques();
   // every dialog opens with the same short rise
   const abrir = HTMLDialogElement.prototype.showModal;
   HTMLDialogElement.prototype.showModal = function () {
@@ -78,6 +79,7 @@ export function revelar(elementos, { desde = "start", cuanto = 0.5 } = {}) {
 
 // A button that just did its job acknowledges it.
 export function pop(boton) {
+  vibrar(); // a reporter on the street feels the copy went through without looking
   if (!activo() || !boton) return;
   g().fromTo(boton, { scale: 0.92 }, { scale: 1, duration: 0.5, ease: "back.out(3)", clearProps: "transform" });
 }
@@ -181,4 +183,53 @@ export function aparecerAlBajar(raiz) {
     c.dataset.fxVisto = "1";
     if (c.getBoundingClientRect().top > innerHeight) vigia.observe(c);
   }
+}
+
+/* ---------------------------------------------------------------------
+   Touch feedback for the reporter on the street: on a phone there is no
+   hover, so a tap must answer by itself. A soft wave from the finger, a
+   short press, a tick of vibration when something was copied.
+   --------------------------------------------------------------------- */
+const TOCABLES = ".btn, .copybtn, .hero-btn, .hero-cta, .nota-tipo, .nota-prov, .pl-item, .fbtn, header nav .tabs > button, .cta-modo button, .nota-frase, .cmp-chip, .trend-chip, .finder-btn, .btn-req, .btn-tema";
+
+function vibrar() {
+  try {
+    if (!calmo()) navigator.vibrate?.(12);
+  } catch (_) {}
+}
+
+/** A soft wave that starts where the finger touched. It lives in its own clipped layer, so nothing inside the button is cut. */
+function onda(el, x, y) {
+  const r = el.getBoundingClientRect();
+  if (!r.width || !r.height) return;
+  const capa = document.createElement("span");
+  capa.className = "fx-onda-capa";
+  capa.setAttribute("aria-hidden", "true");
+  const circulo = document.createElement("span");
+  circulo.className = "fx-onda";
+  const lado = Math.hypot(r.width, r.height) * 2;
+  Object.assign(circulo.style, { width: `${lado}px`, height: `${lado}px`, left: `${x - r.left - lado / 2}px`, top: `${y - r.top - lado / 2}px` });
+  capa.append(circulo);
+  el.append(capa);
+  g().fromTo(circulo, { scale: 0, opacity: 0.28 }, { scale: 1, opacity: 0, duration: 0.5, ease: "power2.out", onComplete: () => capa.remove() });
+  setTimeout(() => capa.remove(), 900);
+}
+
+function initToques() {
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (!activo() || e.button > 0) return;
+      const el = e.target.closest(TOCABLES);
+      if (!el || el.disabled || el.getAttribute("aria-disabled") === "true") return;
+      onda(el, e.clientX, e.clientY);
+    },
+    { passive: true },
+  );
+  // ticking a sentence in "Ideas para tu noticia" answers with a small bounce
+  document.addEventListener("change", (e) => {
+    const caja = e.target.closest?.(".nota-frase");
+    if (!caja || !activo()) return;
+    g().fromTo(caja, { scale: 0.98 }, { scale: 1, duration: 0.35, ease: "back.out(3)", clearProps: "transform" });
+  });
 }

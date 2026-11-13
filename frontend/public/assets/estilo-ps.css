@@ -3539,3 +3539,46 @@ details.a-fondo > summary {
     transition: none;
   }
 }
+
+/* =====================================================================
+   Touch feedback (efectos.js, initToques). The wave lives in its own
+   clipped layer; the press is CSS so it answers even before scripts.
+   ===================================================================== */
+:is(.btn, .copybtn, .hero-btn, .hero-cta, .nota-tipo, .nota-prov, .pl-item, .fbtn, header nav .tabs > button, .cta-modo button, .nota-frase, .cmp-chip, .trend-chip, .finder-btn, .btn-req, .btn-tema) {
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.fx-onda-capa {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.fx-onda {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  pointer-events: none;
+}
+/* a short press; .btn keeps its poster press (it moves into its shadow) */
+:is(.copybtn, .hero-btn, .nota-tipo, .nota-prov, .pl-item, .fbtn, header nav .tabs > button, .cta-modo button, .nota-frase, .cmp-chip, .trend-chip, .finder-btn, .btn-req, .btn-tema) {
+  transition: transform 0.08s ease-out, background-color 0.15s, border-color 0.15s;
+}
+:is(.copybtn, .hero-btn, .nota-tipo, .nota-prov, .pl-item, .fbtn, header nav .tabs > button, .cta-modo button, .nota-frase, .cmp-chip, .trend-chip, .finder-btn, .btn-req, .btn-tema):active {
+  transform: scale(0.97);
+}
+.hero-cta:active {
+  transform: translate(3px, 3px);
+  box-shadow: 2px 2px 0 var(--sombra);
+}
+/* keyboard users get the same clear answer: a thick focus ring */
+:is(.btn, .copybtn, .hero-btn, .hero-cta, .nota-tipo, .nota-prov, .pl-item, .fbtn, header nav .tabs > button, .cta-modo button, .nota-frase, .cmp-chip, .trend-chip, .finder-btn, .btn-req, .btn-tema):focus-visible {
+  outline: 3px solid var(--primario);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.copybtn, .hero-btn, .nota-tipo, .nota-prov, .pl-item, .fbtn, header nav .tabs > button, .cta-modo button, .nota-frase, .cmp-chip, .trend-chip, .finder-btn, .btn-req, .btn-tema, .hero-cta):active {
+    transform: none;
+  }
+}
