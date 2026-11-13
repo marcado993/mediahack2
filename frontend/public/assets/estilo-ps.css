@@ -3398,3 +3398,70 @@ header h1,
     animation: none !important;
   }
 }
+
+/* =====================================================================
+   Less noise, same identity. The poster look stays where it carries the
+   brand: Anton card titles, navy outlines, the hard shadow on top-level
+   cards, the boxed and slanted header title, the red rule, the yellow
+   stamp and "DATOS" strip, the dot paper, the poster province name.
+   What goes is the same effect repeated where it adds nothing:
+   - yellow badges in tables (the stability range is just text);
+   - capitals on small labels and table headers (they read as signage);
+   - shadows on blocks nested inside other blocks;
+   - Anton on small h3 labels (bold reading type instead).
+   ===================================================================== */
+th,
+.ftab th,
+.nf-k,
+.nota-mini,
+.copiar-h,
+.aside-h,
+.pl-h,
+.sub-s,
+.esc-tag,
+.ptag,
+.conf {
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+h3,
+.card h3:not(.ess-titular),
+.nota-bloque h3 {
+  font-family: var(--cuerpo);
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.sens .amp,
+span.amp {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-weight: 700;
+  color: var(--tinta);
+}
+/* nested blocks: outline only, the shadow belongs to the card that holds them */
+.card .card,
+.card .metric,
+.card .fcard,
+.card .caso,
+.nota-bloque,
+.nota-tipo,
+.nota-prov,
+.bov-item,
+.chat-msg {
+  box-shadow: none;
+}
+.nota-tipo:hover,
+.nota-tipo:focus-visible,
+.nota-prov:hover,
+.nota-prov:focus-visible {
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+/* map layers: only the chosen layer keeps the shadow, so the active one is obvious */
+.fchip:not(.on) {
+  box-shadow: none;
+}
+.card .vacio {
+  box-shadow: none;
+}
