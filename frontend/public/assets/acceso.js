@@ -8,6 +8,29 @@
   "use strict";
 
   var LLAVE = "ovade.licencia";
+
+  // Bridge while the production backend has no /api/licencia yet (it answers 404): the provisional
+  // key, same SHA-256 and same end date the backend seeds (backend/app/licencias.py). Once the backend
+  // is updated, the server answers and this branch is never used again. Remove it after that.
+  var PUENTE = {
+    hash: "00a16e1724d577adf9f1cafa65c5beb1d5404bde8a2cca5095865fa8101a6503",
+    medio: "Acceso provisional del equipo",
+    vence: "2026-11-13T23:59:59-05:00",
+    vence_texto: "13 de noviembre de 2026 a las 23:59",
+  };
+  function sha256(texto) {
+    if (!window.crypto || !crypto.subtle) return Promise.reject(new Error("sin-crypto"));
+    return crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto)).then(function (b) {
+      return Array.prototype.map.call(new Uint8Array(b), function (x) { return (x < 16 ? "0" : "") + x.toString(16); }).join("");
+    });
+  }
+  function porPuente(valor) {
+    return sha256(valor).then(function (h) {
+      if (h !== PUENTE.hash) return { ok: false, estado: 401, cuerpo: { detail: "Esa clave no es correcta. Revisa mayúsculas y guiones." } };
+      if (Date.parse(PUENTE.vence) <= Date.now()) return { ok: false, estado: 403, cuerpo: { detail: "La licencia de " + PUENTE.medio + " venció el " + PUENTE.vence_texto + ". Pide al equipo de OVADE que la renueve." } };
+      return { ok: true, estado: 200, cuerpo: { ficha: "puente", medio: PUENTE.medio, vence: PUENTE.vence, vence_texto: PUENTE.vence_texto } };
+    });
+  }
   var raiz = document.documentElement;
 
   // Same rule as assets/api.js (this file is a plain script, it cannot import it).
@@ -149,6 +172,9 @@
       boton.textContent = "Comprobando…";
       pedir("/entrar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clave: valor }) })
         .then(function (r) {
+          return r.estado === 404 ? porPuente(valor) : r; // backend not updated yet
+        })
+        .then(function (r) {
           if (!r.ok) return mostrarError(r.cuerpo.detail || "No se pudo comprobar la clave. Vuelve a intentar.");
           var c = r.cuerpo;
           var sesion = { ficha: c.ficha, medio: c.medio, vence: c.vence, vence_texto: c.vence_texto };
@@ -179,6 +205,8 @@
     avisoPorVencer(sesion);
     pedir("", { headers: { Authorization: "Bearer " + sesion.ficha } })
       .then(function (r) {
+        // backend not updated yet: a bridge session lasts until its end date (programarCierre handles it)
+        if (r.estado === 404 && sesion.ficha === "puente") return;
         if (r.ok) {
           var c = r.cuerpo;
           var nueva = { ficha: sesion.ficha, medio: c.medio, vence: c.vence, vence_texto: c.vence_texto };
