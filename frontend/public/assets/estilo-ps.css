@@ -4142,3 +4142,104 @@ textarea {
     padding: 14px;
   }
 }
+
+/* =====================================================================
+   Chat and vault fill the screen: the page stays still and only the
+   component scrolls (nav.js, ajustarVistaFija sets --alto-vista).
+   ===================================================================== */
+html.vista-fija #pie,
+html.vista-fija .subir {
+  display: none;
+}
+html.vista-fija.sin-scroll,
+html.vista-fija.sin-scroll body {
+  overflow: hidden;
+}
+html.vista-fija #v-chat.on,
+html.vista-fija #v-boveda.on {
+  display: flex;
+  flex-direction: column;
+  height: var(--alto-vista, 70vh);
+}
+/* chat: room header, notice and the box to write stay put; only the messages move */
+html.vista-fija #chatCard:not([hidden]) {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+html.vista-fija #chatCard .chat-caja {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+html.vista-fija #chatCard .chat-log {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+html.vista-fija #chatCard .chat-form {
+  position: static;
+  padding: 0;
+}
+/* account doors and the vault: their content scrolls inside the box */
+html.vista-fija #chatPuerta:not([hidden]),
+html.vista-fija #v-boveda.on > .boveda-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* fitted chat/vault: less fixed chrome, more room for the messages */
+html.vista-fija .cut {
+  display: none;
+}
+html.vista-fija #main {
+  padding-top: 12px;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+html.vista-fija #chatCard {
+  gap: 8px;
+  padding: 12px 16px;
+}
+html.vista-fija .chat-cab {
+  gap: 6px 12px;
+}
+html.vista-fija .chat-tit h2 {
+  font-size: 1.25rem;
+}
+html.vista-fija .chat-sala select {
+  min-height: 36px;
+  font-size: 0.92rem;
+}
+html.vista-fija .chat-aviso {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+html.vista-fija .chat-aviso:hover,
+html.vista-fija .chat-aviso:focus-within {
+  -webkit-line-clamp: unset;
+}
+html.vista-fija .chat-form input,
+html.vista-fija .chat-form .btn {
+  min-height: 42px;
+}
+html.vista-fija .chat-pie {
+  font-size: 0.8rem;
+}
+/* on a phone the search bar takes two rows: in chat and vault it is not needed there */
+@media (max-width: 640px) {
+  html.vista-fija .barra-util {
+    display: none;
+  }
+}
