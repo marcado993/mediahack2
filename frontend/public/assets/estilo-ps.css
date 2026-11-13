@@ -3465,3 +3465,77 @@ span.amp {
 .card .vacio {
   box-shadow: none;
 }
+
+/* headline words rise from behind their own line (efectos.js, palabras) */
+.fx-p {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.fx-p > span {
+  display: inline-block;
+}
+
+/* =====================================================================
+   Contrast for things you can tap (WCAG 1.4.11: 3:1 for component edges;
+   Nielsen: visible affordance). The pale #cdd5e0 edge was 1.4:1 on white.
+   --borde-ui is 3.7:1 on white and 5.2:1 on the dark surface.
+   ===================================================================== */
+:root {
+  --borde-ui: #7a8699;
+}
+:root[data-tema="oscuro"] {
+  --borde-ui: #8494b2;
+}
+.hero-btn,
+.hero-top .hero-btn,
+.pl-item,
+.chip,
+.fbtn,
+.trend-chip,
+.idx button,
+.jump button,
+.pl-todas > summary,
+.nota-frase,
+.esc-fuentes li,
+details.a-fondo > summary {
+  border-color: var(--borde-ui);
+}
+.pl-item.on,
+.fbtn.on,
+.chip.on,
+.nota-frase:has(input:checked) {
+  border-color: var(--linea);
+}
+/* icons: white on navy, not navy on pale grey */
+.hero-ic,
+.hero-top .hero-ic {
+  background: var(--linea);
+  color: var(--superficie);
+}
+/* a row that goes somewhere says so */
+.hero-btn::after {
+  content: "→";
+  flex: none;
+  margin-left: auto;
+  align-self: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--linea);
+  transition: transform 0.15s;
+}
+.hero-btn:hover::after,
+.hero-btn:focus-visible::after {
+  transform: translateX(3px);
+}
+.hero-btn:hover,
+.hero-top .hero-btn:hover {
+  border-color: var(--linea);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-btn::after {
+    transition: none;
+  }
+}
