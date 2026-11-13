@@ -796,13 +796,6 @@ header h1,
   .hero-t b {
     font-size: 0.92rem;
   }
-  .hero-inicio.compacto .hero-p,
-  .hero-inicio.compacto .hero-no {
-    display: none;
-  }
-  .hero-inicio.compacto .hero-txt h2 {
-    margin-bottom: 0;
-  }
 }
 
 /* ---- the methodology in 30 seconds ---- */
@@ -2431,4 +2424,1044 @@ details.a-fondo[open] > summary {
   .ftab {
     min-width: 620px;
   }
+}
+
+/* =====================================================================
+   "Escribir mi nota": three-step assistant (mod/nota.js).
+   A fixed frame (steps on top, actions at the bottom) and a scrolling
+   middle, so the next action is always on screen.
+   ===================================================================== */
+dialog.nota-dlg {
+  width: min(760px, calc(100vw - 24px));
+  height: min(760px, calc(100dvh - 24px));
+  max-height: none;
+  padding: 0;
+  display: none;
+  overflow: hidden;
+}
+dialog.nota-dlg[open] {
+  display: flex;
+  flex-direction: column;
+}
+html.nota-abierta {
+  overflow: hidden;
+}
+.nota-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px 0;
+}
+.nota-sello {
+  margin: 0;
+  padding: 0.3rem 0.8rem 0.3rem 0.6rem;
+  background: var(--aviso);
+  color: #1b2a41;
+  font: 400 0.9rem/1 var(--titulos);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+.nota-x {
+  min-height: 40px;
+  font-weight: 700;
+}
+/* step tracker */
+.nota-pasos {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 12px 20px 0;
+  padding: 0;
+}
+.nota-pasos[hidden] {
+  display: none;
+}
+.np {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  font: 700 0.92rem/1.2 var(--cuerpo);
+  color: var(--suave);
+  border-bottom: 5px solid var(--regla);
+}
+.np button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.np button:hover .np-t {
+  text-decoration: underline;
+}
+.np-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.85rem;
+}
+.np-t {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.np.ahora {
+  color: var(--tinta);
+  border-bottom-color: var(--primario);
+}
+.np.ahora .np-n {
+  background: var(--primario);
+  border-color: var(--primario);
+  color: #fff;
+}
+.np.hecho {
+  color: var(--ok-t);
+  border-bottom-color: var(--ok-t);
+}
+/* body */
+.nota-cuerpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+  overscroll-behavior: contain;
+}
+.nota-cuerpo.entra {
+  animation: nota-entra 0.22s ease-out;
+}
+@keyframes nota-entra {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+.nota-h {
+  margin: 0 0 4px;
+  font-size: clamp(1.5rem, 3.6vw, 2rem);
+  text-transform: none;
+}
+.nota-sub {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  color: var(--suave);
+}
+.nota-mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 16px 0 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--suave);
+}
+.nota-mini[hidden] {
+  display: none;
+}
+.nota-mini svg.ic {
+  width: 15px;
+  height: 15px;
+}
+.nota-buscar {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 14px;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.nota-ayuda {
+  min-height: 1.3em;
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+.nota-provs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+.nota-provs[hidden] {
+  display: none;
+}
+.nota-prov {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 6px 12px;
+  text-align: left;
+  font: 700 1rem/1.2 var(--cuerpo);
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 2px 2px 0 var(--sombra);
+  cursor: pointer;
+}
+.nota-prov[hidden] {
+  display: none;
+}
+.nota-prov:hover,
+.nota-prov:focus-visible {
+  background: var(--gris);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+.nota-prov .dot {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--linea);
+}
+.nota-aviso,
+.nota-tip {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+}
+.nota-aviso {
+  background: var(--tinte-aviso);
+  border-left: 8px solid var(--aviso);
+}
+.nota-tip {
+  margin: 12px 0 0;
+  background: var(--tinte-ok);
+}
+.nota-aviso svg.ic,
+.nota-tip svg.ic {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+}
+/* step 2: sentences to pick */
+.nota-frases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.nota-frase {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: var(--superficie);
+  border: 3px solid var(--regla);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.nota-frase:has(input:checked) {
+  border-color: var(--linea);
+  box-shadow: 3px 3px 0 var(--sombra);
+  background: color-mix(in srgb, var(--tinte-ok) 70%, var(--superficie));
+}
+.nota-frase.fija {
+  cursor: default;
+}
+.nota-frase:hover:not(.fija) {
+  border-color: var(--linea);
+}
+.nota-frase input {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: var(--ok-t);
+}
+.nf-t {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.nf-k {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--suave);
+}
+.nf-x {
+  font: 1.05rem/1.5 var(--lectura);
+  color: var(--tinta);
+}
+.nf-f {
+  font-size: 0.82rem;
+  color: var(--suave);
+}
+/* step 3: the paragraph */
+.nota-texto {
+  width: 100%;
+  min-height: 190px;
+  padding: 14px;
+  font: 1.08rem/1.6 var(--lectura);
+  resize: vertical;
+  background: var(--gris);
+}
+.nota-revisa {
+  margin-top: 14px;
+  padding: 4px 14px 14px;
+  border: 2px solid var(--linea);
+  border-left: 8px solid var(--peligro-t);
+  border-radius: var(--r);
+  background: var(--tinte-peligro);
+}
+.nota-revisa ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.nota-revisa .nota-mini {
+  color: var(--peligro-t);
+}
+/* done */
+.nota-listo {
+  text-align: center;
+  padding: 10px 0 4px;
+}
+.nota-ok {
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+  color: #fff;
+  background: var(--ok-t);
+  border: 4px solid var(--linea);
+  border-radius: 50%;
+  box-shadow: 4px 4px 0 var(--sombra);
+  animation: nota-pop 0.35s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.nota-ok svg.ic {
+  width: 32px;
+  height: 32px;
+}
+@keyframes nota-pop {
+  from {
+    transform: scale(0.4);
+  }
+}
+.nota-siguiente {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+.nota-carga {
+  display: grid;
+  gap: 10px;
+}
+.nota-carga .sk-b {
+  height: 64px;
+  margin: 0;
+}
+/* footer: the next action is always here */
+.nota-pie {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  border-top: 4px solid var(--linea);
+  background: var(--gris);
+}
+.nota-pie:empty {
+  display: none;
+}
+.nota-pie-t {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--suave);
+}
+.nota-copiar {
+  font-size: 1.1rem;
+  min-height: 50px;
+}
+/* the start-screen entry weighs like the most used tools */
+.hero-nota {
+  border-width: 4px;
+  box-shadow: 4px 4px 0 var(--sombra);
+}
+.hero-nota .hero-ic {
+  background: var(--primario);
+  color: #fff;
+}
+@media (max-width: 640px) {
+  dialog.nota-dlg {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border-width: 0;
+    box-shadow: none;
+  }
+  .np-t {
+    font-size: 0.8rem;
+  }
+  .nota-pie-t {
+    display: none;
+  }
+  .nota-pie .btn {
+    flex: 1 1 auto;
+  }
+  .nota-provs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nota-cuerpo.entra,
+  .nota-ok {
+    animation: none;
+  }
+}
+
+/* ---- recommender: kinds of story and advice blocks ---- */
+.nota-tipos {
+  display: grid;
+  gap: 10px;
+}
+.nota-tipo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 3px 3px 0 var(--sombra);
+  cursor: pointer;
+}
+.nota-tipo:hover,
+.nota-tipo:focus-visible {
+  background: var(--gris);
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--sombra);
+}
+.nota-tipo.on {
+  border-color: var(--primario);
+}
+.nota-tipo .hero-ic {
+  flex: none;
+}
+.nt-t {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.nt-t b {
+  font: 800 1.08rem/1.25 var(--cuerpo);
+}
+.nt-t small {
+  font-size: 0.92rem;
+  color: var(--suave);
+}
+.nt-ir {
+  flex: none;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--primario);
+}
+.nota-bloque {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--superficie);
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+}
+.nota-bloque h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -12px -14px 10px;
+  padding: 9px 14px;
+  font-size: 1.05rem;
+  background: var(--gris);
+  border-bottom: 3px solid var(--linea);
+}
+.nota-bloque h3 svg.ic {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.nota-recs {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+.nota-citas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+.nota-citas li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+.nota-citas li + li {
+  border-top: 2px solid var(--regla);
+}
+.nota-citas p {
+  margin: 0;
+  font: 1.02rem/1.5 var(--lectura);
+}
+.nota-citas small {
+  display: block;
+  margin-top: 3px;
+  font: 0.82rem var(--cuerpo);
+  color: var(--suave);
+}
+.nota-citas .copybtn {
+  flex: none;
+}
+.nota-cargando {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: var(--suave);
+}
+.nota-pista {
+  margin: 8px 0 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--suave);
+}
+.nota-escucha .esc-posts {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 0.92rem;
+}
+.nota-no {
+  background: var(--tinte-peligro);
+}
+.nota-no h3 {
+  color: var(--peligro-t);
+}
+.nota-pie .btn:last-child {
+  margin-left: auto;
+}
+@media (max-width: 640px) {
+  .nota-citas li {
+    flex-direction: column;
+  }
+}
+
+/* =====================================================================
+   Hierarchy: one thing shouts per screen.
+   The poster look (thick navy outline, hard shadow, Anton capitals, red)
+   is kept for the primary action and the page title only. Everything
+   secondary gets a thin outline, no shadow and the reading typeface,
+   so the eye knows where to start.
+   ===================================================================== */
+:root {
+  --sh: 4px 4px 0 var(--sombra);
+}
+/* cards: one outline, a lighter shadow */
+.card,
+.peek,
+.vacio {
+  border-width: 3px;
+}
+
+/* secondary buttons: quiet, sentence case, no shadow */
+.btn.gh,
+.btn.ghost,
+.copybtn,
+.cmp-chip,
+.cmp-swap {
+  font-family: var(--cuerpo);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  border-width: 2px;
+  box-shadow: none;
+}
+.btn.gh:hover,
+.btn.ghost:hover,
+.copybtn:hover,
+.cmp-chip:hover {
+  transform: none;
+  box-shadow: none;
+  background: var(--gris);
+}
+.btn.gh:active,
+.copybtn:active {
+  transform: none;
+  box-shadow: none;
+}
+/* the primary button keeps the poster voice, a bit smaller shadow */
+.btn:not(.gh):not(.ghost) {
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+
+/* header: only the brand and the tabs stand out */
+.finder-btn,
+.btn-datos {
+  border-width: 2px;
+  box-shadow: none;
+}
+.btn-req {
+  background: var(--superficie);
+  color: var(--linea);
+  border-width: 2px;
+  box-shadow: none;
+  font-family: var(--cuerpo);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.btn-req:hover {
+  background: var(--gris);
+}
+.btn-req .rq-ic {
+  color: var(--primario);
+}
+
+/* lists and chips: thin, no shadow; the selected one is still red */
+.pl-item,
+.chip,
+.fbtn,
+.trend-chip,
+.idx button,
+.jump button {
+  border-width: 2px;
+  border-color: var(--regla);
+  box-shadow: none;
+}
+.pl-item:hover,
+.chip:hover,
+.fbtn:hover {
+  border-color: var(--linea);
+}
+.pl-item.on,
+.fbtn.on,
+.chip.on,
+.idx button.on {
+  border-color: var(--linea);
+}
+
+/* section labels: bold reading type, not poster capitals */
+.hero-h,
+.mc-col h3,
+.metodo-corto h3,
+.card h3:not(.ess-titular),
+.kit-mas-h {
+  font-family: var(--cuerpo);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* ---- start screen: one call to action ---- */
+.hero-inicio {
+  border-width: 3px;
+  box-shadow: none;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+}
+.hero-txt h2 {
+  color: var(--tinta);
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  text-transform: none;
+  font-size: clamp(1.9rem, 3.6vw, 2.6rem);
+}
+.hero-cta {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  max-width: 520px;
+  margin: 14px 0 10px;
+  padding: 16px 20px;
+  text-align: left;
+  color: #fff;
+  background: var(--primario);
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 5px 5px 0 var(--sombra);
+  cursor: pointer;
+}
+.hero-cta:hover {
+  background: #b50f24;
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0 var(--sombra);
+}
+.hero-cta:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--sombra);
+}
+.hero-cta:focus-visible {
+  outline: 4px solid var(--aviso);
+  outline-offset: 3px;
+}
+.hero-cta-t {
+  font: 400 clamp(1.35rem, 2.6vw, 1.7rem) / 1.1 var(--titulos);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.hero-cta small {
+  font-size: 0.98rem;
+  font-weight: 600;
+  opacity: 0.95;
+}
+.hero-acc .hero-h {
+  margin: 4px 0 10px;
+  color: var(--suave);
+}
+.hero-lista.hero-top {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.hero-top .hero-btn,
+.hero-btn {
+  border-width: 2px;
+  border-color: var(--regla);
+  box-shadow: none;
+  padding: 10px 12px;
+}
+.hero-top .hero-btn:hover,
+.hero-btn:hover {
+  border-color: var(--linea);
+  background: var(--gris);
+  transform: none;
+  box-shadow: none;
+}
+.hero-top .hero-ic,
+.hero-ic {
+  background: var(--gris);
+  color: var(--linea);
+  border: 0;
+  box-shadow: none;
+}
+.hero-t small {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 2px 0 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  display: block;
+  font-size: 0.88rem;
+  color: var(--suave);
+}
+/* the explanation of what OVADE is stays for everyone, every visit */
+/* the folded methodology sits quietly under the start */
+#perfil > .metodo-corto {
+  max-width: none;
+  margin-top: 0;
+}
+.sigo-vacio[hidden] {
+  display: none;
+}
+@media (max-width: 900px) {
+  .hero-inicio {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero-cta {
+    max-width: none;
+  }
+}
+
+/* the full list of 24 is a third way to pick a province: folded, opened by typing */
+.pl-todas > summary {
+  list-style: none;
+  cursor: pointer;
+  margin: 6px 0 0;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--linea);
+  border: 2px solid var(--regla);
+  border-radius: var(--r);
+}
+.pl-todas > summary::-webkit-details-marker {
+  display: none;
+}
+.pl-todas > summary::after {
+  content: " ▾";
+}
+.pl-todas[open] > summary::after {
+  content: " ▴";
+}
+.pl-todas > summary:hover {
+  border-color: var(--linea);
+  background: var(--gris);
+}
+.pl-todas[open] > summary {
+  margin-bottom: 8px;
+}
+.btn-tema,
+#btnSobreDatos {
+  box-shadow: none;
+  border-width: 2px;
+}
+
+/* drawers and what is inside them are secondary: outline only, no shadow */
+details.a-fondo > summary {
+  border-width: 2px;
+  box-shadow: none;
+}
+details.a-fondo .card,
+.kit-pleg .card,
+#sec-afondo .card {
+  border-width: 2px;
+  box-shadow: none;
+}
+.inset-gal {
+  box-shadow: none;
+}
+
+/* =====================================================================
+   Top bar in navy: the navigation is told apart from the content at a
+   glance. Same colour in both themes; on phones the tab bar at the
+   bottom keeps its own light look.
+   ===================================================================== */
+header {
+  background: #1b2a41;
+  color: #fff;
+  border-bottom: 4px solid var(--primario);
+}
+:root[data-tema="oscuro"] header {
+  background: #0c1322;
+}
+header h1,
+#brandTitle {
+  color: #fff;
+  border-color: #fff;
+}
+.finder-btn,
+.btn-datos,
+.btn-tema,
+.btn-req {
+  border-color: #fff;
+}
+@media (min-width: 641px) {
+  header nav button,
+  header nav .nav-ext {
+    color: rgba(255, 255, 255, 0.82);
+    border-bottom-color: rgba(255, 255, 255, 0.22);
+    background: none;
+  }
+  header nav button:hover,
+  header nav .nav-ext:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  header nav button.on {
+    color: #fff;
+    border-bottom-color: var(--primario);
+    background: none;
+  }
+  header nav button.nuevo::after {
+    border-color: #1b2a41;
+  }
+}
+
+/* =====================================================================
+   Escucha digital: the search shown as it happens. One row per source
+   that is really read (outlets and X), with a sweeping bar while it
+   searches and a bar sized by what it found once it answers.
+   ===================================================================== */
+.esc-busca-t {
+  margin: 0 0 10px;
+  font-size: 1.02rem;
+}
+.esc-fuentes {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.esc-fuentes li {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 8px 10px;
+  border: 2px solid var(--regla);
+  border-radius: var(--r);
+  background: var(--superficie);
+}
+.esc-fuentes li.ok {
+  border-color: var(--linea);
+}
+.ef-ic {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--linea);
+  border-radius: 50%;
+}
+.ef-n {
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+.ef-bar {
+  grid-column: 1 / -1;
+  order: 4;
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  background: var(--gris);
+  border-radius: 5px;
+}
+.ef-bar i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 38%;
+  background: var(--primario);
+  border-radius: 5px;
+}
+/* without GSAP the same sweep runs in CSS */
+#tendResult:not(.esc-gsap) .esc-busca .ef-bar i {
+  animation: ef-barrido 1.2s ease-in-out infinite;
+}
+.esc-fuentes li.ok .ef-bar i,
+.esc-fuentes li.vacio .ef-bar i {
+  animation: none;
+  background: var(--ok-t);
+}
+@keyframes ef-barrido {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(270%);
+  }
+}
+.ef-e {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--suave);
+  white-space: nowrap;
+}
+.esc-fuentes li.ok .ef-e {
+  color: var(--ok-t);
+}
+.esc-busca-s {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--suave);
+}
+.ef-seg {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ef-bar i {
+    animation: none !important;
+  }
+}
+
+/* =====================================================================
+   Less noise, same identity. The poster look stays where it carries the
+   brand: Anton card titles, navy outlines, the hard shadow on top-level
+   cards, the boxed and slanted header title, the red rule, the yellow
+   stamp and "DATOS" strip, the dot paper, the poster province name.
+   What goes is the same effect repeated where it adds nothing:
+   - yellow badges in tables (the stability range is just text);
+   - capitals on small labels and table headers (they read as signage);
+   - shadows on blocks nested inside other blocks;
+   - Anton on small h3 labels (bold reading type instead).
+   ===================================================================== */
+th,
+.ftab th,
+.nf-k,
+.nota-mini,
+.copiar-h,
+.aside-h,
+.pl-h,
+.sub-s,
+.esc-tag,
+.ptag,
+.conf {
+  text-transform: none;
+  letter-spacing: 0.01em;
+}
+h3,
+.card h3:not(.ess-titular),
+.nota-bloque h3 {
+  font-family: var(--cuerpo);
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.sens .amp,
+span.amp {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-weight: 700;
+  color: var(--tinta);
+}
+/* nested blocks: outline only, the shadow belongs to the card that holds them */
+.card .card,
+.card .metric,
+.card .fcard,
+.card .caso,
+.nota-bloque,
+.nota-tipo,
+.nota-prov,
+.bov-item,
+.chat-msg {
+  box-shadow: none;
+}
+.nota-tipo:hover,
+.nota-tipo:focus-visible,
+.nota-prov:hover,
+.nota-prov:focus-visible {
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+/* map layers: only the chosen layer keeps the shadow, so the active one is obvious */
+.fchip:not(.on) {
+  box-shadow: none;
+}
+.card .vacio {
+  box-shadow: none;
 }

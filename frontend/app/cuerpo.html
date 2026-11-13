@@ -6,11 +6,11 @@
    <img src="/marca-oscuro.svg" alt="" class="pt-oscuro" width="36" height="36">
    <span>Observatorio de Vulnerabilidad ante la Desinformación Electoral</span>
   </div>
-  <p class="pt-sello">Acceso de prueba</p>
+  <p class="pt-sello">Acceso con licencia</p>
   <h2 id="puertaTitulo">Entra a OVADE</h2>
-  <p class="pt-texto" id="puertaTexto">Esta versión está en pruebas. Escribe la clave de acceso que te dio el equipo para entrar.</p>
+  <p class="pt-texto" id="puertaTexto">Escribe la clave de licencia de tu medio. La comprobamos en el servidor y te avisamos cuándo vence.</p>
   <form novalidate>
-   <label class="pt-etq" for="puertaClave">Clave de acceso</label>
+   <label class="pt-etq" for="puertaClave">Clave de licencia</label>
    <div class="pt-fila">
     <input id="puertaClave" name="clave" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" required aria-describedby="puertaAviso">
     <button type="button" id="puertaVer" aria-pressed="false" aria-controls="puertaClave">Mostrar</button>
@@ -18,7 +18,7 @@
    <p id="puertaAviso" role="alert"></p>
    <button type="submit" class="pt-entrar">Ingresar</button>
   </form>
-  <p class="pt-pie">¿No tienes la clave? Pídela al equipo Dinameta.</p>
+  <p class="pt-pie">¿No tienes licencia o venció? Pídela al equipo Dinameta.</p>
  </div>
 </div>
 <div id="progress" aria-hidden="true"></div>
@@ -27,7 +27,7 @@
 <a class="skip" href="#main">Saltar al contenido</a>
 <header><div class="wrap">
 <div class="brand-row">
-<img src="/marca-azul.svg" alt="" class="brand-mark" id="brandMark" width="32" height="32" aria-hidden="true">
+<img src="/marca-oscuro.svg" alt="" class="brand-mark" id="brandMark" width="32" height="32" aria-hidden="true">
 <img id="brandLogo" class="brand-logo" alt="" hidden>
 <h1 id="brandTitle">Observatorio de Vulnerabilidad ante la Desinformación Electoral</h1>
 <button type="button" class="finder-btn" id="buscador" aria-haspopup="dialog" aria-keyshortcuts="/ Control+K" title="Buscar provincia: pulsa / o Ctrl+K desde cualquier pantalla">
@@ -117,19 +117,14 @@
    <p class="hero-p">Un mapa de Ecuador que muestra <b>dónde la desinformación electoral encuentra más terreno</b>. Junta datos oficiales de las 24 provincias en un puntaje de 0 a 100.</p>
    <p class="hero-p">Te sirve para decidir <b>dónde verificar primero</b> y <b>por qué canal llegar</b>.</p>
    <p class="hero-no"><span data-ic="info"></span>No dice si algo es falso ni señala personas: describe territorios.</p>
+   <button type="button" class="hero-cta" data-abrir-nota><span class="hero-cta-t">Ideas para tu noticia <span aria-hidden="true">→</span></span><small>¿Qué estás cubriendo hoy? Eliges provincia y tema; te damos el ángulo, los datos y por dónde llegar.</small></button>
   </div>
   <div class="hero-acc">
-   <h3 class="hero-h">Lo que más vas a usar</h3>
+   <h3 class="hero-h">También puedes</h3>
    <ul class="hero-lista hero-top">
-    <li><button type="button" class="hero-btn" data-ruta="asistente"><span class="hero-ic" data-ic="escucha"></span><span class="hero-t"><b>Escucha digital</b><small>De qué se habla hoy en cada provincia, en X y en medios.</small></span></button></li>
-    <li><button type="button" class="hero-btn" data-ruta="chat"><span class="hero-ic" data-ic="chat"></span><span class="hero-t"><b>Chat con colegas</b><small>Una sala general y una por provincia. Con seudónimo; los mensajes se borran solos.</small></span></button></li>
-    <li><button type="button" class="hero-btn" data-ruta="boveda"><span class="hero-ic" data-ic="lock"></span><span class="hero-t"><b>Bóveda segura</b><small>Guarda notas y archivos cifrados en tu navegador. Nadie más los lee. Pide cuenta.</small></span></button></li>
-   </ul>
-   <h3 class="hero-h hero-h2">Datos para tu nota</h3>
-   <ul class="hero-lista">
-    <li><button type="button" class="hero-btn" data-enfocar="provFiltro"><span class="hero-ic" data-ic="pen"></span><span class="hero-t"><b>Preparar una nota</b><small>Elige tu provincia y copia una frase lista, con su fuente.</small></span></button></li>
-    <li><button type="button" class="hero-btn" data-ruta="mapas/IVEI"><span class="hero-ic" data-ic="map"></span><span class="hero-t"><b>Ver el mapa del país</b><small>Qué provincias están más expuestas, de un vistazo.</small></span></button></li>
-    <li><button type="button" class="hero-btn" data-ruta="comparar"><span class="hero-ic" data-ic="compare"></span><span class="hero-t"><b>Comparar dos provincias</b><small>Cuál tiene más terreno y por qué.</small></span></button></li>
+    <li><button type="button" class="hero-btn" data-ruta="asistente"><span class="hero-ic" data-ic="escucha"></span><span class="hero-t"><b>Escucha digital</b><small>De qué se habla hoy en cada provincia.</small></span></button></li>
+    <li><button type="button" class="hero-btn" data-ruta="chat"><span class="hero-ic" data-ic="chat"></span><span class="hero-t"><b>Chat con colegas</b><small>Una sala por provincia, con seudónimo.</small></span></button></li>
+    <li><button type="button" class="hero-btn" data-ruta="boveda"><span class="hero-ic" data-ic="lock"></span><span class="hero-t"><b>Bóveda segura</b><small>Notas y archivos cifrados en tu equipo.</small></span></button></li>
    </ul>
   </div>
  </section>
@@ -149,7 +144,9 @@
    </div>
    <div class="aside-find">
    <div id="provRecientes" class="recent"></div>
+   <details class="pl-todas" id="plTodas"><summary>Ver las 24 provincias en lista</summary>
    <div id="provLista" class="prov-list" role="list" aria-busy="true"><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div></div>
+   </details>
    <button type="button" class="pl-item pl-home" id="btnInicio"><span class="pl-n">← Volver al inicio</span></button>
    </div>
   </aside>

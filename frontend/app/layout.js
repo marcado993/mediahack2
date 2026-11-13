@@ -14,7 +14,7 @@ export const viewport = {
 const MODULOS = [
   "mod/color", "mod/comparar", "mod/datos", "mod/descargas", "mod/escucha", "mod/efectos", "mod/estado",
   "mod/fichadoc", "mod/flags", "mod/formularios", "mod/inicio", "mod/kit", "mod/mapa", "mod/metodologia",
-  "mod/nav", "mod/paginas", "mod/tooltip", "mod/util", "api", "tenant", "ui", "estados",
+  "mod/nav", "mod/nota", "mod/paginas", "mod/tooltip", "mod/util", "api", "tenant", "ui", "estados",
 ];
 
 export default function RootLayout({ children }) {
@@ -29,11 +29,11 @@ export default function RootLayout({ children }) {
               '(function(){try{var q=new URLSearchParams(location.search).get("tema");var t=(q==="oscuro"||q==="claro")?q:localStorage.getItem("ovade.tema");if(!t)t=matchMedia("(prefers-color-scheme: dark)").matches?"oscuro":"claro";document.documentElement.dataset.tema=t;document.documentElement.style.colorScheme=t==="oscuro"?"dark":"light"}catch(e){}})()',
           }}
         />
-        {/* provisional access gate: locks before the first paint unless this browser already entered the key */}
+        {/* licence gate: locks before the first paint unless this browser has a session that has not ended (the server re-checks it in acceso.js) */}
         <script
           dangerouslySetInnerHTML={{
             __html:
-              '(function(){var k="00a16e1724d577adf9f1cafa65c5beb1d5404bde8a2cca5095865fa8101a6503",v=null;try{v=localStorage.getItem("ovade.acceso")||sessionStorage.getItem("ovade.acceso")}catch(e){}if(v!==k)document.documentElement.dataset.acceso="bloqueado"})()',
+              '(function(){var s=null;try{s=JSON.parse(localStorage.getItem("ovade.licencia")||"null")}catch(e){}if(!s||!s.ficha||!(Date.parse(s.vence)>Date.now()))document.documentElement.dataset.acceso="bloqueado"})()',
           }}
         />
         <link rel="stylesheet" href="/assets/app.css" />
