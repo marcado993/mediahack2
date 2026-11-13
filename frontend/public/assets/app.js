@@ -2,7 +2,7 @@
 
 import { loadTenant, onTenant } from "./tenant.js";
 import { initEstadosRed } from "./estados.js";
-import { initEfectos, revelar } from "./mod/efectos.js";
+import { initEfectos, portada, revelar } from "./mod/efectos.js";
 import { E } from "./mod/estado.js";
 import { $ } from "./mod/util.js";
 import { applyRoute, barraOff, barraOn, errorBox, initDatosNav, navigate, pathFor, tabs } from "./mod/nav.js";
@@ -84,6 +84,14 @@ onTenant(applyFlags);
     else localStorage.setItem("ovade.vistoInicio", "1");
   } catch (_) {}
   initEfectos();
+  // the front page plays when the site is actually visible: now, or when the licence gate opens
+  if (document.documentElement.dataset.acceso !== "bloqueado") portada();
+  else
+    new MutationObserver((_, obs) => {
+      if (document.documentElement.dataset.acceso === "bloqueado") return;
+      obs.disconnect();
+      setTimeout(portada, 250);
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-acceso"] });
   initEstadosRed();
   initNota(); // the note assistant answers at once, even while the data is still loading
   const tenantReady = loadTenant();
