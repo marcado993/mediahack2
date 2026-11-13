@@ -98,7 +98,7 @@ export async function runTendencias(province) {
     const all = [...res.actores, ...res.temas].sort((a, b) => b.count - a.count);
     box.innerHTML = `
     ${resumen}
-    <p class="note">${res.total_analizados} publicaciones analizadas. Lo que más se repite, de más a menos:</p>
+    <p class="note">${res.total_analizados} publicaciones de los últimos días, consultadas hoy a las ${new Date().toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" })}. Es conversación reciente, no un dato del índice. Lo que más se repite, de más a menos:</p>
     <div class="trend-chip-row">${all
       .map((t, i) => `<button class="trend-chip${res.actores.includes(t) ? " actor" : ""}" data-i="${i}">${esc(t.term)}<span class="count">${t.count}</span></button>`)
       .join("")}</div>

@@ -13,7 +13,7 @@ export const viewport = {
 // The app's own modules, fetched in parallel instead of one after another.
 const MODULOS = [
   "mod/color", "mod/comparar", "mod/datos", "mod/descargas", "mod/escucha", "mod/efectos", "mod/estado",
-  "mod/fichadoc", "mod/flags", "mod/formularios", "mod/inicio", "mod/kit", "mod/mapa", "mod/metodologia",
+  "mod/fichadoc", "mod/flags", "mod/formularios", "mod/guia", "mod/inicio", "mod/kit", "mod/mapa", "mod/metodologia",
   "mod/habito", "mod/nav", "mod/nota", "mod/paginas", "mod/tooltip", "mod/util", "api", "tenant", "ui", "estados",
 ];
 

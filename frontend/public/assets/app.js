@@ -20,6 +20,7 @@ import { iconosEn } from "./ui.js";
 import { initTema } from "./mod/tema.js";
 import { initBorradores, initSubir } from "./mod/ayudas.js";
 import { initNota } from "./mod/nota.js";
+import { initGuia } from "./mod/guia.js";
 import { registrarUso } from "./mod/habito.js";
 
 addEventListener("popstate", applyRoute);
@@ -95,6 +96,7 @@ onTenant(applyFlags);
     }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-acceso"] });
   initEstadosRed();
   initNota(); // the note assistant answers at once, even while the data is still loading
+  initGuia();
   registrarUso("visita");
   const tenantReady = loadTenant();
   try {

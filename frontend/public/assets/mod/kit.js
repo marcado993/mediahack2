@@ -7,7 +7,7 @@ import { entradaKit } from "./efectos.js";
 import { esc, fmt, fmtInt, ICON, provinceFlags, scoreRange } from "../ui.js";
 import { E } from "./estado.js";
 import { $, provinceKey } from "./util.js";
-import { AFONDO_KEY, DRIVER_MIN, ETNIA_COLOR, FACTORES, FUENTE_OVADE, NO_APOYA, SI_APOYA, TEND_CACHE, TEND_TTL, enc, esLimite, perfilColor, perfilPlano, solBadge } from "./datos.js";
+import { AFONDO_KEY, DRIVER_MIN, ETNIA_COLOR, FACTORES, FICHA_TECNICA, FUENTE_OVADE, NO_APOYA, SI_APOYA, TEND_CACHE, TEND_TTL, enc, esLimite, perfilColor, perfilPlano, solBadge } from "./datos.js";
 import { col, inkFor } from "./color.js";
 import { copiarBtn, errorBox, navigate, toast, viewEnabled } from "./nav.js";
 import { byKey, factorNombre, puestoFactor } from "./mapa.js";
@@ -91,7 +91,7 @@ function citaTexto({ provincia, indice, nivel, puesto, nacional, nLb }) {
     `${provincia} obtiene ${fmt(indice)} sobre 100 en el índice OVADE de vulnerabilidad electoral, ` +
     `de vulnerabilidad ${(nivel || "").toLowerCase()}: puesto ${puesto} de 24 provincias (1 = la más vulnerable), con un promedio nacional de ${fmt(nacional)}. ` +
     `${FUENTE_OVADE.slice(0, -1)}, con datos del Censo 2022 y la ENEMDU 2024 (INEC) y el Latinobarómetro 2024. ` +
-    `El índice describe condiciones del territorio, no el comportamiento de sus habitantes.` +
+    `El índice describe condiciones del territorio, no el comportamiento de sus habitantes. Datos con corte a la última publicación de cada fuente; alcance provincial.` +
     (aviso ? ` Precaución editorial: ${aviso}` : "")
   );
 }
@@ -375,6 +375,7 @@ export function renderPerfil(data) {
     </div>
     ${escalaHTML(data.ivei.indice, data.ivei.nacional, data.provincia)}
     <p class="rel-aviso">${ICON.warn}<span><b>Índice relativo:</b> compara provincias entre sí. Describe territorios, no personas.</span></p>
+    <p class="ficha-tec"><b>Ficha técnica.</b> ${esc(FICHA_TECNICA)} <button type="button" class="linkbtn" data-retro="error">¿Ves un error? Repórtalo</button></p>
     <p class="km-conf">${cuidado.join(" ")} <button type="button" class="linkbtn noprint" id="btnSolidez">¿Qué tan firme?</button></p>
    </section>
 

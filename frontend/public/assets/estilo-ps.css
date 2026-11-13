@@ -4243,3 +4243,134 @@ html.vista-fija .chat-pie {
     display: none;
   }
 }
+
+/* =====================================================================
+   Primera Plana review: quick guide, technical note, structural data vs
+   recent conversation.
+   ===================================================================== */
+.hero-guia {
+  margin: 6px 0 0;
+}
+.hero-guia .linkbtn {
+  font-weight: 700;
+}
+.ficha-tec {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--suave);
+  background: var(--gris);
+  border-radius: var(--r);
+}
+.ficha-tec b {
+  color: var(--tinta);
+}
+.nota-tag {
+  margin-left: auto;
+  padding: 2px 8px;
+  font: 700 0.72rem/1.4 var(--cuerpo);
+  letter-spacing: 0.02em;
+  color: var(--linea);
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.nota-tag.reciente {
+  color: var(--primario);
+  border-color: var(--primario);
+}
+dialog.guia-dlg {
+  width: min(760px, calc(100vw - 24px));
+  max-height: min(820px, calc(100dvh - 24px));
+  padding: 0;
+  overflow: hidden;
+}
+dialog.guia-dlg[open] {
+  display: flex;
+  flex-direction: column;
+}
+.guia-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 0;
+}
+.guia-cuerpo {
+  overflow-y: auto;
+  padding: 12px 20px 20px;
+}
+.guia-pasos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.guia-paso {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--superficie);
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+}
+.guia-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: #fff;
+  background: var(--primario);
+  border: 2px solid var(--linea);
+  border-radius: 50%;
+  font: 400 1.05rem/1 var(--titulos);
+}
+.guia-paso h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 0 6px;
+  font-size: 1.02rem;
+}
+.guia-paso h3 svg.ic {
+  width: 16px;
+  height: 16px;
+}
+.guia-paso p {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+.guia-ej {
+  color: var(--suave);
+}
+.guia-verifica {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--tinte-aviso);
+  border: 2px solid var(--linea);
+  border-left: 6px solid var(--aviso);
+  border-radius: var(--r);
+}
+.guia-verifica h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+.guia-verifica ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.guia-corte,
+.guia-soporte {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: var(--suave);
+}

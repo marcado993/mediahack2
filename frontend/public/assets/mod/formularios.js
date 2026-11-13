@@ -160,16 +160,21 @@ export function pedirOpinion(contexto) {
 export function initRetro() {
   const dlg = $("dlgRetro");
   const form = $("formRetro");
-  const open = () => {
+  const campo = $("retNecesidad");
+  const textoBase = campo.placeholder;
+  const open = (tipo = "") => {
     $("retOk").hidden = true;
     form.hidden = false;
     $("retErr").textContent = "";
     opinaOcultar();
+    const error = tipo === "error";
+    campo.placeholder = error ? "Cuéntanos qué pasó: qué intentabas hacer, en qué pantalla y qué viste. Si es una duda, escríbela aquí." : textoBase;
     dlg.showModal();
-    $("retNombre").focus();
+    (error ? campo : $("retNombre")).focus();
   };
   document.addEventListener("click", (e) => {
-    if (e.target.closest("[data-retro]")) open();
+    const b = e.target.closest("[data-retro]");
+    if (b) open(b.dataset.retro);
     if (e.target.closest("[data-cerrar-retro]")) dlg.close();
   });
   dlg.addEventListener("click", (e) => {
