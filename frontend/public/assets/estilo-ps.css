@@ -3539,3 +3539,404 @@ details.a-fondo > summary {
     transition: none;
   }
 }
+
+/* =====================================================================
+   Less is more (design review, 13 Nov). Identity kept: navy top bar,
+   Anton titles, red for the main action, yellow stamp. What changes:
+   - plain page, no dot texture;
+   - soft 1px edges instead of thick navy boxes, no shadows on blocks;
+   - fewer thick lines (rules, underlines, table frames);
+   - the search bar sits between the navigation and the page;
+   - start: the project first and big, the tools small under a line;
+   - map filters, account notes and helper text lighter.
+   ===================================================================== */
+:root {
+  --r: 6px;
+}
+html,
+body {
+  background-image: none;
+}
+
+/* ---- header: brand and tabs only ---- */
+.brand-row {
+  gap: 12px;
+}
+header h1,
+#brandTitle {
+  border-width: 2px;
+}
+/* utilities bar: the search separates navigation from the page */
+.barra-util {
+  background: var(--superficie);
+  border-bottom: 1px solid var(--regla);
+}
+.barra-util .wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.barra-util .finder-btn {
+  flex: 1 1 auto;
+  max-width: 640px;
+  min-height: 44px;
+  border: 1px solid var(--borde-ui);
+  border-radius: 999px;
+  box-shadow: none;
+  background: var(--gris);
+  color: var(--tinta);
+}
+.barra-util .finder-btn:hover {
+  border-color: var(--linea);
+  background: var(--superficie);
+}
+.barra-util .btn-datos,
+.barra-util .btn-req,
+.barra-util .btn-tema {
+  min-height: 40px;
+  border: 1px solid var(--borde-ui);
+  border-radius: 999px;
+  box-shadow: none;
+  background: var(--superficie);
+  color: var(--linea);
+  font-size: 0.9rem;
+}
+.barra-util .btn-req {
+  margin-left: auto;
+}
+.barra-util :is(.btn-datos, .btn-req, .btn-tema):hover {
+  border-color: var(--linea);
+  background: var(--gris);
+}
+/* the data-cut note: a quiet line, not a banner */
+.cut {
+  background: none;
+  border-bottom: 0;
+  margin-bottom: 10px;
+  font-size: 0.8rem;
+  color: var(--suave);
+}
+.cut .wrap::before {
+  content: none;
+}
+.cut .wrap > * {
+  padding: 6px 0 0;
+}
+@media (max-width: 640px) {
+  .barra-util .wrap {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .barra-util .finder-btn {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+  .barra-util .btn-req {
+    margin-left: 0;
+  }
+}
+
+/* ---- blocks: soft edges, no shadows ---- */
+.card,
+.peek,
+.vacio,
+.prov-aside,
+.kit-main,
+.cmp-hero,
+.fcard,
+.caso,
+.metric,
+.nota-bloque,
+.bov-item,
+.chat-log,
+.chat-msg,
+.map-canvas,
+.tend-map-canvas,
+.inset-gal,
+details.a-fondo > summary,
+.ftab,
+.decide > div,
+.nota-frase,
+.nota-tipo,
+.esc-fuentes li {
+  border-width: 1px;
+  border-color: var(--regla);
+  box-shadow: none;
+}
+.card:hover,
+.nota-tipo:hover,
+.nota-tipo:focus-visible,
+.nota-prov:hover {
+  box-shadow: none;
+}
+.nota-tipo:hover,
+.nota-frase:hover,
+details.a-fondo > summary:hover {
+  border-color: var(--borde-ui);
+}
+.nota-frase:has(input:checked) {
+  border-color: var(--linea);
+  box-shadow: none;
+}
+
+/* ---- fewer thick lines ---- */
+#v-meto .card > h2,
+#v-fuentes .card > h2,
+#v-datos .card > h2,
+#v-asistente .card > h2,
+.meth > h2,
+.kit-pleg .card > h2,
+#sec-afondo .card > h2,
+.caso h3,
+.nota-bloque h3,
+.ftab th,
+.hero-h2 {
+  border-bottom-width: 1px;
+  border-color: var(--regla);
+}
+.fsec,
+.kit-mas-h,
+.kit-actions,
+.nota-pie,
+.bov-cuenta {
+  border-top-width: 1px;
+  border-top-color: var(--regla);
+}
+.fnote {
+  border-width: 1px;
+  border-left-width: 4px;
+  border-color: var(--regla);
+}
+.precaucion,
+.warn,
+.chat-aviso,
+.nota-aviso,
+.caso .c-nota {
+  border-width: 1px;
+  border-left-width: 4px;
+  border-color: var(--regla);
+  border-left-color: var(--aviso);
+}
+input,
+select,
+textarea {
+  border-width: 1px;
+  border-color: var(--borde-ui);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  outline-width: 3px;
+}
+/* buttons: the main one keeps its poster look, a little lighter */
+.btn {
+  border-width: 2px;
+}
+.btn.gh,
+.btn.ghost,
+.copybtn {
+  border-width: 1px;
+  border-color: var(--borde-ui);
+}
+
+/* ---- start: the project first and big, the tools small under a line ---- */
+.hero-inicio {
+  display: block;
+  padding: 8px 0 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.hero-txt {
+  max-width: 820px;
+}
+.hero-txt h2 {
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+}
+.hero-p {
+  font-size: 1.12rem;
+}
+.hero-cta {
+  max-width: 460px;
+  padding: 12px 18px;
+  border-width: 2px;
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+.hero-cta-t {
+  font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+}
+.hero-cta small {
+  font-size: 0.9rem;
+}
+.hero-acc {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 32px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--regla);
+}
+.hero-acc .hero-h {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--suave);
+}
+.hero-acc .hero-lista.hero-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.hero-mini.hero-btn {
+  width: auto;
+  height: auto;
+  min-height: 40px;
+  padding: 6px 12px 6px 6px;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid var(--regla);
+  border-radius: 999px;
+  background: var(--superficie);
+  box-shadow: none;
+}
+.hero-mini.hero-btn::after {
+  content: none;
+}
+.hero-mini.hero-btn:hover {
+  border-color: var(--borde-ui);
+  background: var(--gris);
+}
+.hero-mini .hero-ic {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+.hero-mini .hero-ic svg.ic {
+  width: 15px;
+  height: 15px;
+}
+.hero-mini .hero-t b {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+@media (max-width: 760px) {
+  .hero-acc {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---- map: filters thinner and smaller ---- */
+.fchip {
+  border-width: 1px;
+  border-color: var(--borde-ui);
+  border-radius: 999px;
+  box-shadow: none;
+  overflow: hidden;
+}
+.fchip.on {
+  box-shadow: none;
+  border-color: var(--primario);
+}
+.fbtn {
+  min-height: 34px;
+  padding: 5px 12px;
+  font-size: 0.88rem;
+  font-weight: 650;
+  border: 0;
+}
+.fhelp {
+  min-width: 30px;
+  font-size: 0.8rem;
+  border-left: 1px solid var(--regla);
+}
+.fcode {
+  font-size: 0.7rem;
+}
+.filterbar {
+  gap: 6px;
+}
+#btnCitaMapa,
+.maptools .btn {
+  min-height: 38px;
+  font-size: 0.9rem;
+}
+
+/* ---- chat and vault doors: the account first, the notes small ---- */
+.cta-ojo {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  color: var(--suave);
+  background: none;
+  border: 0;
+}
+.cta-ojo b {
+  font-weight: 700;
+  color: var(--tinta);
+}
+.cta-ojo svg.ic {
+  width: 14px;
+  height: 14px;
+}
+.cta-check {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.cta-check input {
+  width: 18px;
+  height: 18px;
+}
+.cta-check small {
+  font-size: 0.8rem;
+}
+.bov-ayuda,
+.bov-sub {
+  font-size: 0.84rem;
+}
+.bov-claves {
+  padding: 0;
+  gap: 4px;
+  background: none;
+  border: 0;
+  font-size: 0.86rem;
+  color: var(--suave);
+}
+.bov-claves svg.ic {
+  width: 14px;
+  height: 14px;
+}
+.cta-modo {
+  border-width: 1px;
+  box-shadow: none;
+}
+.cta-modo button + button {
+  border-left-width: 1px;
+}
+.chat-aviso {
+  font-size: 0.82rem;
+}
+/* the show-password button stays next to its field */
+.cta-clave {
+  display: flex;
+  flex-wrap: nowrap;
+}
+.cta-clave input {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+}
+.cta-clave .cta-ver {
+  flex: none;
+  align-self: stretch;
+}
+/* plain page in the dark theme too (it had its own dot texture) */
+:root[data-tema="oscuro"] body,
+:root[data-tema="oscuro"] html {
+  background-image: none;
+}

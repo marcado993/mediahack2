@@ -30,11 +30,6 @@
 <img src="/marca-oscuro.svg" alt="" class="brand-mark" id="brandMark" width="32" height="32" aria-hidden="true">
 <img id="brandLogo" class="brand-logo" alt="" hidden>
 <h1 id="brandTitle">Observatorio de Vulnerabilidad ante la Desinformación Electoral</h1>
-<button type="button" class="finder-btn" id="buscador" aria-haspopup="dialog" aria-keyshortcuts="/ Control+K" title="Buscar provincia: pulsa / o Ctrl+K desde cualquier pantalla">
- <span class="fb-ic" aria-hidden="true"></span><span class="fb-t">¿Qué provincia cubres? <em>Ej. Pichincha, Guayas…</em></span><kbd aria-hidden="true" class="kbd-slash">/</kbd><kbd aria-hidden="true" class="kbd-ctrl">Ctrl K</kbd>
-</button>
-<button type="button" class="btn-datos" id="btnSobreDatos" data-ir="meto" aria-label="Sobre los datos: metodología, datos abiertos y fuentes" title="Sobre los datos: metodología, datos abiertos y fuentes"><span class="sd-t">Sobre los datos</span><span class="sd-c" aria-hidden="true">i</span></button>
-<button type="button" class="btn-req" id="btnSolicitar" data-solicitar><span class="rq-ic" aria-hidden="true"></span><span class="rq-t">Solicitar información</span></button>
 </div>
 <nav aria-label="Secciones">
  <div class="tabs" role="tablist" aria-label="Vistas del observatorio">
@@ -47,6 +42,13 @@
  </div>
 </nav>
 </div></header>
+<div class="barra-util noprint"><div class="wrap">
+<button type="button" class="finder-btn" id="buscador" aria-haspopup="dialog" aria-keyshortcuts="/ Control+K" title="Buscar provincia: pulsa / o Ctrl+K desde cualquier pantalla">
+ <span class="fb-ic" aria-hidden="true"></span><span class="fb-t">¿Qué provincia cubres? <em>Ej. Pichincha, Guayas…</em></span><kbd aria-hidden="true" class="kbd-slash">/</kbd><kbd aria-hidden="true" class="kbd-ctrl">Ctrl K</kbd>
+</button>
+<button type="button" class="btn-datos" id="btnSobreDatos" data-ir="meto" aria-label="Sobre los datos: metodología, datos abiertos y fuentes" title="Sobre los datos: metodología, datos abiertos y fuentes"><span class="sd-t">Sobre los datos</span><span class="sd-c" aria-hidden="true">i</span></button>
+<button type="button" class="btn-req" id="btnSolicitar" data-solicitar><span class="rq-ic" aria-hidden="true"></span><span class="rq-t">Solicitar información</span></button>
+</div></div>
 <p class="cut"><span class="wrap">Datos con corte a la última publicación de cada fuente · sujetos a actualización continua. <span id="brandSub"></span></span></p>
 
 <div class="wrap" id="main" role="main" tabindex="-1">
@@ -120,12 +122,22 @@
    <button type="button" class="hero-cta" data-abrir-nota><span class="hero-cta-t">Ideas para tu noticia <span aria-hidden="true">→</span></span><small>¿Qué estás cubriendo hoy? Eliges provincia y tema; te damos el ángulo, los datos y por dónde llegar.</small></button>
   </div>
   <div class="hero-acc">
-   <h3 class="hero-h">También puedes</h3>
-   <ul class="hero-lista hero-top">
-    <li><button type="button" class="hero-btn" data-ruta="asistente"><span class="hero-ic" data-ic="escucha"></span><span class="hero-t"><b>Escucha digital</b><small>De qué se habla hoy en cada provincia.</small></span></button></li>
-    <li><button type="button" class="hero-btn" data-ruta="chat"><span class="hero-ic" data-ic="chat"></span><span class="hero-t"><b>Chat con colegas</b><small>Una sala por provincia, con seudónimo.</small></span></button></li>
-    <li><button type="button" class="hero-btn" data-ruta="boveda"><span class="hero-ic" data-ic="lock"></span><span class="hero-t"><b>Bóveda segura</b><small>Notas y archivos cifrados en tu equipo.</small></span></button></li>
-   </ul>
+   <div class="hero-grupo">
+    <h3 class="hero-h">Lo que más vas a usar</h3>
+    <ul class="hero-lista hero-top">
+     <li><button type="button" class="hero-btn hero-mini" data-ruta="asistente"><span class="hero-ic" data-ic="escucha"></span><span class="hero-t"><b>Escucha digital</b></span></button></li>
+     <li><button type="button" class="hero-btn hero-mini" data-ruta="chat"><span class="hero-ic" data-ic="chat"></span><span class="hero-t"><b>Chat con colegas</b></span></button></li>
+     <li><button type="button" class="hero-btn hero-mini" data-ruta="boveda"><span class="hero-ic" data-ic="lock"></span><span class="hero-t"><b>Bóveda segura</b></span></button></li>
+    </ul>
+   </div>
+   <div class="hero-grupo">
+    <h3 class="hero-h">Datos para tu nota</h3>
+    <ul class="hero-lista hero-top">
+     <li><button type="button" class="hero-btn hero-mini" data-ruta="mapas/IVEI"><span class="hero-ic" data-ic="map"></span><span class="hero-t"><b>Mapa del país</b></span></button></li>
+     <li><button type="button" class="hero-btn hero-mini" data-ruta="comparar"><span class="hero-ic" data-ic="compare"></span><span class="hero-t"><b>Comparar provincias</b></span></button></li>
+     <li><button type="button" class="hero-btn hero-mini" data-ir="meto"><span class="hero-ic" data-ic="book"></span><span class="hero-t"><b>Cómo se calcula</b></span></button></li>
+    </ul>
+   </div>
   </div>
  </section>
  <div class="notes-layout">
