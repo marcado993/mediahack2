@@ -22,11 +22,14 @@ class Clave(BaseModel):
 class Nueva(BaseModel):
     medio: str = Field(max_length=120)
     vence: str = Field(max_length=40)
+    unica: bool = True  # se activa una sola vez, en un solo equipo
 
 
 class Cambio(BaseModel):
     activa: Optional[bool] = None
     vence: Optional[str] = Field(default=None, max_length=40)
+    unica: Optional[bool] = None
+    liberar: bool = False  # deja que la clave se active de nuevo en otro equipo
 
 
 def _ip(req: Request) -> str:
@@ -72,7 +75,7 @@ def listar():
 @admin.post("", status_code=201)
 def crear(datos: Nueva):
     try:
-        return licencias.crear(datos.medio, datos.vence)
+        return licencias.crear(datos.medio, datos.vence, datos.unica)
     except ErrorLicencia as e:
         return _fallo(e)
 
@@ -80,6 +83,6 @@ def crear(datos: Nueva):
 @admin.patch("/{id_}")
 def cambiar(id_: str, datos: Cambio):
     try:
-        return licencias.cambiar(id_, datos.activa, datos.vence)
+        return licencias.cambiar(id_, datos.activa, datos.vence, datos.unica, datos.liberar)
     except ErrorLicencia as e:
         return _fallo(e)

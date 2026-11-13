@@ -6,6 +6,10 @@ hash rápido basta). Entrar con una clave abre una sesión: el navegador guarda 
 el servidor solo su SHA-256. Cada vez que el sitio carga, la ficha se vuelve a comprobar contra la
 licencia, así que suspender o vencer una licencia cierra el acceso en la siguiente carga.
 
+Una licencia «de un solo uso» (`unica`) se activa una vez: la primera entrada la ata a ese equipo
+(su sesión dura hasta que vence la licencia) y cualquier otro intento se rechaza. El panel puede
+liberarla, por ejemplo si la persona cambió de computador o borró los datos del navegador.
+
 Todas las horas se guardan con zona horaria. «Hasta las 23:59 de un día» se entiende en hora de
 Ecuador (UTC-5, sin horario de verano), que es como lo dice el equipo.
 
@@ -124,9 +128,19 @@ class Licencias:
             self._fallos[ip].append(time.monotonic())
             raise ErrorLicencia("Esa clave no es correcta. Revisa mayúsculas y guiones.", "clave", 401)
         self._vigente(lic)
+        unica = bool(lic.get("unica"))
+        if unica and lic.get("activada"):
+            raise ErrorLicencia(
+                "Esta clave ya se activó en otro equipo. Si es tuya y cambiaste de computador o borraste el navegador, pide al equipo de OVADE que la libere.",
+                "en_uso",
+                403,
+            )
         ficha = secrets.token_urlsafe(32)
-        vence = min(_fecha(lic["vence"]), self.ahora() + SESION_MAX)  # la sesión nunca dura más que la licencia
+        # la sesión nunca dura más que la licencia; una de un solo uso dura toda la licencia (no hay segunda activación)
+        vence = _fecha(lic["vence"]) if unica else min(_fecha(lic["vence"]), self.ahora() + SESION_MAX)
         with self._candado:
+            if unica:
+                lic["activada"] = self.ahora().isoformat()
             self._datos["sesiones"][_sha(ficha)] = {"licencia": lic["id"], "vence": vence.isoformat()}
             self._guardar()
         return {"ficha": ficha, **self._publica(lic, vence)}
@@ -162,22 +176,26 @@ class Licencias:
         out = []
         for l in self._datos["licencias"]:
             estado = "suspendida" if not l.get("activa") else "vencida" if _fecha(l["vence"]) <= ahora else "vigente"
-            out.append({"id": l["id"], "medio": l["medio"], "vence": l["vence"], "vence_texto": como_texto(l["vence"]), "activa": l.get("activa", False), "estado": estado, "sesiones": uso[l["id"]]})
+            out.append({
+                "id": l["id"], "medio": l["medio"], "vence": l["vence"], "vence_texto": como_texto(l["vence"]),
+                "activa": l.get("activa", False), "estado": estado, "sesiones": uso[l["id"]],
+                "unica": bool(l.get("unica")), "activada": como_texto(l["activada"]) if l.get("activada") else None,
+            })
         return out
 
-    def crear(self, medio: str, vence: str) -> dict:
+    def crear(self, medio: str, vence: str, unica: bool = True) -> dict:
         medio = " ".join((medio or "").split())[:80]
         if len(medio) < 2:
             raise ErrorLicencia("Escribe el nombre del medio.", "medio", 400)
         fin = self._leer_vence(vence)
         clave = "OVADE-" + "-".join(secrets.token_hex(2).upper() for _ in range(4))
-        lic = {"id": secrets.token_hex(6), "medio": medio, "hash": _sha(clave), "vence": fin.isoformat(), "activa": True, "creada": self.ahora().isoformat()}
+        lic = {"id": secrets.token_hex(6), "medio": medio, "hash": _sha(clave), "vence": fin.isoformat(), "activa": True, "unica": bool(unica), "creada": self.ahora().isoformat()}
         with self._candado:
             self._datos["licencias"].append(lic)
             self._guardar()
         return {**[x for x in self.listar() if x["id"] == lic["id"]][0], "clave": clave}
 
-    def cambiar(self, id_: str, activa: Optional[bool] = None, vence: Optional[str] = None) -> dict:
+    def cambiar(self, id_: str, activa: Optional[bool] = None, vence: Optional[str] = None, unica: Optional[bool] = None, liberar: bool = False) -> dict:
         lic = self._por_id(id_)
         if not lic:
             raise ErrorLicencia("No existe esa licencia.", "id", 404)
@@ -186,6 +204,19 @@ class Licencias:
                 lic["activa"] = bool(activa)
             if vence is not None:
                 lic["vence"] = self._leer_vence(vence).isoformat()
+            if liberar:
+                # free it for a new device: the old session ends and the key can be activated once more
+                lic.pop("activada", None)
+                self._datos["sesiones"] = {h: s for h, s in self._datos["sesiones"].items() if s["licencia"] != id_}
+            if unica is not None:
+                lic["unica"] = bool(unica)
+                if lic["unica"] and not lic.get("activada"):
+                    # sessions already open when it becomes single use count as its activation
+                    ahora = self.ahora()
+                    if any(s["licencia"] == id_ and _fecha(s["vence"]) > ahora for s in self._datos["sesiones"].values()):
+                        lic["activada"] = ahora.isoformat()
+                elif not lic["unica"]:
+                    lic.pop("activada", None)
             # sessions keep their own end date: a licence that gets shorter shortens them too
             fin = _fecha(lic["vence"])
             for s in self._datos["sesiones"].values():
