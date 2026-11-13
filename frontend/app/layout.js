@@ -29,14 +29,23 @@ export default function RootLayout({ children }) {
               '(function(){try{var q=new URLSearchParams(location.search).get("tema");var t=(q==="oscuro"||q==="claro")?q:localStorage.getItem("ovade.tema");if(!t)t=matchMedia("(prefers-color-scheme: dark)").matches?"oscuro":"claro";document.documentElement.dataset.tema=t;document.documentElement.style.colorScheme=t==="oscuro"?"dark":"light"}catch(e){}})()',
           }}
         />
+        {/* provisional access gate: locks before the first paint unless this browser already entered the key */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              '(function(){var k="00a16e1724d577adf9f1cafa65c5beb1d5404bde8a2cca5095865fa8101a6503",v=null;try{v=localStorage.getItem("ovade.acceso")||sessionStorage.getItem("ovade.acceso")}catch(e){}if(v!==k)document.documentElement.dataset.acceso="bloqueado"})()',
+          }}
+        />
         <link rel="stylesheet" href="/assets/app.css" />
         <link rel="stylesheet" href="/assets/estilo-ps.css" />
+        <link rel="stylesheet" href="/assets/acceso.css" />
         {MODULOS.map((m) => (
           <link key={m} rel="modulepreload" href={`/assets/${m}.js`} />
         ))}
       </head>
       <body>
         {children}
+        <script src="/assets/acceso.js" defer />
         {/* GSAP first, then the app: both deferred, so they run in this order */}
         <script src="/assets/vendor/gsap.min.js" defer />
         <script type="module" src="/assets/app.js" />
