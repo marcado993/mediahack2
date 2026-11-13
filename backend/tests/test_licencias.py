@@ -155,3 +155,53 @@ def test_demasiados_intentos_fallidos_se_frenan():
     nueva()
     codigos = [entrar(f"mala-{i}").status_code for i in range(12)]
     assert codigos[0] == 401 and codigos[-1] == 429
+
+
+# ---- activación única ----
+def test_una_clave_nueva_se_activa_una_sola_vez():
+    l = nueva()
+    assert l["unica"] is True
+    primera = entrar(l["clave"])
+    assert primera.status_code == 200
+    otra = entrar(l["clave"])
+    assert otra.status_code == 403 and otra.json()["motivo"] == "en_uso"
+    # el primer equipo sigue dentro
+    assert cliente.get("/api/licencia", headers=con(primera.json()["ficha"])).status_code == 200
+
+
+def test_la_sesion_de_un_solo_uso_dura_toda_la_licencia():
+    l = nueva(vence="2026-12-31T23:59")
+    r = entrar(l["clave"]).json()
+    assert datetime.fromisoformat(r["vence"]) == datetime(2026, 12, 31, 23, 59, tzinfo=ECU)
+    RELOJ[0] = datetime(2026, 12, 30, 9, 0, tzinfo=ECU)  # más de 30 días después
+    assert cliente.get("/api/licencia", headers=con(r["ficha"])).status_code == 200
+
+
+def test_liberar_permite_activarla_en_otro_equipo_y_cierra_el_anterior():
+    l = nueva()
+    vieja = entrar(l["clave"]).json()["ficha"]
+    cliente.patch(f"/api/admin/licencias/{l['id']}", json={"liberar": True}, headers=ADMIN)
+    assert cliente.get("/api/licencia", headers=con(vieja)).status_code == 401
+    assert entrar(l["clave"]).status_code == 200
+    assert entrar(l["clave"]).status_code == 403
+
+
+def test_el_panel_muestra_si_ya_se_activo():
+    l = nueva()
+    fila = lambda: [x for x in cliente.get("/api/admin/licencias", headers=ADMIN).json()["licencias"] if x["id"] == l["id"]][0]
+    assert fila()["activada"] is None
+    entrar(l["clave"])
+    assert fila()["activada"] and fila()["sesiones"] == 1
+
+
+def test_marcar_de_un_solo_uso_cuenta_las_sesiones_ya_abiertas():
+    l = cliente.post("/api/admin/licencias", json={"medio": "Medio viejo", "vence": "2026-11-30T23:59", "unica": False}, headers=ADMIN).json()
+    assert entrar(l["clave"]).status_code == 200
+    assert entrar(l["clave"]).status_code == 200  # de uso múltiple: entra dos veces
+    cliente.patch(f"/api/admin/licencias/{l['id']}", json={"unica": True}, headers=ADMIN)
+    assert entrar(l["clave"]).status_code == 403  # ya tenía sesiones: cuenta como activada
+
+
+def test_la_provisional_sigue_siendo_de_uso_multiple(almacen):
+    datos = json.loads(almacen.read_text(encoding="utf-8"))
+    assert not datos["licencias"][0].get("unica")
