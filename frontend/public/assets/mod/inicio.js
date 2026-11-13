@@ -14,6 +14,7 @@ import { byKey, paintMap } from "./mapa.js";
 import { citaDeRegistro, driversHTML, goToPerfil, reliability } from "./kit.js";
 import { compareText, deltaTableHTML } from "./comparar.js";
 import { entradaKit } from "./efectos.js";
+import { renderHoy } from "./habito.js";
 import { LIMITE_TEMAS, agregarTema, provinciasQueSigo, quitarTema, temasQueSigo } from "./seguimiento.js";
 
 // ---------------------------------------------------------------------
@@ -244,6 +245,7 @@ export function renderInicio() {
       : ""
   }`;
   entradaKit($("perfil"));
+  renderHoy();
   bindInicio();
   if (tareas) modCmpBind();
   renderProvLista();

@@ -9,6 +9,7 @@ import { capaEnabled, capasAll, paintMap, renderCapas } from "./mapa.js";
 import { loadPerfil } from "./kit.js";
 import { renderCmp } from "./comparar.js";
 import { pedirOpinion } from "./formularios.js";
+import { registrarUso } from "./habito.js";
 import { renderInicio } from "./inicio.js";
 import { entradaVista, pop } from "./efectos.js";
 import { abrirChat, cerrarChat } from "./chat.js";
@@ -153,7 +154,10 @@ export function toast(msg, accion) {
 export async function copiarBtn(btn, texto, contexto) {
   const ok = await copyText(texto);
   if (!ok) return toast("No se pudo copiar. Selecciona el texto y cópialo a mano.");
-  if (contexto) pedirOpinion(contexto);
+  if (contexto) {
+    registrarUso("cita");
+    pedirOpinion(contexto);
+  }
   // keep the button's icon: remember its markup, not just its text
   const prev = btn.dataset.html ?? btn.innerHTML;
   btn.dataset.html = prev;
