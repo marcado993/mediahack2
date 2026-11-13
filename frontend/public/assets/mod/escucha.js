@@ -17,6 +17,7 @@ const FUENTES = [
 const g = () => window.gsap;
 const conMovimiento = () => !!g() && !matchMedia("(prefers-reduced-motion: reduce)").matches;
 let pedido = 0;
+let pararAnterior = () => {};
 
 /** "Searching" state: each source with a moving bar and a seconds counter. Returns a stop function. */
 function mostrarBusqueda(box, province) {
@@ -76,12 +77,15 @@ function cerrarBusqueda(box, posts) {
 
 export async function runTendencias(province) {
   const box = document.getElementById("tendResult");
+  // stop the previous search's clock and bars first: both would write to the same counter
+  pararAnterior();
+  const mio = ++pedido; // a newer search (another province) wins over this one
   if (!province) {
     box.innerHTML = vacioEscucha();
     return;
   }
-  const mio = ++pedido; // a newer search (another province) wins over this one
   const parar = mostrarBusqueda(box, province);
+  pararAnterior = parar;
   try {
     // shared cache with the sheet's "Qué se está diciendo"; post text comes
     // from X and outlets, so every field is escaped and links must be http(s)
