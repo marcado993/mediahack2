@@ -120,10 +120,10 @@ function paintBrand(cfg) {
     }
     grid.append(quees);
     // Methodology, open data and sources are reference material: reachable from every page.
-    grid.append(col("Sobre los datos", [btn("Cómo empezar", { ruta: "perfil" }), btn("Metodología y límites", { ir: "meto" }), btn("Fuentes oficiales", { ir: "fuentes" }), btn("Datos abiertos", { ir: "datos" })]));
+    grid.append(col("Sobre los datos", [btn("Cómo empezar (guía rápida)", { guia: "" }), btn("Metodología y límites", { ir: "meto" }), btn("Fuentes oficiales", { ir: "fuentes" }), btn("Datos abiertos", { ir: "datos" })]));
     const ayuda = [btn("Chat con colegas", { ruta: "chat" }), btn("Bóveda segura", { ruta: "boveda" })];
     if (cfg.flags.solicitar_informacion !== false) ayuda.push(btn("Solicitar información al observatorio", { solicitar: "" }));
-    if (cfg.flags.retroalimentacion !== false) ayuda.push(btn("Cuéntanos qué necesita tu medio", { retro: "" }));
+    if (cfg.flags.retroalimentacion !== false) ayuda.push(btn("Reportar un error o duda", { retro: "error" }), btn("Cuéntanos qué necesita tu medio", { retro: "" }));
     grid.append(col("Herramientas y contacto", ayuda));
     foot.append(grid);
     // Not editable on purpose: whoever publishes the map, the data keeps its credit.

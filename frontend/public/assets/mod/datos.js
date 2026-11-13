@@ -201,6 +201,10 @@ export const TEND_TTL = 5 * 60 * 1000;
 // Metodología: lo que el índice mide, qué tan firme es cada cifra y para qué
 // decisión periodística sirve (y para cuál no).
 // ---------------------------------------------------------------------
+// Source, cut-off, scope and limits in one line: shown with every result and added to what is copied.
+export const FICHA_TECNICA =
+  "Fuentes: Censo 2022 y ENEMDU 2024 (INEC), Latinobarómetro 2024 y MINTEL 2023, con corte a la última publicación de cada una. Alcance: provincial (24 provincias). Límite: describe condiciones del territorio; no mide cuánta desinformación circula.";
+
 export const CORTE_FRASE = "Datos con corte a la última publicación de cada fuente (Censo 2022, ENEMDU 2024, Latinobarómetro 2024, MINTEL 2023), sujetos a actualización.";
 
 export const SEIS_PREGUNTAS = [

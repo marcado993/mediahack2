@@ -9,7 +9,7 @@ import { ICON, esc, fmt } from "../ui.js";
 import { E } from "./estado.js";
 import { $, normalize, provinceKey } from "./util.js";
 import { col } from "./color.js";
-import { enc } from "./datos.js";
+import { FICHA_TECNICA, enc } from "./datos.js";
 import { byKey } from "./mapa.js";
 import { navigate, toast, viewEnabled } from "./nav.js";
 import { getTendencias, piezasNota, safeUrl } from "./kit.js";
@@ -131,6 +131,7 @@ function guiaTexto(p, tipo, r) {
     `\nCÓMO LLEGAR A LA GENTE\n${lista(r.llegar)}`,
     `\nDATOS PARA CITAR\n${r.citas.map((c) => `- ${c.texto} (Fuente: ${c.fuente})`).join("\n")}`,
     p.aviso ? `\nPRECAUCIÓN\n- ${p.aviso}` : "",
+    `\nFICHA TÉCNICA\n- ${FICHA_TECNICA}\n- Lo de «de qué se habla hoy» es conversación de los últimos días en X y medios: pista para reportear, no dato del índice.`,
     `\nNO AFIRMES\n${p.noAfirmar.map((x) => `- ${x}`).join("\n")}`,
   ]
     .filter(Boolean)
@@ -300,19 +301,19 @@ async function paso3(cuerpo) {
    <section class="nota-bloque"><h3>${ICON.pen}Por dónde empezar</h3>${lista(r.empezar)}</section>
    ${
      conEscucha
-       ? `<section class="nota-bloque nota-escucha" aria-live="polite"><h3>${ICON.escucha}${st.tipo === "rumor" ? "¿Ya está circulando? Lo que se repite hoy" : "De qué se habla hoy"}</h3>
+       ? `<section class="nota-bloque nota-escucha" aria-live="polite"><h3>${ICON.escucha}${st.tipo === "rumor" ? "¿Ya está circulando? Lo que se repite hoy" : "De qué se habla hoy"} <span class="nota-tag reciente">Conversación reciente</span></h3>
        <p class="nota-cargando">Leyendo X y medios sobre ${esc(p.provincia)}… puede tardar unos segundos. Lo demás ya está listo.</p></section>`
        : ""
    }
    <section class="nota-bloque"><h3>${ICON.share}Cómo llegar a la gente</h3>${lista(r.llegar)}</section>
-   <section class="nota-bloque"><h3>${ICON.copy}Datos para citar</h3>
+   <section class="nota-bloque"><h3>${ICON.copy}Datos para citar <span class="nota-tag">Datos estructurales · 2022–2024</span></h3>
     <ul class="nota-citas">${r.citas
       .map((c, i) => `<li><p>${esc(c.texto)}<small>Fuente: ${esc(c.fuente)}</small></p><button type="button" class="copybtn" data-cita="${i}">${ICON.copy}Copiar</button></li>`)
       .join("")}</ul></section>
    <section class="nota-bloque nota-no"><h3>${ICON.cross}No afirmes</h3><ul class="nota-recs">${p.noAfirmar.map((t) => `<li>${esc(t)}</li>`).join("")}</ul></section>`;
   cuerpo.querySelectorAll("[data-cita]").forEach((b) => {
     const c = r.citas[Number(b.dataset.cita)];
-    b.onclick = () => copiarEn(b, `${c.texto} Fuente: ${c.fuente}.${p.aviso ? ` Precaución editorial: ${p.aviso}` : ""}`);
+    b.onclick = () => copiarEn(b, `${c.texto} Fuente: ${c.fuente}, con corte a su última publicación; alcance provincial.${p.aviso ? ` Precaución editorial: ${p.aviso}` : ""}`);
   });
   pie(`<button type="button" class="btn gh" data-nota="atras">← Cambiar lo que cubres</button>
     ${viewEnabled("chat") ? `<button type="button" class="btn gh" id="notaChat">${ICON.chat}Contrastar en el chat</button>` : ""}
@@ -360,7 +361,7 @@ async function pintarEscucha(prov) {
      <p class="nota-cargando">Lo que más se repite en ${res.total_analizados} publicaciones recientes de X y medios sobre ${esc(prov)}:</p>
      <div class="trend-chip-row">${terminos.map((t) => `<span class="trend-chip">${esc(t.term)}<span class="count">${t.count}</span></span>`).join("")}</div>
      ${posts.length ? `<ul class="esc-posts">${posts.map((s) => `<li><a href="${esc(safeUrl(s.link))}" target="_blank" rel="noopener noreferrer">${esc(String(s.title || "").replace(/\s+/g, " ").slice(0, 160))}…</a> <small>${esc(s.source || "")}</small></li>`).join("")}</ul>` : ""}
-     <p class="nota-pista">Pista para reportear, no dato citable: es una muestra pequeña.</p>${irEscucha}`
+     <p class="nota-pista">Pista para reportear, no dato citable: muestra pequeña de los últimos días, consultada hoy a las ${new Date().toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit" })}.</p>${irEscucha}`
     : `${titulo}<p class="nota-cargando">No encontramos conversación política reciente sobre ${esc(prov)} en X ni en medios. Puede ser falta de cobertura: vuelve a mirar más tarde.</p>${irEscucha}`;
   $("notaVerEscucha").onclick = () => {
     cerrar();
