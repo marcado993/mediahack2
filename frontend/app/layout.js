@@ -14,7 +14,7 @@ export const viewport = {
 const MODULOS = [
   "mod/color", "mod/comparar", "mod/datos", "mod/descargas", "mod/escucha", "mod/efectos", "mod/estado",
   "mod/fichadoc", "mod/flags", "mod/formularios", "mod/inicio", "mod/kit", "mod/mapa", "mod/metodologia",
-  "mod/nav", "mod/nota", "mod/paginas", "mod/tooltip", "mod/util", "api", "tenant", "ui", "estados",
+  "mod/habito", "mod/nav", "mod/nota", "mod/paginas", "mod/tooltip", "mod/util", "api", "tenant", "ui", "estados",
 ];
 
 export default function RootLayout({ children }) {

@@ -9,6 +9,7 @@ import { capaEnabled, capasAll, paintMap, renderCapas } from "./mapa.js";
 import { loadPerfil } from "./kit.js";
 import { renderCmp } from "./comparar.js";
 import { pedirOpinion } from "./formularios.js";
+import { registrarUso } from "./habito.js";
 import { renderInicio } from "./inicio.js";
 import { entradaVista, pop } from "./efectos.js";
 import { abrirChat, cerrarChat } from "./chat.js";
@@ -34,7 +35,33 @@ export function showView(v) {
   if (cambio) entradaVista($("v-" + v));
   if (v !== "chat") cerrarChat();
   if (v !== "boveda") cerrarBoveda(); // leaving the vault locks it
+  ajustarVistaFija();
 }
+
+// Chat and vault fill the screen exactly: the page does not scroll, only the messages or the vault
+// content do. The free height is measured (header, search bar and, on phones, the bottom tab bar
+// are taken out) and given to the view; it is measured again when the window or keyboard changes.
+const VISTAS_FIJAS = ["chat", "boveda"];
+const ALTO_MINIMO = 420; // below this the message list would be too short: the page scrolls a little instead
+export function ajustarVistaFija() {
+  const raiz = document.documentElement;
+  const fija = VISTAS_FIJAS.includes(E.currentView);
+  raiz.classList.toggle("vista-fija", fija);
+  if (!fija) return raiz.classList.remove("sin-scroll");
+  window.scrollTo(0, 0);
+  const main = $("main");
+  if (!main) return;
+  const arriba = main.getBoundingClientRect().top;
+  const nav = document.querySelector("header nav");
+  const abajo = nav && getComputedStyle(nav).position === "fixed" ? nav.getBoundingClientRect().height : 0;
+  const pantalla = window.visualViewport?.height || innerHeight;
+  const alto = Math.floor(pantalla - arriba - abajo - 18);
+  // on a very short screen the view keeps a usable height and the page scrolls as usual
+  raiz.classList.toggle("sin-scroll", alto >= ALTO_MINIMO);
+  raiz.style.setProperty("--alto-vista", `${Math.max(ALTO_MINIMO, alto)}px`);
+}
+addEventListener("resize", ajustarVistaFija);
+window.visualViewport?.addEventListener("resize", ajustarVistaFija);
 
 export function initDatosNav() {
   for (const v of DATOS_VIEWS) {
@@ -153,7 +180,10 @@ export function toast(msg, accion) {
 export async function copiarBtn(btn, texto, contexto) {
   const ok = await copyText(texto);
   if (!ok) return toast("No se pudo copiar. Selecciona el texto y cópialo a mano.");
-  if (contexto) pedirOpinion(contexto);
+  if (contexto) {
+    registrarUso("cita");
+    pedirOpinion(contexto);
+  }
   // keep the button's icon: remember its markup, not just its text
   const prev = btn.dataset.html ?? btn.innerHTML;
   btn.dataset.html = prev;

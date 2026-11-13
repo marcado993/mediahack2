@@ -14,6 +14,7 @@ import { byKey, paintMap } from "./mapa.js";
 import { citaDeRegistro, driversHTML, goToPerfil, reliability } from "./kit.js";
 import { compareText, deltaTableHTML } from "./comparar.js";
 import { entradaKit } from "./efectos.js";
+import { renderHoy } from "./habito.js";
 import { LIMITE_TEMAS, agregarTema, provinciasQueSigo, quitarTema, temasQueSigo } from "./seguimiento.js";
 
 // ---------------------------------------------------------------------
@@ -119,9 +120,7 @@ export function renderProvLista() {
   paintSel();
   const q = provinceKey($("provFiltro").value.trim());
   const rec = recientes();
-  $("provRecientes").innerHTML = rec.length && !q ? `<span class="pl-h">Recientes</span>${rec.map(provItem).join("")}` : "";
-  // the full list of 24 stays folded (search and map already cover it); typing opens it with the results
-  if (q) $("plTodas").open = true;
+  $("provRecientes").innerHTML = rec.length && !q ? `<span class="pl-h">Recientes</span>${rec.map(provItem).join("")}<span class="pl-h">Todas</span>` : "";
   const list = [...E.PROVINCIAS].sort((a, b) => a.localeCompare(b, "es")).filter((p) => !q || provinceKey(p).includes(q));
   if (list.length) {
     $("provLista").innerHTML = list.map(provItem).join("");
@@ -244,6 +243,7 @@ export function renderInicio() {
       : ""
   }`;
   entradaKit($("perfil"));
+  renderHoy();
   bindInicio();
   if (tareas) modCmpBind();
   renderProvLista();

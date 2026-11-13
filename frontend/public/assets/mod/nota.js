@@ -14,6 +14,7 @@ import { byKey } from "./mapa.js";
 import { navigate, toast, viewEnabled } from "./nav.js";
 import { getTendencias, piezasNota, safeUrl } from "./kit.js";
 import { recientes, recordarReciente, sugerir } from "./inicio.js";
+import { registrarUso } from "./habito.js";
 
 const PASOS = ["Provincia", "Qué cubres", "Recomendaciones"];
 
@@ -316,7 +317,10 @@ async function paso3(cuerpo) {
   pie(`<button type="button" class="btn gh" data-nota="atras">← Cambiar lo que cubres</button>
     ${viewEnabled("chat") ? `<button type="button" class="btn gh" id="notaChat">${ICON.chat}Contrastar en el chat</button>` : ""}
     <button type="button" class="btn" id="notaGuia">${ICON.copy}Copiar estas ideas</button>`);
-  $("notaGuia").onclick = (e) => copiarEn(e.currentTarget, guiaTexto(p, st.tipo, r));
+  $("notaGuia").onclick = (e) => {
+    registrarUso("idea");
+    copiarEn(e.currentTarget, guiaTexto(p, st.tipo, r));
+  };
   if ($("notaChat"))
     $("notaChat").onclick = () => {
       cerrar();
