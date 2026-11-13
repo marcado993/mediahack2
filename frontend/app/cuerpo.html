@@ -1,3 +1,26 @@
+<!-- Provisional access gate (assets/acceso.js + acceso.css). Delete this block to open the site. -->
+<div id="puerta" role="dialog" aria-modal="true" aria-labelledby="puertaTitulo" aria-describedby="puertaTexto">
+ <div class="pt-caja">
+  <div class="pt-marca">
+   <img src="/marca-azul.svg" alt="" class="pt-claro" width="36" height="36">
+   <img src="/marca-oscuro.svg" alt="" class="pt-oscuro" width="36" height="36">
+   <span>Observatorio de Vulnerabilidad ante la Desinformación Electoral</span>
+  </div>
+  <p class="pt-sello">Acceso de prueba</p>
+  <h2 id="puertaTitulo">Entra a OVADE</h2>
+  <p class="pt-texto" id="puertaTexto">Esta versión está en pruebas. Escribe la clave de acceso que te dio el equipo para entrar.</p>
+  <form novalidate>
+   <label class="pt-etq" for="puertaClave">Clave de acceso</label>
+   <div class="pt-fila">
+    <input id="puertaClave" name="clave" type="password" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false" required aria-describedby="puertaAviso">
+    <button type="button" id="puertaVer" aria-pressed="false" aria-controls="puertaClave">Mostrar</button>
+   </div>
+   <p id="puertaAviso" role="alert"></p>
+   <button type="submit" class="pt-entrar">Ingresar</button>
+  </form>
+  <p class="pt-pie">¿No tienes la clave? Pídela al equipo Dinameta.</p>
+ </div>
+</div>
 <div id="progress" aria-hidden="true"></div>
 <div id="netbar" role="status" aria-live="polite" hidden></div>
 <noscript><p class="noscript"><b>Este observatorio necesita JavaScript.</b> Actívalo en tu navegador o abre el sitio en otro. Mientras tanto, la metodología y los datos abiertos están en el repositorio del proyecto.</p></noscript>
