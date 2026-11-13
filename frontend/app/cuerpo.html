@@ -112,24 +112,17 @@
 <section class="view on" id="v-perfil">
  <section class="hero-inicio" id="heroInicio" aria-labelledby="heroTit">
   <div class="hero-txt">
-   <p class="hero-sello">Observatorio de datos abiertos</p>
-   <h2 id="heroTit">¿Qué es OVADE?</h2>
-   <p class="hero-p">Un mapa de Ecuador que muestra <b>dónde la desinformación electoral encuentra más terreno</b>. Junta datos oficiales de las 24 provincias en un puntaje de 0 a 100.</p>
-   <p class="hero-p">Te sirve para decidir <b>dónde verificar primero</b> y <b>por qué canal llegar</b>.</p>
+   <h2 id="heroTit">¿Qué estás cubriendo hoy?</h2>
+   <p class="hero-p">OVADE muestra <b>dónde la desinformación electoral encuentra más terreno</b> en Ecuador y cómo contarlo, con datos oficiales de las 24 provincias.</p>
+   <button type="button" class="hero-cta" data-abrir-nota><span class="hero-cta-t">Ideas para tu noticia <span aria-hidden="true">→</span></span><small>Eliges provincia y tema; te damos el ángulo, los datos y por dónde llegar.</small></button>
    <p class="hero-no"><span data-ic="info"></span>No dice si algo es falso ni señala personas: describe territorios.</p>
   </div>
   <div class="hero-acc">
-   <h3 class="hero-h">Lo que más vas a usar</h3>
+   <h3 class="hero-h">También puedes</h3>
    <ul class="hero-lista hero-top">
-    <li><button type="button" class="hero-btn" data-ruta="asistente"><span class="hero-ic" data-ic="escucha"></span><span class="hero-t"><b>Escucha digital</b><small>De qué se habla hoy en cada provincia, en X y en medios.</small></span></button></li>
-    <li><button type="button" class="hero-btn" data-ruta="chat"><span class="hero-ic" data-ic="chat"></span><span class="hero-t"><b>Chat con colegas</b><small>Una sala general y una por provincia. Con seudónimo; los mensajes se borran solos.</small></span></button></li>
-    <li><button type="button" class="hero-btn" data-ruta="boveda"><span class="hero-ic" data-ic="lock"></span><span class="hero-t"><b>Bóveda segura</b><small>Guarda notas y archivos cifrados en tu navegador. Nadie más los lee. Pide cuenta.</small></span></button></li>
-   </ul>
-   <h3 class="hero-h hero-h2">Datos para tu nota</h3>
-   <ul class="hero-lista">
-    <li><button type="button" class="hero-btn hero-nota" data-abrir-nota><span class="hero-ic" data-ic="pen"></span><span class="hero-t"><b>Ideas para tu noticia</b><small>Dinos qué cubres y dónde: te sugerimos ángulo, datos y por dónde llegar.</small></span></button></li>
-    <li><button type="button" class="hero-btn" data-ruta="mapas/IVEI"><span class="hero-ic" data-ic="map"></span><span class="hero-t"><b>Ver el mapa del país</b><small>Qué provincias están más expuestas, de un vistazo.</small></span></button></li>
-    <li><button type="button" class="hero-btn" data-ruta="comparar"><span class="hero-ic" data-ic="compare"></span><span class="hero-t"><b>Comparar dos provincias</b><small>Cuál tiene más terreno y por qué.</small></span></button></li>
+    <li><button type="button" class="hero-btn" data-ruta="asistente"><span class="hero-ic" data-ic="escucha"></span><span class="hero-t"><b>Escucha digital</b><small>De qué se habla hoy en cada provincia.</small></span></button></li>
+    <li><button type="button" class="hero-btn" data-ruta="chat"><span class="hero-ic" data-ic="chat"></span><span class="hero-t"><b>Chat con colegas</b><small>Una sala por provincia, con seudónimo.</small></span></button></li>
+    <li><button type="button" class="hero-btn" data-ruta="boveda"><span class="hero-ic" data-ic="lock"></span><span class="hero-t"><b>Bóveda segura</b><small>Notas y archivos cifrados en tu equipo.</small></span></button></li>
    </ul>
   </div>
  </section>
@@ -149,7 +142,9 @@
    </div>
    <div class="aside-find">
    <div id="provRecientes" class="recent"></div>
+   <details class="pl-todas" id="plTodas"><summary>Ver las 24 provincias en lista</summary>
    <div id="provLista" class="prov-list" role="list" aria-busy="true"><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div><div class="sk-b" style="height:34px;margin:0;border-radius:8px"></div></div>
+   </details>
    <button type="button" class="pl-item pl-home" id="btnInicio"><span class="pl-n">← Volver al inicio</span></button>
    </div>
   </aside>

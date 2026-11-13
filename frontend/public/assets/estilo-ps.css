@@ -2991,3 +2991,272 @@ html.nota-abierta {
     flex-direction: column;
   }
 }
+
+/* =====================================================================
+   Hierarchy: one thing shouts per screen.
+   The poster look (thick navy outline, hard shadow, Anton capitals, red)
+   is kept for the primary action and the page title only. Everything
+   secondary gets a thin outline, no shadow and the reading typeface,
+   so the eye knows where to start.
+   ===================================================================== */
+:root {
+  --sh: 4px 4px 0 var(--sombra);
+}
+/* cards: one outline, a lighter shadow */
+.card,
+.peek,
+.vacio {
+  border-width: 3px;
+}
+
+/* secondary buttons: quiet, sentence case, no shadow */
+.btn.gh,
+.btn.ghost,
+.copybtn,
+.cmp-chip,
+.cmp-swap {
+  font-family: var(--cuerpo);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  border-width: 2px;
+  box-shadow: none;
+}
+.btn.gh:hover,
+.btn.ghost:hover,
+.copybtn:hover,
+.cmp-chip:hover {
+  transform: none;
+  box-shadow: none;
+  background: var(--gris);
+}
+.btn.gh:active,
+.copybtn:active {
+  transform: none;
+  box-shadow: none;
+}
+/* the primary button keeps the poster voice, a bit smaller shadow */
+.btn:not(.gh):not(.ghost) {
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+
+/* header: only the brand and the tabs stand out */
+.finder-btn,
+.btn-datos {
+  border-width: 2px;
+  box-shadow: none;
+}
+.btn-req {
+  background: var(--superficie);
+  color: var(--linea);
+  border-width: 2px;
+  box-shadow: none;
+  font-family: var(--cuerpo);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.btn-req:hover {
+  background: var(--gris);
+}
+.btn-req .rq-ic {
+  color: var(--primario);
+}
+
+/* lists and chips: thin, no shadow; the selected one is still red */
+.pl-item,
+.chip,
+.fbtn,
+.trend-chip,
+.idx button,
+.jump button {
+  border-width: 2px;
+  border-color: var(--regla);
+  box-shadow: none;
+}
+.pl-item:hover,
+.chip:hover,
+.fbtn:hover {
+  border-color: var(--linea);
+}
+.pl-item.on,
+.fbtn.on,
+.chip.on,
+.idx button.on {
+  border-color: var(--linea);
+}
+
+/* section labels: bold reading type, not poster capitals */
+.hero-h,
+.mc-col h3,
+.metodo-corto h3,
+.card h3:not(.ess-titular),
+.kit-mas-h {
+  font-family: var(--cuerpo);
+  font-weight: 800;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* ---- start screen: one call to action ---- */
+.hero-inicio {
+  border-width: 3px;
+  box-shadow: none;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  align-items: start;
+}
+.hero-txt h2 {
+  color: var(--tinta);
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  text-transform: none;
+  font-size: clamp(1.9rem, 3.6vw, 2.6rem);
+}
+.hero-cta {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  max-width: 520px;
+  margin: 14px 0 10px;
+  padding: 16px 20px;
+  text-align: left;
+  color: #fff;
+  background: var(--primario);
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 5px 5px 0 var(--sombra);
+  cursor: pointer;
+}
+.hero-cta:hover {
+  background: #b50f24;
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0 var(--sombra);
+}
+.hero-cta:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--sombra);
+}
+.hero-cta:focus-visible {
+  outline: 4px solid var(--aviso);
+  outline-offset: 3px;
+}
+.hero-cta-t {
+  font: 400 clamp(1.35rem, 2.6vw, 1.7rem) / 1.1 var(--titulos);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.hero-cta small {
+  font-size: 0.98rem;
+  font-weight: 600;
+  opacity: 0.95;
+}
+.hero-acc .hero-h {
+  margin: 4px 0 10px;
+  color: var(--suave);
+}
+.hero-lista.hero-top {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+.hero-top .hero-btn,
+.hero-btn {
+  border-width: 2px;
+  border-color: var(--regla);
+  box-shadow: none;
+  padding: 10px 12px;
+}
+.hero-top .hero-btn:hover,
+.hero-btn:hover {
+  border-color: var(--linea);
+  background: var(--gris);
+  transform: none;
+  box-shadow: none;
+}
+.hero-top .hero-ic,
+.hero-ic {
+  background: var(--gris);
+  color: var(--linea);
+  border: 0;
+  box-shadow: none;
+}
+.hero-t small {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 2px 0 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  display: block;
+  font-size: 0.88rem;
+  color: var(--suave);
+}
+.hero-inicio.compacto .hero-p {
+  display: none;
+}
+/* the folded methodology sits quietly under the start */
+#perfil > .metodo-corto {
+  max-width: none;
+  margin-top: 0;
+}
+.sigo-vacio[hidden] {
+  display: none;
+}
+@media (max-width: 900px) {
+  .hero-inicio {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .hero-cta {
+    max-width: none;
+  }
+}
+
+/* the full list of 24 is a third way to pick a province: folded, opened by typing */
+.pl-todas > summary {
+  list-style: none;
+  cursor: pointer;
+  margin: 6px 0 0;
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--linea);
+  border: 2px solid var(--regla);
+  border-radius: var(--r);
+}
+.pl-todas > summary::-webkit-details-marker {
+  display: none;
+}
+.pl-todas > summary::after {
+  content: " ▾";
+}
+.pl-todas[open] > summary::after {
+  content: " ▴";
+}
+.pl-todas > summary:hover {
+  border-color: var(--linea);
+  background: var(--gris);
+}
+.pl-todas[open] > summary {
+  margin-bottom: 8px;
+}
+.btn-tema,
+#btnSobreDatos {
+  box-shadow: none;
+  border-width: 2px;
+}
+
+/* drawers and what is inside them are secondary: outline only, no shadow */
+details.a-fondo > summary {
+  border-width: 2px;
+  box-shadow: none;
+}
+details.a-fondo .card,
+.kit-pleg .card,
+#sec-afondo .card {
+  border-width: 2px;
+  box-shadow: none;
+}
+.inset-gal {
+  box-shadow: none;
+}

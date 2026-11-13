@@ -119,7 +119,9 @@ export function renderProvLista() {
   paintSel();
   const q = provinceKey($("provFiltro").value.trim());
   const rec = recientes();
-  $("provRecientes").innerHTML = rec.length && !q ? `<span class="pl-h">Recientes</span>${rec.map(provItem).join("")}<span class="pl-h">Todas</span>` : "";
+  $("provRecientes").innerHTML = rec.length && !q ? `<span class="pl-h">Recientes</span>${rec.map(provItem).join("")}` : "";
+  // the full list of 24 stays folded (search and map already cover it); typing opens it with the results
+  if (q) $("plTodas").open = true;
   const list = [...E.PROVINCIAS].sort((a, b) => a.localeCompare(b, "es")).filter((p) => !q || provinceKey(p).includes(q));
   if (list.length) {
     $("provLista").innerHTML = list.map(provItem).join("");
@@ -172,7 +174,7 @@ function criterioLista() {
 
 // The methodology in thirty seconds, visible from the start: sources, one common scale, what it does and does not measure.
 function metodoCortoHTML() {
-  return `<section class="card metodo-corto" id="metodoCorto" aria-labelledby="mcTit"><h2 id="mcTit">Cómo se calcula, en 30 segundos</h2>
+  return `<details class="a-fondo metodo-corto" id="metodoCorto"><summary><span class="af-t">¿Cómo se calcula el índice?</span><span class="af-s">Léelo en 30 segundos: qué datos usa, cómo los compara y qué no mide.</span></summary><section class="card" aria-label="Cómo se calcula">
    <div class="mc-grid">
     <div class="mc-col"><h3>1. Qué datos usa</h3>
      <ul class="mc-fuentes"><li>Censo 2022</li><li>ENEMDU 2024</li><li>ENEMDU-TIC 2024</li><li>Latinobarómetro 2024</li><li>MINTEL 2023</li></ul>
@@ -186,14 +188,14 @@ function metodoCortoHTML() {
    </div>
    <p class="mc-nota"><b>Son indicadores generales, agregados por provincia.</b> Al juntar varias bases en un solo indicador se pierde el detalle de cada fuente. Para muestras pequeñas se aplica un ajuste de precisión (suavizado), que no cambia el indicador.</p>
    <p style="margin:10px 0 0"><button type="button" class="btn gh" data-ir="meto">${ICON.book}Ver la metodología completa</button></p>
-  </section>`;
+  </section></details>`;
 }
 
 function siguiendoHTML() {
   const provs = provinciasQueSigo();
   const temas = temasQueSigo();
   if (!provs.length && !temas.length) {
-    return `<p class="sigo sigo-vacio">${ICON.bookmark}<span>Aún no sigues nada. Abre una provincia y pulsa «Seguir esta provincia»: la verás aquí.</span></p>`;
+    return `<p class="sigo sigo-vacio" hidden></p>`; // nothing to show yet: an empty promise is just noise
   }
   return `<section class="card sigo" aria-labelledby="sigoTit"><h2 id="sigoTit">Lo que sigues</h2>
    <div class="sigo-chips">${provs.map((p) => `<a class="chip" href="#perfil/${enc(p)}">${esc(p)}</a>`).join("")}${temas
