@@ -4015,3 +4015,21 @@ textarea:focus {
 .hoy-volver {
   font-weight: 700;
 }
+
+/* =====================================================================
+   The dot paper is back (it is part of the identity), softer than the
+   original: lighter dots, a little further apart. White cards sit on it.
+   ===================================================================== */
+:root {
+  --punto-suave: #1b2a410f;
+}
+:root[data-tema="oscuro"] {
+  --punto-suave: #c9d4ea0d;
+}
+html,
+body,
+:root[data-tema="oscuro"] html,
+:root[data-tema="oscuro"] body {
+  background-image: radial-gradient(var(--punto-suave) 1.3px, transparent 1.6px);
+  background-size: 14px 14px;
+}
