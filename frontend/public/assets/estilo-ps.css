@@ -4033,3 +4033,112 @@ body,
   background-image: radial-gradient(var(--punto-suave) 1.3px, transparent 1.6px);
   background-size: 14px 14px;
 }
+
+/* =====================================================================
+   The boxes are back, as on the entry gate: thick navy outline, hard
+   offset shadow, nearly square corners. Kept from the review: the search
+   bar under the header, the start hierarchy, small account notes, the
+   daily block, the dot paper. Blocks nested inside a box stay light.
+   ===================================================================== */
+:root {
+  --r: 3px;
+}
+.card,
+.peek,
+.vacio,
+.prov-aside,
+.cmp-hero,
+.kit-main,
+.hero-inicio,
+dialog {
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 6px 6px 0 var(--sombra);
+}
+.hero-inicio {
+  display: block;
+  padding: 20px 24px;
+  margin-bottom: 22px;
+  background: var(--superficie);
+}
+/* boxes inside a box: outline only, so the page does not stack shadows */
+.card .card,
+.card .peek,
+.card .vacio,
+.kit-pleg .card,
+#sec-afondo .card,
+details.a-fondo .card {
+  border-width: 2px;
+  box-shadow: none;
+}
+details.a-fondo > summary,
+.nota-bloque,
+.nota-tipo,
+.fcard,
+.caso,
+.metric,
+.ftab,
+.decide > div {
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+}
+.nota-tipo:hover,
+.nota-tipo:focus-visible {
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+/* inside the boxes, rules stay thin */
+.nota-bloque h3,
+.caso h3,
+.ftab th {
+  border-bottom: 2px solid var(--linea);
+}
+/* controls: square, like the gate */
+.barra-util .finder-btn,
+.barra-util .btn-datos,
+.barra-util .btn-req,
+.barra-util .btn-tema {
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+}
+.barra-util .finder-btn {
+  background: var(--superficie);
+}
+input,
+select,
+textarea {
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+}
+.fchip,
+.hero-mini.hero-btn {
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+}
+.fchip.on {
+  border-color: var(--linea);
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+.btn {
+  border-width: 3px;
+}
+.hero-cta {
+  border-width: 3px;
+  box-shadow: 5px 5px 0 var(--sombra);
+}
+.hoy-dato {
+  border: 2px solid var(--linea);
+  border-left: 6px solid var(--primario);
+  box-shadow: 4px 4px 0 var(--sombra);
+}
+@media (max-width: 640px) {
+  .card,
+  .peek,
+  .vacio,
+  .prov-aside,
+  .hero-inicio {
+    box-shadow: 4px 4px 0 var(--sombra);
+  }
+  .hero-inicio {
+    padding: 14px;
+  }
+}
