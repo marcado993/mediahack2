@@ -22,6 +22,8 @@ scraper/instagram_cache.json
 # accounts: pseudonyms and password hashes, never in the repo
 backend/app/data/cuentas.json
 backend/app/data/cuentas.tmp
+backend/app/data/licencias.json
+backend/app/data/licencias.tmp
 
 # python
 __pycache__/
