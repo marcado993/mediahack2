@@ -71,7 +71,7 @@ export function selectProvince(name) {
   $("peek").scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" });
 }
 
-function recientes() {
+export function recientes() {
   try {
     return JSON.parse(localStorage.getItem(RECIENTES_KEY) || "[]").filter((p) => E.PROVINCIAS.includes(p));
   } catch (_) {
@@ -93,7 +93,7 @@ function provItem(p) {
 
 // Closest province names for a typo ("guallas", "pichinca"): edit distance on
 // the accent-free keys, so the reporter never hits a dead end.
-function sugerir(texto, max = 3) {
+export function sugerir(texto, max = 3) {
   const q = provinceKey((texto || "").trim());
   if (!q) return [];
   const dist = (a, b) => {

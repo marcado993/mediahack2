@@ -19,6 +19,7 @@ import { renderInventario } from "./mod/diccionario.js";
 import { iconosEn } from "./ui.js";
 import { initTema } from "./mod/tema.js";
 import { initBorradores, initSubir } from "./mod/ayudas.js";
+import { initNota } from "./mod/nota.js";
 
 addEventListener("popstate", applyRoute);
 
@@ -84,6 +85,7 @@ onTenant(applyFlags);
   } catch (_) {}
   initEfectos();
   initEstadosRed();
+  initNota(); // the note assistant answers at once, even while the data is still loading
   const tenantReady = loadTenant();
   try {
     await initMapas();

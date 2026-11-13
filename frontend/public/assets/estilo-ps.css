@@ -2432,3 +2432,562 @@ details.a-fondo[open] > summary {
     min-width: 620px;
   }
 }
+
+/* =====================================================================
+   "Escribir mi nota": three-step assistant (mod/nota.js).
+   A fixed frame (steps on top, actions at the bottom) and a scrolling
+   middle, so the next action is always on screen.
+   ===================================================================== */
+dialog.nota-dlg {
+  width: min(760px, calc(100vw - 24px));
+  height: min(760px, calc(100dvh - 24px));
+  max-height: none;
+  padding: 0;
+  display: none;
+  overflow: hidden;
+}
+dialog.nota-dlg[open] {
+  display: flex;
+  flex-direction: column;
+}
+html.nota-abierta {
+  overflow: hidden;
+}
+.nota-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px 0;
+}
+.nota-sello {
+  margin: 0;
+  padding: 0.3rem 0.8rem 0.3rem 0.6rem;
+  background: var(--aviso);
+  color: #1b2a41;
+  font: 400 0.9rem/1 var(--titulos);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+}
+.nota-x {
+  min-height: 40px;
+  font-weight: 700;
+}
+/* step tracker */
+.nota-pasos {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 12px 20px 0;
+  padding: 0;
+}
+.nota-pasos[hidden] {
+  display: none;
+}
+.np {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 10px;
+  font: 700 0.92rem/1.2 var(--cuerpo);
+  color: var(--suave);
+  border-bottom: 5px solid var(--regla);
+}
+.np button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.np button:hover .np-t {
+  text-decoration: underline;
+}
+.np-n {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.85rem;
+}
+.np-t {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.np.ahora {
+  color: var(--tinta);
+  border-bottom-color: var(--primario);
+}
+.np.ahora .np-n {
+  background: var(--primario);
+  border-color: var(--primario);
+  color: #fff;
+}
+.np.hecho {
+  color: var(--ok-t);
+  border-bottom-color: var(--ok-t);
+}
+/* body */
+.nota-cuerpo {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px 20px;
+  overscroll-behavior: contain;
+}
+.nota-cuerpo.entra {
+  animation: nota-entra 0.22s ease-out;
+}
+@keyframes nota-entra {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+}
+.nota-h {
+  margin: 0 0 4px;
+  font-size: clamp(1.5rem, 3.6vw, 2rem);
+  text-transform: none;
+}
+.nota-sub {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  color: var(--suave);
+}
+.nota-mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 16px 0 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--suave);
+}
+.nota-mini[hidden] {
+  display: none;
+}
+.nota-mini svg.ic {
+  width: 15px;
+  height: 15px;
+}
+.nota-buscar {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 14px;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.nota-ayuda {
+  min-height: 1.3em;
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+.nota-provs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+.nota-provs[hidden] {
+  display: none;
+}
+.nota-prov {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 6px 12px;
+  text-align: left;
+  font: 700 1rem/1.2 var(--cuerpo);
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 2px 2px 0 var(--sombra);
+  cursor: pointer;
+}
+.nota-prov[hidden] {
+  display: none;
+}
+.nota-prov:hover,
+.nota-prov:focus-visible {
+  background: var(--gris);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--sombra);
+}
+.nota-prov .dot {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--linea);
+}
+.nota-aviso,
+.nota-tip {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  border: 2px solid var(--linea);
+  border-radius: var(--r);
+}
+.nota-aviso {
+  background: var(--tinte-aviso);
+  border-left: 8px solid var(--aviso);
+}
+.nota-tip {
+  margin: 12px 0 0;
+  background: var(--tinte-ok);
+}
+.nota-aviso svg.ic,
+.nota-tip svg.ic {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+}
+/* step 2: sentences to pick */
+.nota-frases {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.nota-frase {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: var(--superficie);
+  border: 3px solid var(--regla);
+  border-radius: var(--r);
+  cursor: pointer;
+}
+.nota-frase:has(input:checked) {
+  border-color: var(--linea);
+  box-shadow: 3px 3px 0 var(--sombra);
+  background: color-mix(in srgb, var(--tinte-ok) 70%, var(--superficie));
+}
+.nota-frase.fija {
+  cursor: default;
+}
+.nota-frase:hover:not(.fija) {
+  border-color: var(--linea);
+}
+.nota-frase input {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: var(--ok-t);
+}
+.nf-t {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.nf-k {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--suave);
+}
+.nf-x {
+  font: 1.05rem/1.5 var(--lectura);
+  color: var(--tinta);
+}
+.nf-f {
+  font-size: 0.82rem;
+  color: var(--suave);
+}
+/* step 3: the paragraph */
+.nota-texto {
+  width: 100%;
+  min-height: 190px;
+  padding: 14px;
+  font: 1.08rem/1.6 var(--lectura);
+  resize: vertical;
+  background: var(--gris);
+}
+.nota-revisa {
+  margin-top: 14px;
+  padding: 4px 14px 14px;
+  border: 2px solid var(--linea);
+  border-left: 8px solid var(--peligro-t);
+  border-radius: var(--r);
+  background: var(--tinte-peligro);
+}
+.nota-revisa ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.nota-revisa .nota-mini {
+  color: var(--peligro-t);
+}
+/* done */
+.nota-listo {
+  text-align: center;
+  padding: 10px 0 4px;
+}
+.nota-ok {
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+  color: #fff;
+  background: var(--ok-t);
+  border: 4px solid var(--linea);
+  border-radius: 50%;
+  box-shadow: 4px 4px 0 var(--sombra);
+  animation: nota-pop 0.35s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.nota-ok svg.ic {
+  width: 32px;
+  height: 32px;
+}
+@keyframes nota-pop {
+  from {
+    transform: scale(0.4);
+  }
+}
+.nota-siguiente {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+}
+.nota-carga {
+  display: grid;
+  gap: 10px;
+}
+.nota-carga .sk-b {
+  height: 64px;
+  margin: 0;
+}
+/* footer: the next action is always here */
+.nota-pie {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 20px;
+  border-top: 4px solid var(--linea);
+  background: var(--gris);
+}
+.nota-pie:empty {
+  display: none;
+}
+.nota-pie-t {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--suave);
+}
+.nota-copiar {
+  font-size: 1.1rem;
+  min-height: 50px;
+}
+/* the start-screen entry weighs like the most used tools */
+.hero-nota {
+  border-width: 4px;
+  box-shadow: 4px 4px 0 var(--sombra);
+}
+.hero-nota .hero-ic {
+  background: var(--primario);
+  color: #fff;
+}
+@media (max-width: 640px) {
+  dialog.nota-dlg {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    border-width: 0;
+    box-shadow: none;
+  }
+  .np-t {
+    font-size: 0.8rem;
+  }
+  .nota-pie-t {
+    display: none;
+  }
+  .nota-pie .btn {
+    flex: 1 1 auto;
+  }
+  .nota-provs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nota-cuerpo.entra,
+  .nota-ok {
+    animation: none;
+  }
+}
+
+/* ---- recommender: kinds of story and advice blocks ---- */
+.nota-tipos {
+  display: grid;
+  gap: 10px;
+}
+.nota-tipo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+  color: var(--tinta);
+  background: var(--superficie);
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+  box-shadow: 3px 3px 0 var(--sombra);
+  cursor: pointer;
+}
+.nota-tipo:hover,
+.nota-tipo:focus-visible {
+  background: var(--gris);
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--sombra);
+}
+.nota-tipo.on {
+  border-color: var(--primario);
+}
+.nota-tipo .hero-ic {
+  flex: none;
+}
+.nt-t {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.nt-t b {
+  font: 800 1.08rem/1.25 var(--cuerpo);
+}
+.nt-t small {
+  font-size: 0.92rem;
+  color: var(--suave);
+}
+.nt-ir {
+  flex: none;
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--primario);
+}
+.nota-bloque {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: var(--superficie);
+  border: 3px solid var(--linea);
+  border-radius: var(--r);
+}
+.nota-bloque h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -12px -14px 10px;
+  padding: 9px 14px;
+  font-size: 1.05rem;
+  background: var(--gris);
+  border-bottom: 3px solid var(--linea);
+}
+.nota-bloque h3 svg.ic {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.nota-recs {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+.nota-citas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+.nota-citas li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+.nota-citas li + li {
+  border-top: 2px solid var(--regla);
+}
+.nota-citas p {
+  margin: 0;
+  font: 1.02rem/1.5 var(--lectura);
+}
+.nota-citas small {
+  display: block;
+  margin-top: 3px;
+  font: 0.82rem var(--cuerpo);
+  color: var(--suave);
+}
+.nota-citas .copybtn {
+  flex: none;
+}
+.nota-cargando {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  color: var(--suave);
+}
+.nota-pista {
+  margin: 8px 0 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--suave);
+}
+.nota-escucha .esc-posts {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 0.92rem;
+}
+.nota-no {
+  background: var(--tinte-peligro);
+}
+.nota-no h3 {
+  color: var(--peligro-t);
+}
+.nota-pie .btn:last-child {
+  margin-left: auto;
+}
+@media (max-width: 640px) {
+  .nota-citas li {
+    flex-direction: column;
+  }
+}

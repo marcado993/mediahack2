@@ -203,6 +203,41 @@ function datosClave(data) {
   return out;
 }
 
+const CON_ARTICULO = { EST: "las carencias de base", EXP: "la dependencia de redes", PRE: "el clima electoral", RES: "la poca capacidad de contrastar información" };
+
+/**
+ * Everything the story recommender (mod/nota.js) needs about one province, as plain values and
+ * finished sentences. Every number comes from the same data as the province sheet.
+ */
+export function piezasNota(data) {
+  const prov = data.provincia;
+  const rec = byKey()[provinceKey(prov)] ?? {};
+  const nac = E.MAPA.nacional;
+  const pesan = drivers(rec);
+  const plataformas = Object.entries(data.dieta_informativa.plataformas || {})
+    .filter(([n, v]) => v != null && n !== "Otra red")
+    .sort((a, b) => b[1] - a[1]);
+  const mec = data.digital.mecanismo || {};
+  return {
+    provincia: prov,
+    nivel: (data.ivei.nivel || "").toLowerCase(),
+    puesto: data.ivei.puesto,
+    principal: `${prov} ocupa el puesto ${data.ivei.puesto} de 24 provincias en vulnerabilidad ante la desinformación electoral, con ${fmt(data.ivei.indice)} puntos sobre 100 en el índice OVADE (promedio del país: ${fmt(data.ivei.nacional)}).`,
+    pesan: pesan.map((d) => ({ k: d.k, nombre: CON_ARTICULO[d.k] ?? factorNombre(d.k).toLowerCase(), valor: rec[d.k], nacional: nac[d.k] })),
+    clima: { valor: rec.PRE, nacional: nac.PRE },
+    plataformas,
+    sinConexion: { valor: mec.exclusion, nacional: mec.nacional_exclusion },
+    saturacion: { valor: mec.hiperexposicion, nacional: mec.nacional_hiperexposicion },
+    tipo: perfilPlano(data.perfil_territorial.tipo),
+    recomendaciones: data.recomendaciones_periodismo || [],
+    datos: datosClave(data).map((c) => ({ texto: c.texto, fuente: c.source, variable: c.variable || "rural" })),
+    aviso: precaucion(data.n_lb, prov),
+    noAfirmar: reporterGuide(data).no,
+    canal: canalSugerido(rec),
+    fuente: "Observatorio de Vulnerabilidad ante la Desinformación Electoral (OVADE)",
+  };
+}
+
 // One sentence is enough here; the rest of the profile description is in the full data.
 const primeraFrase = (t) => (String(t || "").match(/^.*?[.!?](?=\s|$)/) || [t || ""])[0];
 
@@ -322,7 +357,7 @@ export function renderPerfil(data) {
        <p class="copiar-h">Tu párrafo, listo para pegar</p>
        <p class="frase" id="fraseTexto">${esc(fraseVista)}</p>
        ${aviso ? `<p class="copiar-nota">Al copiar se añade la advertencia de arriba.</p>` : ""}
-       <div class="cita-act"><button class="btn" id="btnFrase" type="button">${ICON.copy}Copiar para mi nota</button><button class="linkbtn" id="btnCita" type="button">o copiar una versión más larga, con fuentes</button></div>
+       <div class="cita-act"><button class="btn" id="btnFrase" type="button">${ICON.copy}Copiar para mi nota</button><button class="btn gh" type="button" data-abrir-nota="${esc(data.provincia)}">${ICON.pen}Ideas para tu noticia</button><button class="linkbtn" id="btnCita" type="button">o copiar una versión más larga, con fuentes</button></div>
       </div>`
         : ""
     }
