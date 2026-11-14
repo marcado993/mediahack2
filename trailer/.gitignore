@@ -1,0 +1,6 @@
+node_modules/
+out/
+musica/cancion.mp3
+musica/cancion.wav
+public/cancion-demo.wav
+musica/cancion-demo-enjoy.wav
